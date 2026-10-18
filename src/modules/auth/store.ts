@@ -8,14 +8,14 @@ const token = ref<string | null>(getToken())
 
 const deviceName = () => navigator.userAgent.slice(0, 255) || 'web'
 
-function startSession(response: LoginResponse): void {
-  setToken(response.token)
+function startSession(response: LoginResponse, remember: boolean): void {
+  setToken(response.token, remember)
   token.value = response.token
   user.value = response.user
 }
 
-async function login(credentials: Omit<LoginPayload, 'device_name'>): Promise<void> {
-  startSession(await authApi.login({ ...credentials, device_name: deviceName() }))
+async function login(credentials: Omit<LoginPayload, 'device_name'>, remember = true): Promise<void> {
+  startSession(await authApi.login({ ...credentials, device_name: deviceName() }), remember)
 }
 
 

@@ -37,3 +37,10 @@ export interface LoginResponse {
   token_type: 'Bearer'
   user: User
 }
+
+export interface ResetPasswordPayload {
+  token: string
+  email: string
+  password: string
+  password_confirmation: string
+}

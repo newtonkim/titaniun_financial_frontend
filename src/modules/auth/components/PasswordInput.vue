@@ -3,7 +3,7 @@ import { ref } from 'vue'
 
 const model = defineModel<string>({ required: true })
 
-defineProps<{ autocomplete: string; id?: string }>()
+defineProps<{ autocomplete: string; id?: string; placeholder?: string }>()
 
 const visible = ref(false)
 const capsLock = ref(false)
@@ -20,13 +20,24 @@ function detectCapsLock(event: KeyboardEvent): void {
       v-model="model"
       :type="visible ? 'text' : 'password'"
       :autocomplete="autocomplete"
+      :placeholder="placeholder"
       required
       @keydown="detectCapsLock"
       @keyup="detectCapsLock"
       @blur="capsLock = false"
     />
-    <button type="button" class="password__toggle" :aria-pressed="visible" @click="visible = !visible">
-      {{ visible ? 'Hide' : 'Show' }}
+    <button
+      type="button"
+      class="password__toggle"
+      :aria-label="visible ? 'Hide password' : 'Show password'"
+      :aria-pressed="visible"
+      @click="visible = !visible"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+        <circle cx="12" cy="12" r="3" />
+        <path v-if="visible" d="m3 3 18 18" />
+      </svg>
     </button>
   </span>
   <span v-if="capsLock" class="password__hint" role="status">Caps Lock is on.</span>
@@ -39,32 +50,37 @@ function detectCapsLock(event: KeyboardEvent): void {
 }
 
 .password input {
-  width: 100%;
-  padding-right: 4.25rem;
+  padding-right: 3.5rem !important;
 }
 
 .password__toggle {
   position: absolute;
-  inset-block: 0.3rem;
-  right: 0.3rem;
-  padding: 0 0.7rem;
+  top: 50%;
+  right: 0.6rem;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: var(--muted);
-  font-size: 0.8125rem;
-  font-weight: 500;
+  color: #4a4f5c;
   cursor: pointer;
-  transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
+  transform: translateY(-50%);
+  transition: background-color 160ms var(--ease-out);
 }
 
 .password__toggle:hover {
-  background: var(--bg);
-  color: var(--text);
+  background: #f1f2f5;
+}
+
+.password__toggle svg {
+  width: 1.4rem;
+  height: 1.4rem;
 }
 
 .password__hint {
-  font-size: 0.8125rem;
-  color: var(--warning);
+  font-size: 0.9rem;
+  color: #8a5a00;
 }
 </style>

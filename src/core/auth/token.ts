@@ -1,25 +1,41 @@
 const TOKEN_KEY = 'titanium.auth_token'
 
-export function getToken(): string | null {
+/** Remembered sign-ins survive closing the browser; others end with the browser session. */
+function stores(): Storage[] {
   try {
-    return localStorage.getItem(TOKEN_KEY)
+    return [localStorage, sessionStorage]
   } catch {
-    return null
+    return []
   }
 }
 
-export function setToken(token: string): void {
+export function getToken(): string | null {
+  for (const store of stores()) {
+    try {
+      const token = store.getItem(TOKEN_KEY)
+      if (token) return token
+    } catch {
+      // Storage unavailable (private mode).
+    }
+  }
+  return null
+}
+
+export function setToken(token: string, remember = true): void {
+  clearToken()
   try {
-    localStorage.setItem(TOKEN_KEY, token)
+    ;(remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, token)
   } catch {
-    // Storage unavailable (private mode); the session lasts until reload.
+    // Storage unavailable; the session lasts until reload.
   }
 }
 
 export function clearToken(): void {
-  try {
-    localStorage.removeItem(TOKEN_KEY)
-  } catch {
-    // Nothing to clear.
+  for (const store of stores()) {
+    try {
+      store.removeItem(TOKEN_KEY)
+    } catch {
+      // Nothing to clear.
+    }
   }
 }
