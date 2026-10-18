@@ -24,6 +24,11 @@ async function loadUser(): Promise<User> {
   return user.value
 }
 
+/** Replace the cached user after their profile changes. */
+function setUser(updated: User): void {
+  user.value = updated
+}
+
 /** Forget the session locally without calling the backend (e.g. after a 401). */
 function forget(): void {
   clearToken()
@@ -45,6 +50,7 @@ export function useAuth() {
     isAuthenticated: computed(() => token.value !== null),
     login,
     loadUser,
+    setUser,
     logout,
     forget,
   }

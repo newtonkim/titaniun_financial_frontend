@@ -9,4 +9,5 @@ export const moduleStatuses: Record<string, boolean> = {
   Shares: true,
   Expenses: true,
   Reports: true,
+  Settings: true,
 }

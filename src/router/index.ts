@@ -9,6 +9,8 @@ declare module 'vue-router' {
   interface RouteMeta {
     /** Only reachable when signed out. */
     guest?: boolean
+    /** Page name shown in the breadcrumb. */
+    title?: string
   }
 }
 
@@ -20,7 +22,7 @@ const router = createRouter({
       path: '/',
       component: AppLayout,
       children: [
-        { path: '', name: 'dashboard', component: () => import('@/core/views/DashboardView.vue') },
+        { path: '', name: 'dashboard', meta: { title: 'Dashboard' }, component: () => import('@/core/views/DashboardView.vue') },
         ...modules.flatMap((module) => module.routes),
       ],
     },
