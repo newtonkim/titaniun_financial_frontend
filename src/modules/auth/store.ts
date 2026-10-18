@@ -1,17 +1,23 @@
 import { computed, ref } from 'vue'
 import { clearToken, getToken, setToken } from '@/core/auth/token'
 import { authApi } from './api'
-import type { LoginPayload, User } from './types'
+import type { LoginPayload, LoginResponse, User } from './types'
 
 const user = ref<User | null>(null)
 const token = ref<string | null>(getToken())
 
-async function login(credentials: Omit<LoginPayload, 'device_name'>): Promise<void> {
-  const response = await authApi.login({ ...credentials, device_name: navigator.userAgent.slice(0, 255) || 'web' })
+const deviceName = () => navigator.userAgent.slice(0, 255) || 'web'
+
+function startSession(response: LoginResponse): void {
   setToken(response.token)
   token.value = response.token
   user.value = response.user
 }
+
+async function login(credentials: Omit<LoginPayload, 'device_name'>): Promise<void> {
+  startSession(await authApi.login({ ...credentials, device_name: deviceName() }))
+}
+
 
 async function loadUser(): Promise<User> {
   user.value = await authApi.me()

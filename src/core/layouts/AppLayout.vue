@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import BrandMark from '@/core/components/BrandMark.vue'
 import { modules } from '@/modules'
 import { useAuth } from '@/modules/auth/store'
 
@@ -15,7 +16,7 @@ async function signOut(): Promise<void> {
 <template>
   <div class="shell">
     <aside class="sidebar">
-      <RouterLink class="brand" :to="{ name: 'dashboard' }">Titanium Financial</RouterLink>
+      <RouterLink class="brand" :to="{ name: 'dashboard' }"><BrandMark :size="32" /> Titanium Financial</RouterLink>
       <nav>
         <section v-for="module in modules" :key="module.name" class="nav-group">
           <h2>{{ module.label }}</h2>
