@@ -1,8 +1,14 @@
 import type { RouteLocationRaw, RouteRecordRaw } from 'vue-router'
+import type { IconName } from '@/core/components/AppIcon.vue'
+
+/** Sidebar group a navigation item belongs to. */
+export type NavSection = 'main' | 'setup' | 'reports' | 'settings'
 
 export interface NavItem {
   label: string
   to: RouteLocationRaw
+  icon: IconName
+  section: NavSection
 }
 
 /**

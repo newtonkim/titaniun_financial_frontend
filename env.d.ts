@@ -8,6 +8,8 @@ interface ImportMetaEnv {
   /** Shown on the sign-in page under "Need help?". */
   readonly VITE_SUPPORT_PHONE?: string
   readonly VITE_SUPPORT_EMAIL?: string
+  /** ISO 4217 code (e.g. UGX) used when formatting amounts; plain numbers when unset. */
+  readonly VITE_CURRENCY?: string
 }
 
 interface ImportMeta {

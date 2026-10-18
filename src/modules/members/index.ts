@@ -4,8 +4,10 @@ export default defineModule({
   name: 'Members',
   label: 'Members',
   routes: [
-    { path: 'members', name: 'members.index', component: () => import('./views/MemberListView.vue') },
-    { path: 'members/new', name: 'members.create', component: () => import('./views/MemberCreateView.vue') },
+    { path: 'members', name: 'members.index', meta: { title: 'Members' }, component: () => import('./views/MemberListView.vue') },
+    { path: 'members/new', name: 'members.create', meta: { title: 'New member' }, component: () => import('./views/MemberCreateView.vue') },
   ],
-  nav: [{ label: 'Members', to: { name: 'members.index' } }],
+  nav: [
+    { label: 'Members', to: { name: 'members.index' }, icon: 'members', section: 'main' },
+  ],
 })

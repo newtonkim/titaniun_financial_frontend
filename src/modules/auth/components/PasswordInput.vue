@@ -50,6 +50,7 @@ function detectCapsLock(event: KeyboardEvent): void {
 }
 
 .password input {
+  width: 100%;
   padding-right: 3.5rem !important;
 }
 
