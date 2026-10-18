@@ -5,6 +5,9 @@ interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string
   /** Backend origin the dev server proxies `/api` to. */
   readonly VITE_BACKEND_URL?: string
+  /** Shown on the sign-in page under "Need help?". */
+  readonly VITE_SUPPORT_PHONE?: string
+  readonly VITE_SUPPORT_EMAIL?: string
 }
 
 interface ImportMeta {
