@@ -3,6 +3,7 @@ export type IconName =
   | 'dashboard' | 'members' | 'wallet' | 'loan' | 'shares' | 'receipt' | 'ledger' | 'journal' | 'report'
   | 'layers' | 'tag' | 'logout' | 'search' | 'arrow-left' | 'arrow-right' | 'chevron-right' | 'chevron-down'
   | 'plus' | 'refresh' | 'more' | 'arrow-in' | 'arrow-out' | 'menu' | 'close' | 'clock' | 'user' | 'lock'
+  | 'settings' | 'sun' | 'moon' | 'sidebar' | 'home'
 
 withDefaults(defineProps<{ name: IconName; size?: number }>(), { size: 20 })
 </script>
@@ -45,6 +46,11 @@ withDefaults(defineProps<{ name: IconName; size?: number }>(), { size: 20 })
     <template v-else-if="name === 'close'"><path d="M6 6l12 12M18 6 6 18" /></template>
     <template v-else-if="name === 'user'"><circle cx="12" cy="8" r="3.8" /><path d="M4.5 20.5c.8-3.8 3.8-6 7.5-6s6.7 2.2 7.5 6" /></template>
     <template v-else-if="name === 'lock'"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5" /><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3M12 14.5v2" /></template>
+    <template v-else-if="name === 'settings'"><path d="M10.3 3.6a1.7 1.7 0 0 1 3.4 0l.2.9a1.7 1.7 0 0 0 2.5 1l.8-.4a1.7 1.7 0 0 1 2.3 2.4l-.5.8a1.7 1.7 0 0 0 1 2.5l.9.2a1.7 1.7 0 0 1 0 3.4l-.9.2a1.7 1.7 0 0 0-1 2.5l.5.8a1.7 1.7 0 0 1-2.3 2.4l-.8-.4a1.7 1.7 0 0 0-2.5 1l-.2.9a1.7 1.7 0 0 1-3.4 0l-.2-.9a1.7 1.7 0 0 0-2.5-1l-.8.4a1.7 1.7 0 0 1-2.3-2.4l.5-.8a1.7 1.7 0 0 0-1-2.5l-.9-.2a1.7 1.7 0 0 1 0-3.4l.9-.2a1.7 1.7 0 0 0 1-2.5l-.5-.8A1.7 1.7 0 0 1 6.5 5.1l.8.4a1.7 1.7 0 0 0 2.5-1z" /><circle cx="12" cy="12" r="3" /></template>
+    <template v-else-if="name === 'sun'"><circle cx="12" cy="12" r="4" /><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4" /></template>
+    <template v-else-if="name === 'moon'"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></template>
+    <template v-else-if="name === 'sidebar'"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><path d="M9.5 4.5v15" /></template>
+    <template v-else-if="name === 'home'"><path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19z" /></template>
     <template v-else-if="name === 'clock'"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></template>
   </svg>
 </template>

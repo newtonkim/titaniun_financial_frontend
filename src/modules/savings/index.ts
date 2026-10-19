@@ -5,10 +5,16 @@ export default defineModule({
   label: 'Savings',
   routes: [
     { path: 'savings/accounts', name: 'savings.accounts', meta: { title: 'Savings accounts' }, component: () => import('./views/SavingsAccountListView.vue') },
-    { path: 'savings/products', name: 'savings.products', meta: { title: 'Savings products' }, component: () => import('./views/SavingsProductListView.vue') },
   ],
   nav: [
-    { label: 'Savings accounts', to: { name: 'savings.accounts' }, icon: 'wallet', section: 'main' },
-    { label: 'Savings products', to: { name: 'savings.products' }, icon: 'layers', section: 'setup' },
+    { label: 'Savings accounts', to: { name: 'savings.accounts' }, icon: 'wallet', group: 'savings' },
+  ],
+  settings: [
+    {
+      label: 'Savings products',
+      description: 'Interest rates, minimum balances and the ledger account deposits post to.',
+      icon: 'wallet',
+      route: { path: 'savings-products', name: 'savings.products', meta: { title: 'Savings products' }, component: () => import('./views/SavingsProductListView.vue') },
+    },
   ],
 })

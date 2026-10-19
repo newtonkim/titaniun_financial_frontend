@@ -8,7 +8,7 @@ export default defineModule({
     { path: 'accounting/journal-entries', name: 'accounting.journal-entries', meta: { title: 'Journal entries' }, component: () => import('./views/JournalEntryListView.vue') },
   ],
   nav: [
-    { label: 'Chart of accounts', to: { name: 'accounting.chart-of-accounts' }, icon: 'ledger', section: 'setup' },
-    { label: 'Journal entries', to: { name: 'accounting.journal-entries' }, icon: 'journal', section: 'reports' },
+    { label: 'Chart of accounts', to: { name: 'accounting.chart-of-accounts' }, icon: 'ledger', group: 'financials' },
+    { label: 'Journal entries', to: { name: 'accounting.journal-entries' }, icon: 'journal', group: 'financials' },
   ],
 })

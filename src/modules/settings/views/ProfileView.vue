@@ -20,7 +20,7 @@ const emailChanged = computed(() => form.data.email !== auth.user.value?.email)
 </script>
 
 <template>
-  <SettingsPage title="Profile" description="Your name and the email you sign in with.">
+  <SettingsPage icon="user" title="Profile" description="Your name and the email you sign in with.">
     <form novalidate @submit.prevent="form.submit">
       <p v-if="form.message.value && !hasFieldErrors" class="alert alert--error" role="alert">{{ form.message.value }}</p>
 
