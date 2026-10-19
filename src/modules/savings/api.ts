@@ -6,14 +6,14 @@ import type {
   SavingsAccountFilters,
   SavingsProduct,
   SavingsProductFilters,
+  SavingsProductSettings,
   SavingsTransaction,
   StoreSavingsAccountPayload,
-  StoreSavingsProductPayload,
   StoreSavingsTransactionPayload,
   UpdateSavingsAccountPayload,
 } from './types'
 
-export const savingsProductsApi = createResourceApi<SavingsProduct, StoreSavingsProductPayload, Partial<StoreSavingsProductPayload>, SavingsProductFilters>('/savings-products')
+export const savingsProductsApi = createResourceApi<SavingsProduct, SavingsProductSettings, Partial<SavingsProductSettings>, SavingsProductFilters>('/savings-products')
 
 const { remove: _remove, ...savingsAccounts } = createResourceApi<SavingsAccount, StoreSavingsAccountPayload, UpdateSavingsAccountPayload, SavingsAccountFilters>('/savings-accounts')
 

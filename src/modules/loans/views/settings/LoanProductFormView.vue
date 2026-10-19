@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { ArrowLeft, Calculator, ChevronDown, ChevronUp, CreditCard, Save } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { formatMoney } from '@/core/utils/format'
-import SearchableSelect from '../../components/SearchableSelect.vue'
+import SearchableSelect from '@/core/components/SearchableSelect.vue'
 import { ACCOUNT_FIELDS, useLoanProductForm } from '../../composables/useLoanProductForm'
 
 const router = useRouter()

@@ -12,6 +12,8 @@
 
 @source '../modules/reports';
 @source '../modules/loans';
+@source '../modules/savings';
+@source '../core/components/SearchableSelect.vue';
 
 @custom-variant dark {
   :root[data-theme='dark'] & {
