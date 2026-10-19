@@ -54,7 +54,7 @@ const buttonClass =
 </script>
 
 <template>
-  <div class="tw-report flex flex-col gap-6 text-neutral-900 dark:text-neutral-100">
+  <div class="tw-scope flex flex-col gap-6 text-neutral-900 dark:text-neutral-100">
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div>
         <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-neutral-500">

@@ -15,7 +15,7 @@ const {
 </script>
 
 <template>
-  <div class="tw-report flex flex-col gap-6">
+  <div class="tw-scope flex flex-col gap-6">
 
     <!-- Header -->
     <div class="flex items-center justify-between flex-wrap gap-3">

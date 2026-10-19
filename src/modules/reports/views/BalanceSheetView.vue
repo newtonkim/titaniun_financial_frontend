@@ -31,7 +31,7 @@ const ghostBtn   = 'flex items-center gap-1.5 rounded-lg border border-neutral-2
 </script>
 
 <template>
-  <div class="tw-report flex flex-col gap-6">
+  <div class="tw-scope flex flex-col gap-6">
 
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-3">

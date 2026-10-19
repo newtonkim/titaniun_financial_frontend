@@ -30,7 +30,9 @@ export interface SettingsPage {
   label: string
   description: string
   icon: IconName
-  route: RouteRecordRaw & { name: string }
+  route: RouteRecordRaw & { name: string; path: string }
+  /** Further pages under this entry (for example a list's create and edit forms); their paths start with the entry's. */
+  subRoutes?: RouteRecordRaw[]
 }
 
 /**

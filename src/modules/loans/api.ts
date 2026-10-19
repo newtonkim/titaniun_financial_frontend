@@ -6,14 +6,20 @@ import type {
   LoanFilters,
   LoanProduct,
   LoanProductFilters,
+  LoanProductPreview,
+  LoanProductSettings,
   LoanRepayment,
   StoreLoanPayload,
-  StoreLoanProductPayload,
   StoreLoanRepaymentPayload,
   UpdateLoanPayload,
 } from './types'
 
-export const loanProductsApi = createResourceApi<LoanProduct, StoreLoanProductPayload, Partial<StoreLoanProductPayload>, LoanProductFilters>('/loan-products')
+export const loanProductsApi = {
+  ...createResourceApi<LoanProduct, LoanProductSettings, Partial<LoanProductSettings>, LoanProductFilters>('/loan-products'),
+  /** A sample repayment schedule for the pricing on an unsaved product form. */
+  preview: (payload: Partial<LoanProductSettings> & { preview_amount?: number | null; preview_term?: number | null }) =>
+    http.post<Wrapped<LoanProductPreview>>('/loan-products/preview', payload).then((response) => response.data),
+}
 
 const transition = (loanId: number, action: 'approval' | 'rejection' | 'disbursement', body?: object) =>
   http.post<Wrapped<Loan>>(`/loans/${loanId}/${action}`, body).then((response) => response.data)

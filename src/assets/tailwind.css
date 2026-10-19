@@ -1,9 +1,9 @@
 /*
- * Tailwind for the pages ported from finance-link (the financial reports), alongside the app's own CSS.
+ * Tailwind for the pages ported from finance-link (financial reports, loan product settings), alongside the app's own CSS.
  *
  * - Only the theme and utilities are loaded, not Tailwind's preflight reset, so the rest of the app keeps
  *   its styles. Utilities are unlayered so they win over main.css's element rules (`th`, `h2`, ...).
- * - Elements inside `.tw-report` get the slice of preflight those pages rely on. `:where()` keeps it at
+ * - Elements inside `.tw-scope` get the slice of preflight those pages rely on. `:where()` keeps it at
  *   element specificity: it beats main.css (it comes later) and loses to any utility class.
  * - `dark:` follows the app's theme: data-theme on <html>, else the system setting.
  */
@@ -11,6 +11,7 @@
 @import 'tailwindcss/utilities.css' source(none);
 
 @source '../modules/reports';
+@source '../modules/loans';
 
 @custom-variant dark {
   :root[data-theme='dark'] & {
@@ -30,14 +31,14 @@
   --color-navy: #1f2a5c;
 }
 
-:where(.tw-report) *,
-:where(.tw-report) ::before,
-:where(.tw-report) ::after {
+:where(.tw-scope) *,
+:where(.tw-scope) ::before,
+:where(.tw-scope) ::after {
   box-sizing: border-box;
   border: 0 solid;
 }
 
-:where(.tw-report) :is(h1, h2, h3, p, dl, dd, figure, fieldset, legend, ul, ol) {
+:where(.tw-scope) :is(h1, h2, h3, p, dl, dd, figure, fieldset, legend, ul, ol) {
   margin: 0;
   padding: 0;
   font-size: inherit;
@@ -47,16 +48,16 @@
   color: inherit;
 }
 
-:where(.tw-report) :is(ul, ol) {
+:where(.tw-scope) :is(ul, ol) {
   list-style: none;
 }
 
-:where(.tw-report) a {
+:where(.tw-scope) a {
   color: inherit;
   text-decoration: inherit;
 }
 
-:where(.tw-report) button {
+:where(.tw-scope) button {
   padding: 0;
   border-radius: 0;
   background: transparent;
@@ -65,18 +66,18 @@
   cursor: pointer;
 }
 
-:where(.tw-report) button:disabled {
+:where(.tw-scope) button:disabled {
   cursor: default;
 }
 
-:where(.tw-report) table {
+:where(.tw-scope) table {
   width: auto;
   border-collapse: collapse;
   border-color: inherit;
   text-indent: 0;
 }
 
-:where(.tw-report) :is(th, td) {
+:where(.tw-scope) :is(th, td) {
   padding: 0;
   border-bottom: 0;
   font-size: inherit;
@@ -85,25 +86,25 @@
 }
 
 /* The browser's own header cell look, which main.css replaces. */
-:where(.tw-report) th {
+:where(.tw-scope) th {
   font-weight: bold;
   text-align: center;
 }
 
-:where(.tw-report) td {
+:where(.tw-scope) td {
   font-weight: inherit;
   text-align: inherit;
 }
 
-:where(.tw-report) :is(input, select) {
+:where(.tw-scope) :is(input, select) {
   min-width: 0;
 }
 
-:where(.tw-report) :is(svg, img) {
+:where(.tw-scope) :is(svg, img) {
   display: block;
   vertical-align: middle;
 }
 
-:where(.tw-report) summary {
+:where(.tw-scope) summary {
   display: list-item;
 }

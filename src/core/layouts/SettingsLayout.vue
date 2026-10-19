@@ -17,7 +17,13 @@ const visiblePages = computed(() => {
   )
 })
 
-const currentPage = computed(() => settingsPages.find((page) => page.route.name === route.name))
+/** The settings entry the current page belongs to, including any page under it. */
+const currentPage = computed(() => settingsPages.find(isCurrent))
+
+function isCurrent(page: (typeof settingsPages)[number]): boolean {
+  const base = `/settings/${page.route.path}`
+  return route.path === base || route.path.startsWith(`${base}/`)
+}
 </script>
 
 <template>
@@ -55,12 +61,12 @@ const currentPage = computed(() => settingsPages.find((page) => page.route.name 
             :key="page.route.name"
             :to="{ name: page.route.name }"
             class="settings__module"
-            :class="{ 'settings__module--active': route.name === page.route.name }"
-            :aria-current="route.name === page.route.name ? 'page' : undefined"
+            :class="{ 'settings__module--active': isCurrent(page) }"
+            :aria-current="isCurrent(page) ? 'page' : undefined"
           >
             <AppIcon :name="page.icon" :size="16" />
             <span>{{ page.label }}</span>
-            <AppIcon v-if="route.name === page.route.name" class="settings__module-chevron" name="chevron-right" :size="12" />
+            <AppIcon v-if="isCurrent(page)" class="settings__module-chevron" name="chevron-right" :size="12" />
           </RouterLink>
           <p v-if="visiblePages.length === 0" class="settings__empty">No settings match “{{ search }}”.</p>
         </nav>

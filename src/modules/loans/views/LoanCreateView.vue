@@ -6,7 +6,11 @@ import { useForm } from '@/core/composables/useForm'
 import { formatMoney } from '@/core/utils/format'
 import MemberPicker from '@/modules/members/components/MemberPicker.vue'
 import { loanProductsApi, loansApi } from '../api'
-import type { LoanProduct } from '../types'
+import { interestPeriodLabel } from '../composables/useLoanProducts'
+import type { LoanProduct, RepaymentFrequency } from '../types'
+
+/** A loan's term is counted in repayment periods. */
+const TERM_UNITS: Record<RepaymentFrequency, string> = { daily: 'days', weekly: 'weeks', biweekly: 'fortnights', monthly: 'months', yearly: 'years' }
 
 const router = useRouter()
 const products = ref<LoanProduct[]>([])
@@ -22,7 +26,7 @@ const form = useForm(
 const product = computed(() => products.value.find((candidate) => candidate.id === form.data.loan_product_id))
 
 onMounted(async () => {
-  products.value = (await loanProductsApi.list({ active: true })).data
+  products.value = (await loanProductsApi.list({ active: true, per_page: 100 })).data
 })
 </script>
 
@@ -36,7 +40,7 @@ onMounted(async () => {
       <FormField label="Product" :error="form.error('loan_product_id')">
         <select v-model="form.data.loan_product_id" required>
           <option :value="null" disabled>Select a product</option>
-          <option v-for="option in products" :key="option.id" :value="option.id">{{ option.name }} ({{ option.interest_rate }}%)</option>
+          <option v-for="option in products" :key="option.id" :value="option.id">{{ option.name }} ({{ option.interest_rate }}% {{ interestPeriodLabel(option.interest_period) }})</option>
         </select>
       </FormField>
       <FormField label="Principal" :error="form.error('principal')">
@@ -45,7 +49,7 @@ onMounted(async () => {
       </FormField>
       <FormField label="Term" :error="form.error('term')">
         <input v-model.number="form.data.term" type="number" min="1" required />
-        <small v-if="product" class="muted">{{ product.min_term }} – {{ product.max_term }} {{ product.repayment_frequency === 'weekly' ? 'weeks' : 'months' }}</small>
+        <small v-if="product" class="muted">{{ product.min_term }} – {{ product.max_term }} {{ TERM_UNITS[product.repayment_frequency] }}</small>
       </FormField>
       <div class="form-actions span-all">
         <RouterLink class="btn" :to="{ name: 'loans.index' }">Cancel</RouterLink>

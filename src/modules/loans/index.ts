@@ -14,9 +14,15 @@ export default defineModule({
   settings: [
     {
       label: 'Loan products',
-      description: 'Interest methods, repayment frequency, amount and term limits, and fees.',
+      description: 'Loan types: pricing, terms, fees, penalties, eligibility and accounting.',
       icon: 'loan',
-      route: { path: 'loan-products', name: 'loans.products', meta: { title: 'Loan products' }, component: () => import('./views/LoanProductListView.vue') },
+      route: { path: 'loans', name: 'loans.settings', meta: { title: 'Loan products' }, component: () => import('./views/settings/LoanSettingsView.vue') },
+      subRoutes: [
+        { path: 'loans/products', name: 'loans.products', meta: { title: 'Loan products' }, component: () => import('./views/settings/LoanProductIndexView.vue') },
+        { path: 'loans/products/new', name: 'loans.products.create', meta: { title: 'Create loan product' }, component: () => import('./views/settings/LoanProductFormView.vue') },
+        { path: 'loans/products/:id(\\d+)', name: 'loans.products.show', meta: { title: 'Loan product' }, component: () => import('./views/settings/LoanProductShowView.vue') },
+        { path: 'loans/products/:id(\\d+)/edit', name: 'loans.products.edit', meta: { title: 'Edit loan product' }, component: () => import('./views/settings/LoanProductFormView.vue') },
+      ],
     },
   ],
 })

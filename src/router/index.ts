@@ -32,7 +32,7 @@ const router = createRouter({
           component: () => import('@/core/layouts/SettingsLayout.vue'),
           children: [
             { path: '', name: 'settings.index', meta: { title: 'Settings' }, component: () => import('@/core/views/SettingsHomeView.vue') },
-            ...settingsPages.map((page) => page.route),
+            ...settingsPages.flatMap((page) => [page.route, ...(page.subRoutes ?? [])]),
           ],
         },
       ],

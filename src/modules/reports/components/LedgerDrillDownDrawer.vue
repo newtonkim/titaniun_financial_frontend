@@ -83,7 +83,7 @@ onBeforeUnmount(() => { ++version })
   <DialogRoot v-model:open="open">
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-50 bg-neutral-950/20" />
-      <DialogContent class="tw-report fixed right-0 top-0 z-50 h-full w-full max-w-xl bg-white dark:bg-neutral-900 shadow-2xl flex flex-col">
+      <DialogContent class="tw-scope fixed right-0 top-0 z-50 h-full w-full max-w-xl bg-white dark:bg-neutral-900 shadow-2xl flex flex-col">
         <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
           <div>
             <p class="text-xs font-mono text-neutral-400">{{ account?.code }}</p>

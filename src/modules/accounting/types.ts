@@ -9,6 +9,9 @@ export interface ChartOfAccount {
   code: string
   name: string
   type: AccountType
+  subtype: string | null
+  level: number
+  is_postable: boolean
   parent_id: number | null
   description: string | null
   is_active: boolean

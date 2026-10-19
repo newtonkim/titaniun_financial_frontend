@@ -79,7 +79,7 @@ onBeforeUnmount(() => {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-50 bg-neutral-950/20" />
       <DialogContent
-        class="tw-report fixed right-0 top-0 z-50 flex h-full w-full max-w-xl flex-col bg-white shadow-2xl dark:bg-neutral-900"
+        class="tw-scope fixed right-0 top-0 z-50 flex h-full w-full max-w-xl flex-col bg-white shadow-2xl dark:bg-neutral-900"
       >
         <div
           class="flex items-center justify-between border-b border-neutral-100 px-6 py-4 dark:border-neutral-800"
