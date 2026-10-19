@@ -2,6 +2,7 @@
 import { ArrowLeft, CreditCard, Eye, Pencil, Plus, Search, ToggleLeft, ToggleRight, Trash2 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import LoanProductDeleteDialog from '../../components/LoanProductDeleteDialog.vue'
+import LoanProductFormDrawer from '../../components/LoanProductFormDrawer.vue'
 import { interestPeriodLabel, useLoanProducts } from '../../composables/useLoanProducts'
 
 const router = useRouter()
@@ -9,7 +10,7 @@ const router = useRouter()
 const {
   products, loading, error, search, meta, pages,
   fetch,
-  openCreate, openEdit,
+  formOpen, editingId, openCreate, openEdit,
   showDeleteDialog, deleteTarget, deleting,
   openDeleteDialog, confirmDelete,
   interestMethodLabel,
@@ -162,6 +163,7 @@ const {
       </button>
     </div>
 
+    <LoanProductFormDrawer v-model:open="formOpen" :product-id="editingId" @saved="fetch(meta.current_page)" />
     <LoanProductDeleteDialog
       :show="showDeleteDialog"
       :product-name="deleteTarget?.name"

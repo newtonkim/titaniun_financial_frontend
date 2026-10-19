@@ -17,8 +17,6 @@ export default defineModule({
       route: { path: 'savings', name: 'savings.settings', meta: { title: 'Savings products' }, component: () => import('./views/settings/SavingsSettingsView.vue') },
       subRoutes: [
         { path: 'savings/products', name: 'savings.products', meta: { title: 'Savings products' }, component: () => import('./views/settings/SavingsProductIndexView.vue') },
-        { path: 'savings/products/new', name: 'savings.products.create', meta: { title: 'Create savings product' }, component: () => import('./views/settings/SavingsProductFormView.vue') },
-        { path: 'savings/products/:id(\\d+)/edit', name: 'savings.products.edit', meta: { title: 'Edit savings product' }, component: () => import('./views/settings/SavingsProductFormView.vue') },
       ],
     },
   ],

@@ -6,6 +6,7 @@ import { formatMoney } from '@/core/utils/format'
 import { savingsProductsApi } from '../../api'
 import SavingsProductChargesModal from '../../components/SavingsProductChargesModal.vue'
 import SavingsProductDeleteDialog from '../../components/SavingsProductDeleteDialog.vue'
+import SavingsProductFormDrawer from '../../components/SavingsProductFormDrawer.vue'
 import type { SavingsProduct } from '../../types'
 
 const products = ref<SavingsProduct[]>([])
@@ -17,6 +18,14 @@ const showChargesModal = ref(false)
 
 const deleteTarget = ref<SavingsProduct | null>(null)
 const deleting = ref(false)
+
+const formOpen = ref(false)
+const editingId = ref<number | null>(null)
+
+function openForm(product: SavingsProduct | null = null) {
+  editingId.value = product?.id ?? null
+  formOpen.value = true
+}
 
 async function loadProducts() {
   loading.value = true
@@ -68,13 +77,14 @@ function openChargesModal(product: SavingsProduct) {
         <p class="text-sm text-neutral-500 dark:text-neutral-400">Manage rules and configurations for savings products</p>
       </div>
 
-      <RouterLink
-        :to="{ name: 'savings.products.create' }"
+      <button
+        type="button"
         class="flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-dark"
+        @click="openForm()"
       >
         <Plus class="h-4 w-4" />
         <span>Create Product</span>
-      </RouterLink>
+      </button>
     </div>
 
     <p v-if="error" role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
@@ -138,13 +148,14 @@ function openChargesModal(product: SavingsProduct) {
               </td>
               <td class="whitespace-nowrap px-6 py-4 text-right">
                 <div class="flex items-center justify-end gap-2">
-                  <RouterLink
-                    :to="{ name: 'savings.products.edit', params: { id: product.id } }"
+                  <button
+                    type="button"
                     :aria-label="`Edit ${product.name}`"
                     class="rounded-lg p-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-brand dark:hover:bg-neutral-800"
+                    @click="openForm(product)"
                   >
                     <Edit class="h-4 w-4" />
-                  </RouterLink>
+                  </button>
                   <button
                     type="button"
                     :aria-label="`Delete ${product.name}`"
@@ -162,6 +173,7 @@ function openChargesModal(product: SavingsProduct) {
     </div>
 
     <SavingsProductChargesModal :is-open="showChargesModal" :product="selectedProductForCharges" @close="showChargesModal = false" />
+    <SavingsProductFormDrawer v-model:open="formOpen" :product-id="editingId" @saved="loadProducts" />
     <SavingsProductDeleteDialog :show="deleteTarget !== null" :product-name="deleteTarget?.name" :deleting="deleting" @confirm="deleteProduct" @cancel="deleteTarget = null" />
   </div>
 </template>
