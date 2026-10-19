@@ -12,9 +12,12 @@ export default defineModule({
   settings: [
     {
       label: 'Savings products',
-      description: 'Interest rates, minimum balances and the ledger account deposits post to.',
+      description: 'Standard and fixed deposit products: fees, charges, maturity and accounts.',
       icon: 'wallet',
-      route: { path: 'savings-products', name: 'savings.products', meta: { title: 'Savings products' }, component: () => import('./views/SavingsProductListView.vue') },
+      route: { path: 'savings', name: 'savings.settings', meta: { title: 'Savings products' }, component: () => import('./views/settings/SavingsSettingsView.vue') },
+      subRoutes: [
+        { path: 'savings/products', name: 'savings.products', meta: { title: 'Savings products' }, component: () => import('./views/settings/SavingsProductIndexView.vue') },
+      ],
     },
   ],
 })

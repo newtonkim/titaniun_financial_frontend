@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { ArrowLeft, CreditCard, Pencil, ToggleLeft, ToggleRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { formatMoney } from '@/core/utils/format'
+import LoanProductFormDrawer from '../../components/LoanProductFormDrawer.vue'
 import { ACCOUNT_FIELDS } from '../../composables/useLoanProductForm'
 import { interestMethodLabel, interestPeriodLabel } from '../../composables/useLoanProducts'
 import { useLoanProductShow } from '../../composables/useLoanProductShow'
@@ -12,6 +13,8 @@ const router = useRouter()
 const { product, loading, fetch, orDash } = useLoanProductShow()
 
 onMounted(fetch)
+
+const editOpen = ref(false)
 
 const card = 'rounded-2xl border border-neutral-100 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900'
 const term = 'mb-1 text-xs font-medium text-neutral-500 dark:text-neutral-400'
@@ -55,7 +58,7 @@ function account(p: LoanProduct, field: string): AccountSummary | null | undefin
         v-if="product"
         type="button"
         class="flex items-center gap-2 rounded-xl border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-navy hover:text-white dark:border-neutral-700 dark:text-neutral-300"
-        @click="router.push({ name: 'loans.products.edit', params: { id: product.id } })"
+        @click="editOpen = true"
       >
         <Pencil class="h-4 w-4" />
         Edit
@@ -173,5 +176,7 @@ function account(p: LoanProduct, field: string): AccountSummary | null | undefin
         </div>
       </div>
     </template>
+
+    <LoanProductFormDrawer v-if="product" v-model:open="editOpen" :product-id="product.id" @saved="fetch" />
   </div>
 </template>

@@ -1,5 +1,4 @@
-import { computed, onMounted, ref, watch, watchEffect } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, ref, watch, watchEffect, type Ref } from 'vue'
 import { ApiError } from '@/core/api/http'
 import { chartOfAccountsApi } from '@/modules/accounting/api'
 import type { AccountType, ChartOfAccount } from '@/modules/accounting/types'
@@ -73,12 +72,12 @@ function createDefaultForm(): LoanProductSettings {
   }
 }
 
-/** Create or edit a loan product, with a live repayment preview. */
-export function useLoanProductForm() {
-  const route = useRoute()
-  const router = useRouter()
-
-  const isEditing = computed(() => !!route.params.id)
+/**
+ * Create (`productId` null) or edit a loan product inside a drawer, with a live repayment preview.
+ * Call `open()` each time the drawer opens; `onSaved` runs after a successful save.
+ */
+export function useLoanProductForm(productId: Ref<number | null>, onSaved: (product: LoanProduct) => void) {
+  const isEditing = computed(() => productId.value !== null)
   const loading = ref(false)
   const saving = ref(false)
   const previewLoading = ref(false)
@@ -138,10 +137,10 @@ export function useLoanProductForm() {
 
   // ─── Load (edit mode) ─────────────────────────────────────────────────────
   async function loadProduct() {
-    if (!isEditing.value) return
+    if (productId.value === null) return
     loading.value = true
     try {
-      const product: LoanProduct = await loanProductsApi.show(Number(route.params.id))
+      const product: LoanProduct = await loanProductsApi.show(productId.value)
       const defaults = createDefaultForm()
       const loaded = Object.fromEntries(
         Object.keys(defaults).map((key) => [key, product[key as keyof LoanProductSettings] ?? defaults[key as keyof LoanProductSettings]]),
@@ -152,16 +151,25 @@ export function useLoanProductForm() {
       previewAmount.value = Number(product.min_amount ?? 0) || null
       previewTerm.value = product.max_term ?? null
     } catch {
-      void router.push({ name: 'loans.products' })
+      message.value = 'Failed to load loan product.'
     } finally {
       loading.value = false
     }
   }
 
-  onMounted(async () => {
+  /** Reset the form and load whatever the drawer needs for `productId`. */
+  async function open() {
+    form.value = createDefaultForm()
+    errors.value = {}
+    message.value = ''
+    preview.value = null
+    previewAmount.value = null
+    previewTerm.value = null
+    loanCount.value = 0
+    isInUse.value = false
     await Promise.all([loadProduct(), fetchAccounts()])
     autoFillAccounts()
-  })
+  }
 
   function fieldError(field: string): string | null {
     return errors.value[field]?.[0] ?? null
@@ -235,12 +243,10 @@ export function useLoanProductForm() {
     errors.value = {}
     message.value = ''
     try {
-      if (isEditing.value) {
-        await loanProductsApi.update(Number(route.params.id), form.value)
-      } else {
-        await loanProductsApi.create(form.value)
-      }
-      void router.push({ name: 'loans.products' })
+      const product = productId.value !== null
+        ? await loanProductsApi.update(productId.value, form.value)
+        : await loanProductsApi.create(form.value)
+      onSaved(product)
     } catch (e) {
       if (e instanceof ApiError && e.isValidation) {
         errors.value = e.errors
@@ -257,6 +263,6 @@ export function useLoanProductForm() {
     isEditing, loading, saving, errors, message, form, loanCount, isInUse,
     accountsByType, estimatedFees,
     preview, previewLoading, previewAmount, previewTerm,
-    fieldError, save,
+    open, fieldError, save,
   }
 }

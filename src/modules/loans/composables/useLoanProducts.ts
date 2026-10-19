@@ -1,13 +1,10 @@
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { ApiError } from '@/core/api/http'
 import { loanProductsApi } from '../api'
 import type { LoanProduct } from '../types'
 
 /** The loan product list: search, pages, and delete with confirmation. */
 export function useLoanProducts() {
-  const router = useRouter()
-
   const products = ref<LoanProduct[]>([])
   const loading = ref(false)
   const error = ref('')
@@ -37,12 +34,17 @@ export function useLoanProducts() {
 
   onMounted(() => fetch(1))
 
+  const formOpen = ref(false)
+  const editingId = ref<number | null>(null)
+
   function openCreate() {
-    void router.push({ name: 'loans.products.create' })
+    editingId.value = null
+    formOpen.value = true
   }
 
   function openEdit(product: LoanProduct) {
-    void router.push({ name: 'loans.products.edit', params: { id: product.id } })
+    editingId.value = product.id
+    formOpen.value = true
   }
 
   const showDeleteDialog = ref(false)
@@ -74,7 +76,7 @@ export function useLoanProducts() {
   return {
     products, loading, error, search, meta, pages,
     fetch,
-    openCreate, openEdit,
+    formOpen, editingId, openCreate, openEdit,
     showDeleteDialog, deleteTarget, deleting,
     openDeleteDialog, confirmDelete,
     interestMethodLabel,
