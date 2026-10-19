@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { onUnauthorized } from '@/core/api/http'
 import AppLayout from '@/core/layouts/AppLayout.vue'
-import { modules } from '@/modules'
+import { modules, settingsPages } from '@/modules'
 import { authRoutes } from '@/modules/auth/routes'
 import { useAuth } from '@/modules/auth/store'
 
@@ -11,6 +11,8 @@ declare module 'vue-router' {
     guest?: boolean
     /** Page name shown in the breadcrumb. */
     title?: string
+    /** The page fills the content area edge to edge, without the usual padding. */
+    fullBleed?: boolean
   }
 }
 
@@ -24,6 +26,15 @@ const router = createRouter({
       children: [
         { path: '', name: 'dashboard', meta: { title: 'Dashboard' }, component: () => import('@/core/views/DashboardView.vue') },
         ...modules.flatMap((module) => module.routes),
+        {
+          path: 'settings',
+          meta: { title: 'Settings', fullBleed: true },
+          component: () => import('@/core/layouts/SettingsLayout.vue'),
+          children: [
+            { path: '', name: 'settings.index', meta: { title: 'Settings' }, component: () => import('@/core/views/SettingsHomeView.vue') },
+            ...settingsPages.map((page) => page.route),
+          ],
+        },
       ],
     },
     { path: '/:pathMatch(.*)*', redirect: '/' },

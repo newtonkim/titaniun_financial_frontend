@@ -24,7 +24,7 @@ const confirmationMismatch = computed(
 </script>
 
 <template>
-  <SettingsPage title="Security" description="Change your password. Every other device will be signed out; this one stays signed in.">
+  <SettingsPage icon="lock" title="Security" description="Change your password. Every other device will be signed out; this one stays signed in.">
     <form novalidate @submit.prevent="form.submit">
       <p v-if="form.message.value && !hasFieldErrors" class="alert alert--error" role="alert">{{ form.message.value }}</p>
 
