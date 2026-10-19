@@ -411,7 +411,7 @@ onMounted(load)
 }
 
 .skeleton {
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-panel);
   background: linear-gradient(90deg, var(--surface-sunken), var(--border), var(--surface-sunken)) 0 0 / 200% 100%;
   animation: shimmer 1.4s linear infinite;
 }
