@@ -42,7 +42,7 @@ defineProps<{
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-panel);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
