@@ -12,7 +12,7 @@ const busyLoanId = ref<number | null>(null)
 
 const columns: Column<Loan>[] = [
   { key: 'loan_number', label: 'Loan #' },
-  { key: 'borrower', label: 'Borrower', value: (loan) => (loan.borrower ? `${loan.borrower.first_name} ${loan.borrower.last_name}` : null) },
+  { key: 'borrower', label: 'Borrower', value: (loan) => (loan.borrower ? loan.borrower.name : null) },
   { key: 'product', label: 'Product', value: (loan) => loan.product?.name },
   { key: 'principal', label: 'Principal', align: 'right', value: (loan) => formatMoney(loan.principal) },
   { key: 'outstanding_principal', label: 'Outstanding', align: 'right', value: (loan) => formatMoney(loan.outstanding_principal) },

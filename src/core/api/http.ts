@@ -50,12 +50,15 @@ export async function request<T>(method: Method, path: string, options: RequestO
   const token = getToken()
 
   if (token) headers.Authorization = `Bearer ${token}`
-  if (options.body !== undefined) headers['Content-Type'] = 'application/json'
+
+  // FormData (file uploads) sets its own multipart boundary header.
+  const isForm = options.body instanceof FormData
+  if (options.body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
 
   const response = await fetch(buildUrl(path, options.query), {
     method,
     headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    body: options.body === undefined ? undefined : isForm ? (options.body as FormData) : JSON.stringify(options.body),
   })
 
   if (response.status === 204) return undefined as T
@@ -74,9 +77,33 @@ export async function request<T>(method: Method, path: string, options: RequestO
   return payload as T
 }
 
+/** Fetch a file the API serves (e.g. an Excel template) and hand it to the browser as a download. */
+export async function download(path: string, filename: string): Promise<void> {
+  const headers: Record<string, string> = {}
+  const token = getToken()
+  if (token) headers.Authorization = `Bearer ${token}`
+
+  const response = await fetch(buildUrl(path), { headers })
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearToken()
+      unauthorizedHandler()
+    }
+    throw new ApiError(response.status, response.statusText)
+  }
+
+  const url = URL.createObjectURL(await response.blob())
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
 export const http = {
   get: <T>(path: string, query?: Query) => request<T>('GET', path, { query }),
   post: <T>(path: string, body?: unknown) => request<T>('POST', path, { body: body ?? {} }),
+  put: <T>(path: string, body?: unknown) => request<T>('PUT', path, { body: body ?? {} }),
   patch: <T>(path: string, body: unknown) => request<T>('PATCH', path, { body }),
   delete: <T = void>(path: string) => request<T>('DELETE', path),
 }

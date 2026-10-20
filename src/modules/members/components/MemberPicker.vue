@@ -28,7 +28,7 @@ find()
     <select v-model="memberId" required>
       <option :value="null" disabled>Select a member</option>
       <option v-for="member in options" :key="member.id" :value="member.id">
-        {{ member.member_number }} · {{ member.first_name }} {{ member.last_name }}
+        {{ member.member_number }} · {{ member.name }}
       </option>
     </select>
   </div>

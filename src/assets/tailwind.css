@@ -13,6 +13,7 @@
 @source '../modules/reports';
 @source '../modules/loans';
 @source '../modules/savings';
+@source '../modules/members';
 @source '../core/components/SearchableSelect.vue';
 @source '../core/components/AppDrawer.vue';
 

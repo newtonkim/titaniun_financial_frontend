@@ -10,7 +10,7 @@ const filters = reactive<SavingsAccountFilters>({ status: '' })
 
 const columns: Column<SavingsAccount>[] = [
   { key: 'account_number', label: 'Account #' },
-  { key: 'member', label: 'Member', value: (account) => (account.member ? `${account.member.first_name} ${account.member.last_name}` : null) },
+  { key: 'member', label: 'Member', value: (account) => (account.member ? account.member.name : null) },
   { key: 'product', label: 'Product', value: (account) => account.product?.name },
   { key: 'balance', label: 'Balance', align: 'right', value: (account) => formatMoney(account.balance) },
   { key: 'status', label: 'Status' },
