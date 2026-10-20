@@ -1,0 +1,438 @@
+<script setup lang="ts">
+import { computed, reactive, ref, watch } from 'vue'
+import { ImagePlus, UserPlus, UserRound } from 'lucide-vue-next'
+import { ApiError, type ValidationErrors } from '@/core/api/http'
+import AppDrawer from '@/core/components/AppDrawer.vue'
+import SearchableSelect from '@/core/components/SearchableSelect.vue'
+import { formatEnum, formatMoney, today } from '@/core/utils/format'
+import { savingsProductsApi } from '@/modules/savings/api'
+import { shareProductsApi } from '@/modules/shares/api'
+import type { ShareProduct } from '@/modules/shares/types'
+import { membersApi } from '../api'
+import {
+  EDITABLE_STATUSES, GENDERS, MARITAL_STATUSES, SALUTATIONS,
+  type Gender, type MaritalStatus, type Member, type MemberStatus, type MemberType,
+} from '../types'
+
+/** Register (`memberId` null) or edit a member in a right-hand drawer. */
+const props = defineProps<{ memberId: number | null }>()
+const open = defineModel<boolean>('open', { required: true })
+const emit = defineEmits<{ saved: [member: Member] }>()
+
+const isEditing = computed(() => props.memberId !== null)
+const loading = ref(false)
+const saving = ref(false)
+const message = ref('')
+const errors = ref<ValidationErrors>({})
+
+const savingsProducts = ref<{ id: number; name: string }[]>([])
+const shareProducts = ref<ShareProduct[]>([])
+
+const blank = () => ({
+  member_type: 'new_member' as MemberType,
+  name: '',
+  member_number: '',
+  salutation: '',
+  gender: null as Gender | null,
+  date_of_birth: '',
+  marital_status: null as MaritalStatus | null,
+  nationality: 'Ugandan',
+  address: '',
+  national_id: '',
+  phone: '',
+  other_contact: '',
+  mobile_money_number: '',
+  email: '',
+  next_of_kin: '',
+  next_of_kin_contact: '',
+  is_shareholder: false,
+  joined_at: today(),
+  status: 'active' as MemberStatus,
+  savings_product_id: null as number | null,
+  initial_deposit: null as number | null,
+  opening_balance: null as number | null,
+  share_product_id: null as number | null,
+  shares_quantity: null as number | null,
+})
+
+const form = reactive(blank())
+const avatar = ref<File | null>(null)
+const avatarPreview = ref<string | null>(null)
+
+const shareProduct = computed(() => shareProducts.value.find((product) => product.id === form.share_product_id) ?? null)
+const shareTotal = computed(() => (shareProduct.value && form.shares_quantity ? Number(shareProduct.value.nominal_price) * form.shares_quantity : 0))
+const maxBirthDate = computed(() => {
+  const date = new Date()
+  date.setFullYear(date.getFullYear() - 1)
+  return date.toISOString().slice(0, 10)
+})
+
+const fieldError = (field: string): string | undefined => errors.value[field]?.[0]
+
+async function load(): Promise<void> {
+  Object.assign(form, blank())
+  avatar.value = null
+  avatarPreview.value = null
+  message.value = ''
+  errors.value = {}
+  loading.value = true
+
+  try {
+    if (props.memberId !== null) {
+      const member = await membersApi.show(props.memberId)
+      Object.assign(form, {
+        member_type: member.member_type,
+        name: member.name,
+        member_number: member.member_number,
+        salutation: member.salutation ?? '',
+        gender: member.gender,
+        date_of_birth: member.date_of_birth ?? '',
+        marital_status: member.marital_status,
+        nationality: member.nationality ?? '',
+        address: member.address ?? '',
+        national_id: member.national_id ?? '',
+        phone: member.phone,
+        other_contact: member.other_contact ?? '',
+        mobile_money_number: member.mobile_money_number ?? '',
+        email: member.email ?? '',
+        next_of_kin: member.next_of_kin ?? '',
+        next_of_kin_contact: member.next_of_kin_contact ?? '',
+        is_shareholder: member.is_shareholder,
+        joined_at: member.joined_at,
+        status: member.status,
+      })
+      avatarPreview.value = member.avatar_url
+    } else {
+      const [savings, shares] = await Promise.all([
+        savingsProductsApi.list({ active: true, per_page: 100 }),
+        shareProductsApi.list({ active: true }),
+      ])
+      savingsProducts.value = savings.data.map((product) => ({ id: product.id, name: product.name }))
+      shareProducts.value = shares.data
+    }
+  } catch {
+    message.value = 'Failed to load the member form.'
+  } finally {
+    loading.value = false
+  }
+}
+
+watch(open, (isOpen) => {
+  if (isOpen) void load()
+}, { immediate: true })
+
+function pickAvatar(event: Event): void {
+  const file = (event.target as HTMLInputElement).files?.[0] ?? null
+  avatar.value = file
+  avatarPreview.value = file ? URL.createObjectURL(file) : null
+}
+
+const nullable = (value: string): string | null => (value.trim() === '' ? null : value.trim())
+
+function detailsPayload() {
+  return {
+    name: form.name.trim(),
+    member_number: nullable(form.member_number),
+    salutation: nullable(form.salutation),
+    gender: form.gender,
+    date_of_birth: nullable(form.date_of_birth),
+    marital_status: form.marital_status,
+    nationality: form.nationality.trim(),
+    address: form.address.trim(),
+    national_id: nullable(form.national_id),
+    phone: form.phone.trim(),
+    other_contact: nullable(form.other_contact),
+    mobile_money_number: nullable(form.mobile_money_number),
+    email: nullable(form.email),
+    next_of_kin: nullable(form.next_of_kin),
+    next_of_kin_contact: nullable(form.next_of_kin_contact),
+    is_shareholder: form.is_shareholder,
+    joined_at: nullable(form.joined_at),
+  }
+}
+
+async function save(): Promise<void> {
+  saving.value = true
+  message.value = ''
+  errors.value = {}
+
+  try {
+    let member = props.memberId !== null
+      ? await membersApi.update(props.memberId, { ...detailsPayload(), member_type: form.member_type, status: form.status })
+      : await membersApi.create({
+          ...detailsPayload(),
+          member_type: form.member_type,
+          savings_product_id: form.savings_product_id,
+          initial_deposit: form.member_type === 'new_member' ? form.initial_deposit : null,
+          opening_balance: form.member_type === 'existing_member' ? form.opening_balance : null,
+          share_product_id: form.shares_quantity ? form.share_product_id : null,
+          shares_quantity: form.shares_quantity || null,
+        })
+
+    if (avatar.value) member = await membersApi.uploadAvatar(member.id, avatar.value)
+
+    emit('saved', member)
+    open.value = false
+  } catch (e) {
+    if (e instanceof ApiError && e.isValidation) {
+      errors.value = e.errors
+      message.value = 'Please correct the highlighted fields.'
+    } else {
+      message.value = e instanceof ApiError ? e.message : 'Failed to save the member.'
+    }
+  } finally {
+    saving.value = false
+  }
+}
+
+const input = 'w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-neutral-900 dark:text-white'
+const inputClass = (field: string) => [input, fieldError(field) ? 'border-red-400 dark:border-red-500' : 'border-neutral-300 dark:border-neutral-700']
+const card = 'rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900'
+const heading = 'mb-4 text-lg font-semibold text-neutral-900 dark:text-white'
+const label = 'mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300'
+const errorText = 'mt-1 text-xs text-red-500'
+</script>
+
+<template>
+  <AppDrawer
+    v-model:open="open"
+    :title="isEditing ? 'Edit member' : 'Create a sacco member'"
+    width="w-full lg:w-2/3"
+    :loading="saving"
+    :save-disabled="loading"
+    :save-button-text="isEditing ? 'Update' : 'Create'"
+    @save="save"
+  >
+    <div v-if="loading" class="flex flex-col items-center justify-center gap-3 py-24">
+      <span class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand border-r-transparent" aria-hidden="true" />
+      <span class="text-sm font-medium text-neutral-500 dark:text-neutral-400">Loading details...</span>
+    </div>
+
+    <div v-else class="flex flex-col gap-6">
+      <p v-if="message" role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
+        {{ message }}
+      </p>
+
+      <!-- Identity -->
+      <div :class="card">
+        <h2 :class="heading">Member Identity</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <p :class="label">Member Type <span class="text-red-500">*</span></p>
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                v-for="type in (['new_member', 'existing_member'] as const)"
+                :key="type"
+                type="button"
+                :disabled="isEditing"
+                :class="[
+                  'flex items-center gap-3 rounded-xl border p-3 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60',
+                  form.member_type === type
+                    ? 'border-brand bg-brand/5 font-semibold text-brand'
+                    : 'border-neutral-200 text-neutral-600 hover:border-neutral-300 dark:border-neutral-700 dark:text-neutral-300',
+                ]"
+                @click="form.member_type = type"
+              >
+                <component :is="type === 'new_member' ? UserPlus : UserRound" class="h-5 w-5 shrink-0" />
+                <span>
+                  {{ type === 'new_member' ? 'New Member' : 'Existing Member' }}
+                  <span class="block text-xs font-normal text-neutral-500">
+                    {{ type === 'new_member' ? 'Joining the sacco today' : 'Migrating with a savings balance' }}
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label :class="label" for="m-name">Full Name <span class="text-red-500">*</span></label>
+            <input id="m-name" v-model="form.name" type="text" :class="inputClass('name')" placeholder="e.g. Grace Namutebi" />
+            <p v-if="fieldError('name')" :class="errorText">{{ fieldError('name') }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Savings (registration only) -->
+      <div v-if="!isEditing" :class="card">
+        <h2 :class="heading">Savings Account</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <p :class="label">Savings Product</p>
+            <SearchableSelect
+              v-model="form.savings_product_id"
+              :options="savingsProducts"
+              placeholder="— select savings product —"
+              :error="fieldError('savings_product_id')"
+            />
+            <p class="mt-1 text-xs text-neutral-500">A savings account is opened on this product when the member is saved.</p>
+          </div>
+
+          <div v-if="form.member_type === 'new_member'">
+            <label :class="label" for="m-initial-deposit">Initial Deposit</label>
+            <input id="m-initial-deposit" v-model.number="form.initial_deposit" type="number" min="0" step="0.01" :class="inputClass('initial_deposit')" placeholder="0.00" />
+            <p v-if="fieldError('initial_deposit')" :class="errorText">{{ fieldError('initial_deposit') }}</p>
+          </div>
+
+          <template v-else>
+            <div>
+              <label :class="label" for="m-opening-balance">Opening Balance <span class="text-red-500">*</span></label>
+              <input id="m-opening-balance" v-model.number="form.opening_balance" type="number" min="0" step="0.01" :class="inputClass('opening_balance')" placeholder="0.00" />
+              <p v-if="fieldError('opening_balance')" :class="errorText">{{ fieldError('opening_balance') }}</p>
+            </div>
+            <label class="flex items-center gap-3 self-end pb-2 text-sm text-neutral-700 dark:text-neutral-300">
+              <input v-model="form.is_shareholder" type="checkbox" class="h-4 w-4 rounded border-neutral-300 accent-brand" />
+              Already a shareholder
+            </label>
+          </template>
+        </div>
+      </div>
+
+      <!-- Share purchase (registration only) -->
+      <div v-if="!isEditing" :class="card">
+        <h2 :class="heading">Share Purchase</h2>
+        <div class="grid gap-4 sm:grid-cols-3">
+          <div class="sm:col-span-2">
+            <label :class="label" for="m-share-product">Share Product</label>
+            <select id="m-share-product" v-model="form.share_product_id" :class="inputClass('share_product_id')">
+              <option :value="null">— no shares —</option>
+              <option v-for="product in shareProducts" :key="product.id" :value="product.id">
+                {{ product.name }} · {{ formatMoney(product.nominal_price) }} per share
+              </option>
+            </select>
+            <p v-if="fieldError('share_product_id')" :class="errorText">{{ fieldError('share_product_id') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="m-shares">Number of Shares</label>
+            <input id="m-shares" v-model.number="form.shares_quantity" type="number" min="1" step="1" :disabled="!form.share_product_id" :class="inputClass('shares_quantity')" placeholder="0" />
+            <p v-if="fieldError('shares_quantity')" :class="errorText">{{ fieldError('shares_quantity') }}</p>
+          </div>
+          <div v-if="shareProduct" class="flex items-center justify-between rounded-xl bg-navy/5 px-4 py-3 sm:col-span-3 dark:bg-white/5">
+            <span class="text-sm text-neutral-600 dark:text-neutral-300">Total investment</span>
+            <span class="text-lg font-bold text-navy dark:text-white">{{ formatMoney(shareTotal) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personal -->
+      <div :class="card">
+        <h2 :class="heading">Personal Details</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label :class="label" for="m-number">Member Code</label>
+            <input id="m-number" v-model="form.member_number" type="text" :class="inputClass('member_number')" placeholder="Generated when left blank" />
+            <p v-if="fieldError('member_number')" :class="errorText">{{ fieldError('member_number') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="m-salutation">Salutation</label>
+            <select id="m-salutation" v-model="form.salutation" :class="inputClass('salutation')">
+              <option value="">—</option>
+              <option v-for="salutation in SALUTATIONS" :key="salutation" :value="salutation">{{ salutation }}</option>
+            </select>
+          </div>
+          <div>
+            <label :class="label" for="m-gender">Gender <span class="text-red-500">*</span></label>
+            <select id="m-gender" v-model="form.gender" :class="inputClass('gender')">
+              <option :value="null" disabled>Select gender</option>
+              <option v-for="gender in GENDERS" :key="gender" :value="gender">{{ formatEnum(gender) }}</option>
+            </select>
+            <p v-if="fieldError('gender')" :class="errorText">{{ fieldError('gender') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="m-dob">Date of Birth</label>
+            <input id="m-dob" v-model="form.date_of_birth" type="date" :max="maxBirthDate" :class="inputClass('date_of_birth')" />
+            <p v-if="fieldError('date_of_birth')" :class="errorText">{{ fieldError('date_of_birth') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="m-marital">Marital Status <span class="text-red-500">*</span></label>
+            <select id="m-marital" v-model="form.marital_status" :class="inputClass('marital_status')">
+              <option :value="null" disabled>Select status</option>
+              <option v-for="status in MARITAL_STATUSES" :key="status" :value="status">{{ formatEnum(status) }}</option>
+            </select>
+            <p v-if="fieldError('marital_status')" :class="errorText">{{ fieldError('marital_status') }}</p>
+          </div>
+          <div v-if="isEditing">
+            <label :class="label" for="m-status">Status</label>
+            <select id="m-status" v-model="form.status" :class="inputClass('status')" :disabled="!EDITABLE_STATUSES.includes(form.status)">
+              <option v-if="!EDITABLE_STATUSES.includes(form.status)" :value="form.status">{{ formatEnum(form.status) }}</option>
+              <option v-for="status in EDITABLE_STATUSES" :key="status" :value="status">{{ formatEnum(status) }}</option>
+            </select>
+            <p v-if="fieldError('status')" :class="errorText">{{ fieldError('status') }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div :class="card">
+        <h2 :class="heading">Contact Information</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label :class="label" for="m-phone">Primary Contact <span class="text-red-500">*</span></label>
+            <input id="m-phone" v-model="form.phone" type="tel" :class="inputClass('phone')" placeholder="07XXXXXXXX" />
+            <p v-if="fieldError('phone')" :class="errorText">{{ fieldError('phone') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="m-other">Other Contact</label>
+            <input id="m-other" v-model="form.other_contact" type="tel" :class="inputClass('other_contact')" />
+            <p v-if="fieldError('other_contact')" :class="errorText">{{ fieldError('other_contact') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="m-momo">Mobile Money Number</label>
+            <input id="m-momo" v-model="form.mobile_money_number" type="tel" :class="inputClass('mobile_money_number')" />
+            <p v-if="fieldError('mobile_money_number')" :class="errorText">{{ fieldError('mobile_money_number') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="m-email">Email</label>
+            <input id="m-email" v-model="form.email" type="email" :class="inputClass('email')" />
+            <p v-if="fieldError('email')" :class="errorText">{{ fieldError('email') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="m-nin">National ID (NIN)</label>
+            <input id="m-nin" v-model="form.national_id" type="text" :class="inputClass('national_id')" />
+            <p v-if="fieldError('national_id')" :class="errorText">{{ fieldError('national_id') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="m-nationality">Nationality <span class="text-red-500">*</span></label>
+            <input id="m-nationality" v-model="form.nationality" type="text" :class="inputClass('nationality')" />
+            <p v-if="fieldError('nationality')" :class="errorText">{{ fieldError('nationality') }}</p>
+          </div>
+          <div class="sm:col-span-2">
+            <label :class="label" for="m-address">Address <span class="text-red-500">*</span></label>
+            <textarea id="m-address" v-model="form.address" rows="2" :class="inputClass('address')" />
+            <p v-if="fieldError('address')" :class="errorText">{{ fieldError('address') }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Other -->
+      <div :class="card">
+        <h2 :class="heading">Other Details</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="flex items-center gap-4 sm:col-span-2">
+            <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-navy/10 text-navy dark:text-white">
+              <img v-if="avatarPreview" :src="avatarPreview" alt="Profile picture preview" class="h-full w-full object-cover" />
+              <ImagePlus v-else class="h-6 w-6" />
+            </div>
+            <div>
+              <label :class="label" for="m-avatar">Profile Picture</label>
+              <input id="m-avatar" type="file" accept="image/*" class="text-sm text-neutral-600 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-100 file:px-3 file:py-1.5 file:text-sm file:font-medium dark:text-neutral-300 dark:file:bg-neutral-800" @change="pickAvatar" />
+              <p v-if="fieldError('avatar')" :class="errorText">{{ fieldError('avatar') }}</p>
+            </div>
+          </div>
+          <div>
+            <label :class="label" for="m-kin">Next of Kin</label>
+            <input id="m-kin" v-model="form.next_of_kin" type="text" :class="inputClass('next_of_kin')" />
+          </div>
+          <div>
+            <label :class="label" for="m-kin-contact">Next of Kin Contact</label>
+            <input id="m-kin-contact" v-model="form.next_of_kin_contact" type="tel" :class="inputClass('next_of_kin_contact')" />
+          </div>
+          <div>
+            <label :class="label" for="m-joined">Joined Date</label>
+            <input id="m-joined" v-model="form.joined_at" type="date" :class="inputClass('joined_at')" />
+            <p v-if="fieldError('joined_at')" :class="errorText">{{ fieldError('joined_at') }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </AppDrawer>
+</template>

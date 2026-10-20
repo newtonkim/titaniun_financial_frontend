@@ -10,7 +10,7 @@ const filters = reactive<ShareAccountFilters>({ status: '' })
 
 const columns: Column<ShareAccount>[] = [
   { key: 'account_number', label: 'Account #' },
-  { key: 'member', label: 'Member', value: (account) => (account.member ? `${account.member.first_name} ${account.member.last_name}` : null) },
+  { key: 'member', label: 'Member', value: (account) => (account.member ? account.member.name : null) },
   { key: 'product', label: 'Product', value: (account) => account.product?.name },
   { key: 'shares_held', label: 'Shares', align: 'right' },
   { key: 'share_value', label: 'Value', align: 'right', value: (account) => formatMoney(account.share_value) },

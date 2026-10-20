@@ -145,7 +145,7 @@ onMounted(load)
               <h2 class="section-title">At a glance</h2>
               <p class="section-lede">Today, {{ formatDate(summary.as_of) }}</p>
             </div>
-            <RouterLink class="btn glance__add" :to="{ name: 'members.create' }"><AppIcon name="plus" :size="18" /> Add member</RouterLink>
+            <RouterLink class="btn glance__add" :to="{ name: 'members.index', query: { create: '1' } }"><AppIcon name="plus" :size="18" /> Add member</RouterLink>
           </header>
           <div class="glance__grid">
             <RouterLink v-for="tile in glance" :key="tile.label" class="tile" :to="tile.to">

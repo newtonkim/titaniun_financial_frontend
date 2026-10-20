@@ -346,7 +346,7 @@ onBeforeUnmount(() => {
               </button>
             </div>
           </div>
-          <RouterLink class="btn btn--primary topbar__cta" :to="{ name: 'members.create' }">
+          <RouterLink class="btn btn--primary topbar__cta" :to="{ name: 'members.index', query: { create: '1' } }">
             <AppIcon name="plus" :size="18" /> New member
           </RouterLink>
         </div>
