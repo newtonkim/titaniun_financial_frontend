@@ -346,9 +346,6 @@ onBeforeUnmount(() => {
               </button>
             </div>
           </div>
-          <RouterLink class="btn btn--primary topbar__cta" :to="{ name: 'members.index', query: { create: '1' } }">
-            <AppIcon name="plus" :size="18" /> New member
-          </RouterLink>
         </div>
       </header>
 
@@ -884,13 +881,6 @@ onBeforeUnmount(() => {
   margin-left: auto;
 }
 
-.topbar__cta {
-  height: 2.6rem;
-  padding-inline: 1rem;
-  border-radius: 10px;
-  font-weight: 600;
-}
-
 .user-menu {
   position: relative;
 }
@@ -1041,8 +1031,7 @@ onBeforeUnmount(() => {
   .breadcrumb > a,
   .breadcrumb > :deep(svg),
   .topbar__history,
-  .user-menu__name,
-  .topbar__cta {
+  .user-menu__name {
     display: none;
   }
 }
