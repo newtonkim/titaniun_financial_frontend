@@ -94,7 +94,7 @@ function account(p: LoanProduct, field: string): AccountSummary | null | undefin
           </div>
           <div>
             <p :class="term">Maximum Amount</p>
-            <p :class="detail">{{ formatMoney(product.max_amount) }}</p>
+            <p :class="detail">{{ product.max_amount === null ? 'No upper limit' : formatMoney(product.max_amount) }}</p>
           </div>
         </div>
       </div>
@@ -118,13 +118,19 @@ function account(p: LoanProduct, field: string): AccountSummary | null | undefin
         </div>
       </div>
 
+      <div :class="card">
+        <h2 class="mb-3 text-base font-semibold text-neutral-900 dark:text-white">Interest distribution</h2>
+        <p :class="detail">{{ 100 - Number(product.commission_rate) }}% company · {{ product.commission_rate }}% commission</p>
+        <p class="mt-2 text-sm text-neutral-500 dark:text-neutral-400">The selected officer or referring guarantor earns commission on collected interest. Payout is held until the client fully clears the loan, then included in a quarter-end distribution. The borrower’s rate and principal are unaffected.</p>
+      </div>
+
       <!-- Term & repayment -->
       <div :class="card">
         <h2 class="mb-5 text-base font-semibold text-neutral-900 dark:text-white">Loan Term &amp; Repayment</h2>
         <div class="grid gap-4 sm:grid-cols-3">
           <div>
             <p :class="term">Loan Duration</p>
-            <p :class="detail">{{ product.max_term }} {{ product.duration_type }}</p>
+            <p :class="detail">{{ product.min_term === product.max_term ? product.max_term : `${product.min_term}–${product.max_term}` }} {{ product.duration_type }}</p>
           </div>
           <div>
             <p :class="term">Repayment Cycle</p>

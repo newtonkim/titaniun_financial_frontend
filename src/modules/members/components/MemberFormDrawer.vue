@@ -10,8 +10,15 @@ import { shareProductsApi } from '@/modules/shares/api'
 import type { ShareProduct } from '@/modules/shares/types'
 import { membersApi } from '../api'
 import {
-  EDITABLE_STATUSES, GENDERS, MARITAL_STATUSES, SALUTATIONS,
-  type Gender, type MaritalStatus, type Member, type MemberStatus, type MemberType,
+  EDITABLE_STATUSES,
+  GENDERS,
+  MARITAL_STATUSES,
+  SALUTATIONS,
+  type Gender,
+  type MaritalStatus,
+  type Member,
+  type MemberStatus,
+  type MemberType,
 } from '../types'
 
 /** Register (`memberId` null) or edit a member in a right-hand drawer. */
@@ -29,6 +36,15 @@ const savingsProducts = ref<{ id: number; name: string }[]>([])
 const shareProducts = ref<ShareProduct[]>([])
 
 const blank = () => ({
+  applicant_type: 'individual' as 'individual' | 'business',
+  employer: '',
+  occupation: '',
+  district: '',
+  business_registration_number: '',
+  business_activity: '',
+  signatory_name: '',
+  signatory_title: '',
+  signatory_national_id: '',
   member_type: 'new_member' as MemberType,
   name: '',
   member_number: '',
@@ -56,11 +72,20 @@ const blank = () => ({
 })
 
 const form = reactive(blank())
+const businessFields = [
+  { key: 'business_registration_number', label: 'Registration / incorporation number' },
+  { key: 'business_activity', label: 'Nature of business' },
+  { key: 'signatory_name', label: 'Authorized signatory' },
+  { key: 'signatory_title', label: 'Signatory designation' },
+  { key: 'signatory_national_id', label: 'Signatory NIN' },
+] as const
 const avatar = ref<File | null>(null)
 const avatarPreview = ref<string | null>(null)
 
 const shareProduct = computed(() => shareProducts.value.find((product) => product.id === form.share_product_id) ?? null)
-const shareTotal = computed(() => (shareProduct.value && form.shares_quantity ? Number(shareProduct.value.nominal_price) * form.shares_quantity : 0))
+const shareTotal = computed(() =>
+  shareProduct.value && form.shares_quantity ? Number(shareProduct.value.nominal_price) * form.shares_quantity : 0,
+)
 const maxBirthDate = computed(() => {
   const date = new Date()
   date.setFullYear(date.getFullYear() - 1)
@@ -81,6 +106,15 @@ async function load(): Promise<void> {
     if (props.memberId !== null) {
       const member = await membersApi.show(props.memberId)
       Object.assign(form, {
+        applicant_type: member.applicant_type ?? 'individual',
+        employer: member.employer ?? '',
+        occupation: member.occupation ?? '',
+        district: member.district ?? '',
+        business_registration_number: member.business_registration_number ?? '',
+        business_activity: member.business_activity ?? '',
+        signatory_name: member.signatory_name ?? '',
+        signatory_title: member.signatory_title ?? '',
+        signatory_national_id: member.signatory_national_id ?? '',
         member_type: member.member_type,
         name: member.name,
         member_number: member.member_number,
@@ -117,9 +151,13 @@ async function load(): Promise<void> {
   }
 }
 
-watch(open, (isOpen) => {
-  if (isOpen) void load()
-}, { immediate: true })
+watch(
+  open,
+  (isOpen) => {
+    if (isOpen) void load()
+  },
+  { immediate: true },
+)
 
 function pickAvatar(event: Event): void {
   const file = (event.target as HTMLInputElement).files?.[0] ?? null
@@ -131,6 +169,15 @@ const nullable = (value: string): string | null => (value.trim() === '' ? null :
 
 function detailsPayload() {
   return {
+    applicant_type: form.applicant_type,
+    employer: nullable(form.employer),
+    occupation: nullable(form.occupation),
+    district: nullable(form.district),
+    business_registration_number: nullable(form.business_registration_number),
+    business_activity: nullable(form.business_activity),
+    signatory_name: nullable(form.signatory_name),
+    signatory_title: nullable(form.signatory_title),
+    signatory_national_id: nullable(form.signatory_national_id),
     name: form.name.trim(),
     member_number: nullable(form.member_number),
     salutation: nullable(form.salutation),
@@ -157,17 +204,22 @@ async function save(): Promise<void> {
   errors.value = {}
 
   try {
-    let member = props.memberId !== null
-      ? await membersApi.update(props.memberId, { ...detailsPayload(), member_type: form.member_type, status: form.status })
-      : await membersApi.create({
-          ...detailsPayload(),
-          member_type: form.member_type,
-          savings_product_id: form.savings_product_id,
-          initial_deposit: form.member_type === 'new_member' ? form.initial_deposit : null,
-          opening_balance: form.member_type === 'existing_member' ? form.opening_balance : null,
-          share_product_id: form.shares_quantity ? form.share_product_id : null,
-          shares_quantity: form.shares_quantity || null,
-        })
+    let member =
+      props.memberId !== null
+        ? await membersApi.update(props.memberId, {
+            ...detailsPayload(),
+            member_type: form.member_type,
+            status: form.status,
+          })
+        : await membersApi.create({
+            ...detailsPayload(),
+            member_type: form.member_type,
+            savings_product_id: form.savings_product_id,
+            initial_deposit: form.member_type === 'new_member' ? form.initial_deposit : null,
+            opening_balance: form.member_type === 'existing_member' ? form.opening_balance : null,
+            share_product_id: form.shares_quantity ? form.share_product_id : null,
+            shares_quantity: form.shares_quantity || null,
+          })
 
     if (avatar.value) member = await membersApi.uploadAvatar(member.id, avatar.value)
 
@@ -186,7 +238,10 @@ async function save(): Promise<void> {
 }
 
 const input = 'w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-neutral-900 dark:text-white'
-const inputClass = (field: string) => [input, fieldError(field) ? 'border-red-400 dark:border-red-500' : 'border-neutral-300 dark:border-neutral-700']
+const inputClass = (field: string) => [
+  input,
+  fieldError(field) ? 'border-red-400 dark:border-red-500' : 'border-neutral-300 dark:border-neutral-700',
+]
 const card = 'rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900'
 const heading = 'mb-4 text-lg font-semibold text-neutral-900 dark:text-white'
 const label = 'mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300'
@@ -204,12 +259,19 @@ const errorText = 'mt-1 text-xs text-red-500'
     @save="save"
   >
     <div v-if="loading" class="flex flex-col items-center justify-center gap-3 py-24">
-      <span class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand border-r-transparent" aria-hidden="true" />
+      <span
+        class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand border-r-transparent"
+        aria-hidden="true"
+      />
       <span class="text-sm font-medium text-neutral-500 dark:text-neutral-400">Loading details...</span>
     </div>
 
     <div v-else class="flex flex-col gap-6">
-      <p v-if="message" role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
+      <p
+        v-if="message"
+        role="alert"
+        class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300"
+      >
         {{ message }}
       </p>
 
@@ -221,7 +283,7 @@ const errorText = 'mt-1 text-xs text-red-500'
             <p :class="label">Member Type <span class="text-red-500">*</span></p>
             <div class="grid grid-cols-2 gap-3">
               <button
-                v-for="type in (['new_member', 'existing_member'] as const)"
+                v-for="type in ['new_member', 'existing_member'] as const"
                 :key="type"
                 type="button"
                 :disabled="isEditing"
@@ -245,8 +307,17 @@ const errorText = 'mt-1 text-xs text-red-500'
           </div>
 
           <div class="sm:col-span-2">
-            <label :class="label" for="m-name">Full Name <span class="text-red-500">*</span></label>
-            <input id="m-name" v-model="form.name" type="text" :class="inputClass('name')" placeholder="e.g. Grace Namutebi" />
+            <label :class="label" for="m-name"
+              >{{ form.applicant_type === 'business' ? 'Registered business name' : 'Full Name' }}
+              <span class="text-red-500">*</span></label
+            >
+            <input
+              id="m-name"
+              v-model="form.name"
+              type="text"
+              :class="inputClass('name')"
+              placeholder="e.g. Grace Namutebi"
+            />
             <p v-if="fieldError('name')" :class="errorText">{{ fieldError('name') }}</p>
           </div>
         </div>
@@ -264,23 +335,49 @@ const errorText = 'mt-1 text-xs text-red-500'
               placeholder="— select savings product —"
               :error="fieldError('savings_product_id')"
             />
-            <p class="mt-1 text-xs text-neutral-500">A savings account is opened on this product when the member is saved.</p>
+            <p class="mt-1 text-xs text-neutral-500">
+              A savings account is opened on this product when the member is saved.
+            </p>
           </div>
 
           <div v-if="form.member_type === 'new_member'">
             <label :class="label" for="m-initial-deposit">Initial Deposit</label>
-            <input id="m-initial-deposit" v-model.number="form.initial_deposit" type="number" min="0" step="0.01" :class="inputClass('initial_deposit')" placeholder="0.00" />
-            <p v-if="fieldError('initial_deposit')" :class="errorText">{{ fieldError('initial_deposit') }}</p>
+            <input
+              id="m-initial-deposit"
+              v-model.number="form.initial_deposit"
+              type="number"
+              min="0"
+              step="0.01"
+              :class="inputClass('initial_deposit')"
+              placeholder="0.00"
+            />
+            <p v-if="fieldError('initial_deposit')" :class="errorText">
+              {{ fieldError('initial_deposit') }}
+            </p>
           </div>
 
           <template v-else>
             <div>
               <label :class="label" for="m-opening-balance">Opening Balance <span class="text-red-500">*</span></label>
-              <input id="m-opening-balance" v-model.number="form.opening_balance" type="number" min="0" step="0.01" :class="inputClass('opening_balance')" placeholder="0.00" />
-              <p v-if="fieldError('opening_balance')" :class="errorText">{{ fieldError('opening_balance') }}</p>
+              <input
+                id="m-opening-balance"
+                v-model.number="form.opening_balance"
+                type="number"
+                min="0"
+                step="0.01"
+                :class="inputClass('opening_balance')"
+                placeholder="0.00"
+              />
+              <p v-if="fieldError('opening_balance')" :class="errorText">
+                {{ fieldError('opening_balance') }}
+              </p>
             </div>
             <label class="flex items-center gap-3 self-end pb-2 text-sm text-neutral-700 dark:text-neutral-300">
-              <input v-model="form.is_shareholder" type="checkbox" class="h-4 w-4 rounded border-neutral-300 accent-brand" />
+              <input
+                v-model="form.is_shareholder"
+                type="checkbox"
+                class="h-4 w-4 rounded border-neutral-300 accent-brand"
+              />
               Already a shareholder
             </label>
           </template>
@@ -299,62 +396,148 @@ const errorText = 'mt-1 text-xs text-red-500'
                 {{ product.name }} · {{ formatMoney(product.nominal_price) }} per share
               </option>
             </select>
-            <p v-if="fieldError('share_product_id')" :class="errorText">{{ fieldError('share_product_id') }}</p>
+            <p v-if="fieldError('share_product_id')" :class="errorText">
+              {{ fieldError('share_product_id') }}
+            </p>
           </div>
           <div>
             <label :class="label" for="m-shares">Number of Shares</label>
-            <input id="m-shares" v-model.number="form.shares_quantity" type="number" min="1" step="1" :disabled="!form.share_product_id" :class="inputClass('shares_quantity')" placeholder="0" />
-            <p v-if="fieldError('shares_quantity')" :class="errorText">{{ fieldError('shares_quantity') }}</p>
+            <input
+              id="m-shares"
+              v-model.number="form.shares_quantity"
+              type="number"
+              min="1"
+              step="1"
+              :disabled="!form.share_product_id"
+              :class="inputClass('shares_quantity')"
+              placeholder="0"
+            />
+            <p v-if="fieldError('shares_quantity')" :class="errorText">
+              {{ fieldError('shares_quantity') }}
+            </p>
           </div>
-          <div v-if="shareProduct" class="flex items-center justify-between rounded-xl bg-navy/5 px-4 py-3 sm:col-span-3 dark:bg-white/5">
+          <div
+            v-if="shareProduct"
+            class="flex items-center justify-between rounded-xl bg-navy/5 px-4 py-3 sm:col-span-3 dark:bg-white/5"
+          >
             <span class="text-sm text-neutral-600 dark:text-neutral-300">Total investment</span>
             <span class="text-lg font-bold text-navy dark:text-white">{{ formatMoney(shareTotal) }}</span>
           </div>
         </div>
       </div>
 
+      <div :class="card">
+        <h2 :class="heading">Client application details</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label :class="label" for="m-applicant-type">Client type</label
+            ><select id="m-applicant-type" v-model="form.applicant_type" :class="inputClass('applicant_type')">
+              <option value="individual">Individual</option>
+              <option value="business">Business / company</option>
+            </select>
+          </div>
+          <div>
+            <label :class="label" for="m-district">Town / division / district</label
+            ><input id="m-district" v-model="form.district" :class="inputClass('district')" maxlength="255" />
+            <p v-if="fieldError('district')" :class="errorText">{{ fieldError('district') }}</p>
+          </div>
+          <template v-if="form.applicant_type === 'business'"
+            ><div v-for="field in businessFields" :key="field.key">
+              <label :class="label" :for="`m-${field.key}`">{{ field.label }}</label
+              ><input :id="`m-${field.key}`" v-model="form[field.key]" :class="inputClass(field.key)" maxlength="255" />
+              <p v-if="fieldError(field.key)" :class="errorText">{{ fieldError(field.key) }}</p>
+            </div></template
+          >
+          <template v-else
+            ><div>
+              <label :class="label" for="m-employer">Employer / place of work</label
+              ><input id="m-employer" v-model="form.employer" :class="inputClass('employer')" maxlength="255" />
+            </div>
+            <div>
+              <label :class="label" for="m-occupation">Occupation / profession</label
+              ><input
+                id="m-occupation"
+                v-model="form.occupation"
+                :class="inputClass('occupation')"
+                maxlength="255"
+              /></div
+          ></template>
+        </div>
+      </div>
+
       <!-- Personal -->
       <div :class="card">
-        <h2 :class="heading">Personal Details</h2>
+        <h2 :class="heading">Membership details</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label :class="label" for="m-number">Member Code</label>
-            <input id="m-number" v-model="form.member_number" type="text" :class="inputClass('member_number')" placeholder="Generated when left blank" />
+            <input
+              id="m-number"
+              v-model="form.member_number"
+              type="text"
+              :class="inputClass('member_number')"
+              placeholder="Generated when left blank"
+            />
             <p v-if="fieldError('member_number')" :class="errorText">{{ fieldError('member_number') }}</p>
           </div>
           <div>
             <label :class="label" for="m-salutation">Salutation</label>
             <select id="m-salutation" v-model="form.salutation" :class="inputClass('salutation')">
               <option value="">—</option>
-              <option v-for="salutation in SALUTATIONS" :key="salutation" :value="salutation">{{ salutation }}</option>
+              <option v-for="salutation in SALUTATIONS" :key="salutation" :value="salutation">
+                {{ salutation }}
+              </option>
             </select>
           </div>
           <div>
-            <label :class="label" for="m-gender">Gender <span class="text-red-500">*</span></label>
+            <label :class="label" for="m-gender"
+              >Gender <span v-if="form.applicant_type === 'individual'" class="text-red-500">*</span></label
+            >
             <select id="m-gender" v-model="form.gender" :class="inputClass('gender')">
               <option :value="null" disabled>Select gender</option>
-              <option v-for="gender in GENDERS" :key="gender" :value="gender">{{ formatEnum(gender) }}</option>
+              <option v-for="gender in GENDERS" :key="gender" :value="gender">
+                {{ formatEnum(gender) }}
+              </option>
             </select>
             <p v-if="fieldError('gender')" :class="errorText">{{ fieldError('gender') }}</p>
           </div>
           <div>
             <label :class="label" for="m-dob">Date of Birth</label>
-            <input id="m-dob" v-model="form.date_of_birth" type="date" :max="maxBirthDate" :class="inputClass('date_of_birth')" />
+            <input
+              id="m-dob"
+              v-model="form.date_of_birth"
+              type="date"
+              :max="maxBirthDate"
+              :class="inputClass('date_of_birth')"
+            />
             <p v-if="fieldError('date_of_birth')" :class="errorText">{{ fieldError('date_of_birth') }}</p>
           </div>
           <div>
-            <label :class="label" for="m-marital">Marital Status <span class="text-red-500">*</span></label>
+            <label :class="label" for="m-marital"
+              >Marital Status <span v-if="form.applicant_type === 'individual'" class="text-red-500">*</span></label
+            >
             <select id="m-marital" v-model="form.marital_status" :class="inputClass('marital_status')">
               <option :value="null" disabled>Select status</option>
-              <option v-for="status in MARITAL_STATUSES" :key="status" :value="status">{{ formatEnum(status) }}</option>
+              <option v-for="status in MARITAL_STATUSES" :key="status" :value="status">
+                {{ formatEnum(status) }}
+              </option>
             </select>
             <p v-if="fieldError('marital_status')" :class="errorText">{{ fieldError('marital_status') }}</p>
           </div>
           <div v-if="isEditing">
             <label :class="label" for="m-status">Status</label>
-            <select id="m-status" v-model="form.status" :class="inputClass('status')" :disabled="!EDITABLE_STATUSES.includes(form.status)">
-              <option v-if="!EDITABLE_STATUSES.includes(form.status)" :value="form.status">{{ formatEnum(form.status) }}</option>
-              <option v-for="status in EDITABLE_STATUSES" :key="status" :value="status">{{ formatEnum(status) }}</option>
+            <select
+              id="m-status"
+              v-model="form.status"
+              :class="inputClass('status')"
+              :disabled="!EDITABLE_STATUSES.includes(form.status)"
+            >
+              <option v-if="!EDITABLE_STATUSES.includes(form.status)" :value="form.status">
+                {{ formatEnum(form.status) }}
+              </option>
+              <option v-for="status in EDITABLE_STATUSES" :key="status" :value="status">
+                {{ formatEnum(status) }}
+              </option>
             </select>
             <p v-if="fieldError('status')" :class="errorText">{{ fieldError('status') }}</p>
           </div>
@@ -377,8 +560,15 @@ const errorText = 'mt-1 text-xs text-red-500'
           </div>
           <div>
             <label :class="label" for="m-momo">Mobile Money Number</label>
-            <input id="m-momo" v-model="form.mobile_money_number" type="tel" :class="inputClass('mobile_money_number')" />
-            <p v-if="fieldError('mobile_money_number')" :class="errorText">{{ fieldError('mobile_money_number') }}</p>
+            <input
+              id="m-momo"
+              v-model="form.mobile_money_number"
+              type="tel"
+              :class="inputClass('mobile_money_number')"
+            />
+            <p v-if="fieldError('mobile_money_number')" :class="errorText">
+              {{ fieldError('mobile_money_number') }}
+            </p>
           </div>
           <div>
             <label :class="label" for="m-email">Email</label>
@@ -408,13 +598,26 @@ const errorText = 'mt-1 text-xs text-red-500'
         <h2 :class="heading">Other Details</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="flex items-center gap-4 sm:col-span-2">
-            <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-navy/10 text-navy dark:text-white">
-              <img v-if="avatarPreview" :src="avatarPreview" alt="Profile picture preview" class="h-full w-full object-cover" />
+            <div
+              class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-navy/10 text-navy dark:text-white"
+            >
+              <img
+                v-if="avatarPreview"
+                :src="avatarPreview"
+                alt="Profile picture preview"
+                class="h-full w-full object-cover"
+              />
               <ImagePlus v-else class="h-6 w-6" />
             </div>
             <div>
               <label :class="label" for="m-avatar">Profile Picture</label>
-              <input id="m-avatar" type="file" accept="image/*" class="text-sm text-neutral-600 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-100 file:px-3 file:py-1.5 file:text-sm file:font-medium dark:text-neutral-300 dark:file:bg-neutral-800" @change="pickAvatar" />
+              <input
+                id="m-avatar"
+                type="file"
+                accept="image/*"
+                class="text-sm text-neutral-600 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-100 file:px-3 file:py-1.5 file:text-sm file:font-medium dark:text-neutral-300 dark:file:bg-neutral-800"
+                @change="pickAvatar"
+              />
               <p v-if="fieldError('avatar')" :class="errorText">{{ fieldError('avatar') }}</p>
             </div>
           </div>
@@ -424,7 +627,12 @@ const errorText = 'mt-1 text-xs text-red-500'
           </div>
           <div>
             <label :class="label" for="m-kin-contact">Next of Kin Contact</label>
-            <input id="m-kin-contact" v-model="form.next_of_kin_contact" type="tel" :class="inputClass('next_of_kin_contact')" />
+            <input
+              id="m-kin-contact"
+              v-model="form.next_of_kin_contact"
+              type="tel"
+              :class="inputClass('next_of_kin_contact')"
+            />
           </div>
           <div>
             <label :class="label" for="m-joined">Joined Date</label>

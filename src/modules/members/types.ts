@@ -8,7 +8,15 @@ export type MemberType = 'new_member' | 'existing_member'
 export type Gender = 'male' | 'female' | 'other'
 export type MaritalStatus = 'single' | 'married' | 'divorced' | 'widowed'
 
-export const MEMBER_STATUSES: MemberStatus[] = ['pending', 'active', 'dormant', 'suspended', 'rejected', 'inactive', 'exited']
+export const MEMBER_STATUSES: MemberStatus[] = [
+  'pending',
+  'active',
+  'dormant',
+  'suspended',
+  'rejected',
+  'inactive',
+  'exited',
+]
 /** Statuses an edit may set directly; pending and rejected belong to the approval workflow. */
 export const EDITABLE_STATUSES: MemberStatus[] = ['active', 'dormant', 'suspended', 'inactive', 'exited']
 export const GENDERS: Gender[] = ['male', 'female', 'other']
@@ -20,7 +28,19 @@ export interface UserSummary {
   name: string
 }
 
-export interface Member {
+export interface ClientApplicationDetails {
+  applicant_type?: 'individual' | 'business'
+  employer?: string | null
+  occupation?: string | null
+  district?: string | null
+  business_registration_number?: string | null
+  business_activity?: string | null
+  signatory_name?: string | null
+  signatory_title?: string | null
+  signatory_national_id?: string | null
+}
+
+export interface Member extends ClientApplicationDetails {
   id: number
   member_number: string
   name: string
@@ -67,7 +87,7 @@ export interface Member {
 }
 
 /** Personal and contact details shared by registering and editing a member. */
-export interface MemberDetailsPayload {
+export interface MemberDetailsPayload extends ClientApplicationDetails {
   member_number?: string | null
   name: string
   salutation?: string | null
