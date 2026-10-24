@@ -139,7 +139,56 @@ export interface LoanProductPreview {
   assumptions: string[]
 }
 
+export interface LoanApplicationData {
+  applicant_type: 'individual' | 'business'
+  display_name: string
+  national_id: string
+  date_of_birth: string
+  employer: string
+  occupation: string
+  address: string
+  district: string
+  phone: string
+  email: string
+  business_registration_number: string
+  business_activity: string
+  signatory_name: string
+  signatory_title: string
+  signatory_national_id: string
+  declaration_accepted: boolean
+  declaration_name: string
+}
+export interface LoanChargeInput {
+  name: string
+  amount: string
+  frequency: 'once' | 'monthly'
+  collection: 'upfront' | 'repayment'
+  chart_of_account_id: number
+}
+export interface LoanCharge extends LoanChargeInput {
+  id: number
+  paid_amount: string
+}
+export interface LoanSignature {
+  id: number
+  signer_type: string
+  signer_name: string
+  guarantor_id: number | null
+  loan_document_id: number
+  agreement_revision: number
+  signed_at: string
+  details: Record<string, string> | null
+}
 export interface Loan {
+  application_version: number
+  agreement_revision: number
+  application_data: Partial<LoanApplicationData> | null
+  application_snapshot: Record<string, unknown> | null
+  approved_snapshot: Record<string, unknown> | null
+  pricing_review: Record<string, unknown> | null
+  deferred_until: string | null
+  charges?: LoanCharge[]
+  signatures?: LoanSignature[]
   id: number
   loan_number: string
   uses_workflow: boolean
@@ -193,6 +242,8 @@ export interface Loan {
 }
 
 export interface StoreLoanPayload {
+  application_data?: Partial<LoanApplicationData>
+  charges?: LoanChargeInput[]
   interest_method?: InterestMethod
   commission_member_id?: number | null
   loan_number?: string
@@ -208,6 +259,8 @@ export interface StoreLoanPayload {
 }
 
 export interface UpdateLoanPayload {
+  application_data?: Partial<LoanApplicationData>
+  charges?: LoanChargeInput[]
   interest_method?: InterestMethod
   commission_member_id?: number | null
   purpose?: string
@@ -285,6 +338,12 @@ export interface LoanGuarantor extends LoanGuarantorInput {
   member: { id: number; name: string; member_number: string }
 }
 export interface LoanDocument {
+  category?: string
+  verification_status?: string
+  verification_notes?: string | null
+  agreement_revision?: number
+  guarantor_id?: number | null
+  sha256?: string | null
   id: number
   title: string
   original_name: string
