@@ -118,6 +118,7 @@ export interface LoanProduct extends LoanProductSettings {
 export type LoanProductFilters = { active?: boolean; search?: string; per_page?: number }
 
 export interface LoanProductPreviewRow {
+  fees?: number
   period: number
   principal: number
   interest: number
@@ -129,6 +130,9 @@ export interface LoanProductPreview {
   commission_rate?: number
   commission_amount?: number
   company_interest?: number
+  total_charges?: number
+  charges_with_repayment?: number
+  upfront_charges?: number
   processing_fee?: number
   net_disbursement?: number
   installment_amount: number
@@ -215,6 +219,8 @@ export interface Loan {
   commission_member?: { id: number; name: string; member_number: string } | null
   interest_method: InterestMethod | null
   recommended_interest_method: InterestMethod | null
+  scheduled_charges: Money
+  outstanding_charges?: Money
   scheduled_interest: Money
   outstanding_interest?: Money
   available_actions?: LoanAction[]
@@ -279,6 +285,7 @@ export type LoanFilters = {
 }
 
 export interface LoanRepayment {
+  fees_paid: Money
   id: number
   loan_id: number
   amount: Money
@@ -370,6 +377,8 @@ export interface LoanWorkflowEvent {
   user: { id: number; name: string } | null
 }
 export interface LoanInstallment {
+  fees: Money
+  fees_paid: Money
   id: number
   period: number
   due_date: string

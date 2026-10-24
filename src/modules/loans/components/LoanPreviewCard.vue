@@ -36,6 +36,8 @@ defineEmits<{ retry: [] }>()
           <dt>Commission ({{ preview.commission_rate }}%)</dt>
           <dd>{{ formatMoney(preview.commission_amount) }}</dd>
         </div>
+        <div v-if="preview.charges_with_repayment"><dt>Charges with repayment</dt><dd>{{ formatMoney(preview.charges_with_repayment) }}</dd></div>
+        <div v-if="preview.upfront_charges"><dt>Upfront charges</dt><dd>{{ formatMoney(preview.upfront_charges) }}</dd></div>
         <div v-if="preview.processing_fee !== undefined">
           <dt>Processing fee</dt>
           <dd>{{ formatMoney(preview.processing_fee) }}</dd>

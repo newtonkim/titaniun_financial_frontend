@@ -117,7 +117,7 @@ const ranks: Partial<Record<LoanStatus, number>> = {
 const outstanding = computed(
   () =>
     Number(loan.value?.outstanding_principal ?? loan.value?.principal ?? 0) +
-    Number(loan.value?.outstanding_interest ?? 0),
+    Number(loan.value?.outstanding_interest ?? 0) + Number(loan.value?.outstanding_charges ?? 0),
 )
 const votesFor = computed(() => loan.value?.votes?.filter((vote) => vote.decision === 'approve').length ?? 0)
 const votesAgainst = computed(() => loan.value?.votes?.filter((vote) => vote.decision === 'decline').length ?? 0)
@@ -701,7 +701,7 @@ onBeforeUnmount(() => {
                           <th>Period</th>
                           <th>Due date</th>
                           <th class="num">Principal</th>
-                          <th class="num">Interest</th>
+                          <th class="num">Interest</th><th class="num">Fees</th>
                           <th class="num">Paid</th>
                           <th class="num">Remaining</th>
                           <th>Status</th>
@@ -712,24 +712,24 @@ onBeforeUnmount(() => {
                           <td>{{ item.period }}</td>
                           <td>{{ formatDate(item.due_date) }}</td>
                           <td class="num">{{ formatMoney(item.principal) }}</td>
-                          <td class="num">{{ formatMoney(item.interest) }}</td>
+                          <td class="num">{{ formatMoney(item.interest) }}</td><td class="num">{{ formatMoney(item.fees) }}</td>
                           <td class="num">
-                            {{ formatMoney(Number(item.principal_paid) + Number(item.interest_paid)) }}
+                            {{ formatMoney(Number(item.principal_paid) + Number(item.interest_paid) + Number(item.fees_paid ?? 0)) }}
                           </td>
                           <td class="num">
                             {{
                               formatMoney(
                                 Number(item.principal) +
-                                  Number(item.interest) -
+                                  Number(item.interest) + Number(item.fees ?? 0) -
                                   Number(item.principal_paid) -
-                                  Number(item.interest_paid),
+                                  Number(item.interest_paid) - Number(item.fees_paid ?? 0),
                               )
                             }}
                           </td>
                           <td>
                             {{
-                              Number(item.principal) + Number(item.interest) <=
-                              Number(item.principal_paid) + Number(item.interest_paid) + 0.001
+                              Number(item.principal) + Number(item.interest) + Number(item.fees ?? 0) <=
+                              Number(item.principal_paid) + Number(item.interest_paid) + Number(item.fees_paid ?? 0) + 0.001
                                 ? 'Paid'
                                 : item.due_date.slice(0, 10) < localToday
                                   ? 'Overdue'
@@ -782,7 +782,7 @@ onBeforeUnmount(() => {
                         <th class="num">Amount</th>
                         <th class="num">Principal</th>
                         <th class="num">Interest</th>
-                        <th class="num">Company share</th>
+                        <th class="num">Fees</th><th class="num">Company share</th>
                         <th class="num">Commission</th>
                       </tr>
                     </thead>

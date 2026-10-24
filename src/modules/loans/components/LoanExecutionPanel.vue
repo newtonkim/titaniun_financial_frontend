@@ -47,7 +47,7 @@ async function uploadFile() {
 }
 async function downloadPack() {
   busy.value = true; error.value = ''
-  try { const pack = await loanApplicationsApi.pack(props.loan.id); downloadApplicationPack(pack.snapshot) }
+  try { const pack = await loanApplicationsApi.pack(props.loan.id); downloadApplicationPack(pack.snapshot, pack.preview) }
   catch (failure) { error.value = failure instanceof Error ? failure.message : 'The pack could not be issued.' }
   finally { busy.value = false }
 }

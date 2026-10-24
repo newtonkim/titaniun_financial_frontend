@@ -91,6 +91,6 @@ export const loanCommissionsApi = {
 
 export const loanApplicationsApi = {
   action: (loan: number, action: string, payload: Record<string, unknown>) => http.post<Wrapped<Loan>>(commissionApiPath(applicationAction.url({ loan, action })), payload).then(result => result.data),
-  pack: (loan: number) => http.get<Wrapped<{ snapshot: LoanAgreementSnapshot }>>(commissionApiPath(applicationPack.url(loan))).then(result => result.data),
+  pack: (loan: number) => http.get<Wrapped<{ snapshot: LoanAgreementSnapshot; preview: LoanProductPreview }>>(commissionApiPath(applicationPack.url(loan))).then(result => result.data),
   staff: () => http.get<Wrapped<{ id: number; name: string; email: string; loan_roles: string[] | null }[]>>(commissionApiPath(applicationStaff.url())).then(result => result.data),
 }

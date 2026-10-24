@@ -1,10 +1,10 @@
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import clauses from './application-guarantee.json'
-import type { LoanAgreementSnapshot } from './types'
+import type { LoanAgreementSnapshot, LoanProductPreview } from './types'
 
 /** Build the signed paper pack from the committee-approved, versioned snapshot. */
-export function downloadApplicationPack(snapshot: LoanAgreementSnapshot) {
+export function downloadApplicationPack(snapshot: LoanAgreementSnapshot, preview?: LoanProductPreview) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const navy: [number, number, number] = [16, 38, 64]
   const red: [number, number, number] = [182, 32, 42]
@@ -38,6 +38,12 @@ export function downloadApplicationPack(snapshot: LoanAgreementSnapshot) {
   table([['Approved principal', `UGX ${money(snapshot.principal)}`], ['Duration / repayment cycle', `${snapshot.term} months / ${snapshot.repayment_frequency}`], ['Contractual interest rate', `${Number(snapshot.monthly_interest_rate).toFixed(2)}% per month / ${snapshot.annual_interest_rate}% per year`], ['Interest calculation', snapshot.interest_method.replace(/_/g, ' ')], ['Processing fee', `UGX ${money(processing)}`], ...snapshot.charges.map(charge => [charge.name, `UGX ${money(charge.amount)} / ${charge.frequency}; ${charge.collection === 'upfront' ? 'deduct at disbursement' : 'collect with repayments'}`])])
   paragraph('The figures above are the approved product terms. Interest and each administrative or third-party charge are disclosed separately. The repayment schedule forms part of the facility documentation. No commission is added to the borrower’s repayment obligation.')
   if (snapshot.collaterals.length) table(snapshot.collaterals.map(asset => [asset.asset_type, `${asset.description}; UGX ${money(asset.estimated_value)}`]), ['Proposed collateral', 'Description and estimated value'])
+  if (preview) {
+    page('Repayment schedule')
+    paragraph('Repayment periods are shown below. Calendar due dates are confirmed against the actual disbursement date and any approved grace period.')
+    table(preview.schedule_preview.map(row => [String(row.period), money(row.principal), money(row.interest), money(row.fees ?? 0), money(row.installment)]), ['Month', 'Principal · UGX', 'Interest · UGX', 'Fees · UGX', 'Installment · UGX'])
+    table([['Total repayment', `UGX ${money(preview.total_repayment)}`], ['Net disbursement', `UGX ${money(preview.net_disbursement)}`]])
+  }
   page('Applicant declaration & acknowledgement')
   paragraph('I/WE hereby declare that the details furnished herein are true, accurate, and correct to the best of my/our knowledge, information, and belief. I/We undertake to notify Titanium Financial Consultancy Company Ltd immediately of any material changes in the stated particulars.')
   paragraph('I/We acknowledge the approved facility amount, interest calculation, separately disclosed charges, security arrangements and repayment obligations presented in this document pack.')
