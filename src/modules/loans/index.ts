@@ -26,13 +26,13 @@ export default defineModule({
       path: 'loans/:id(\\d+)/edit',
       name: 'loans.edit',
       meta: { title: 'Edit loan application' },
-      component: () => import('./views/LoanCreateView.vue'),
+      component: () => import('./views/LoanApplicationView.vue'),
     },
     {
       path: 'loans/new',
       name: 'loans.create',
       meta: { title: 'New loan application' },
-      component: () => import('./views/LoanCreateView.vue'),
+      component: () => import('./views/LoanApplicationView.vue'),
     },
   ],
   nav: [

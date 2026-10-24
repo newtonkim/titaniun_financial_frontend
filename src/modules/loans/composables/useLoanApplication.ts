@@ -9,6 +9,8 @@ import type {
   LoanEligibility,
   LoanGuarantorInput,
   LoanOptions,
+  LoanApplicationData,
+  LoanChargeInput,
   LoanProduct,
   LoanProductPreview,
   StoreLoanPayload,
@@ -27,7 +29,10 @@ export function useLoanApplication() {
   const member = ref<Member | null>(null)
   const products = ref<LoanProduct[]>([])
   const options = ref<LoanOptions>({ officers: [], committee_votes_required: 2 })
+  const blankApplication = (): LoanApplicationData => ({ applicant_type: 'individual', display_name: '', national_id: '', date_of_birth: '', employer: '', occupation: '', address: '', district: '', phone: '', email: '', business_registration_number: '', business_activity: '', signatory_name: '', signatory_title: '', signatory_national_id: '', declaration_accepted: false, declaration_name: '' })
   const form = reactive({
+    application_data: blankApplication(),
+    charges: [] as LoanChargeInput[],
     loan_product_id: null as number | null,
     loan_officer_id: null as number | null,
     commission_member_id: null as number | null,
@@ -54,6 +59,8 @@ export function useLoanApplication() {
   function payload(): StoreLoanPayload {
     return {
       member_id: member.value?.id ?? 0,
+      application_data: { ...form.application_data },
+      charges: form.charges,
       loan_product_id: form.loan_product_id ?? 0,
       loan_officer_id: form.loan_officer_id,
       commission_member_id: form.commission_member_id,
@@ -89,6 +96,8 @@ export function useLoanApplication() {
           products.value.push(loan.product)
         member.value = loan.borrower ?? null
         Object.assign(form, {
+          application_data: { ...blankApplication(), ...(loan.application_data ?? {}) },
+          charges: (loan.charges ?? []).map(({ name, amount, frequency, collection, chart_of_account_id }) => ({ name, amount, frequency, collection, chart_of_account_id })),
           loan_product_id: loan.loan_product_id,
           loan_officer_id: loan.loan_officer_id,
           commission_member_id: loan.commission_member_id,
@@ -270,6 +279,8 @@ export function useLoanApplication() {
     message.value = ''
     errors.value = {}
     Object.assign(form, {
+      application_data: blankApplication(),
+      charges: [],
       loan_product_id: null,
       loan_officer_id: null,
       principal: '',
