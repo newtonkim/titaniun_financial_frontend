@@ -14,6 +14,8 @@ export interface AccountFieldMeta {
 
 /** The Accounting Mapping section's ledger account fields, in display order. */
 export const ACCOUNT_FIELDS: readonly AccountFieldMeta[] = [
+  { field: 'commission_expense_account_id', type: 'expense', label: 'Commission Expense Account', placeholder: 'Select commission expense account' },
+  { field: 'commission_payable_account_id', type: 'liability', label: 'Commission Payable Account', placeholder: 'Select commission payable account' },
   { field: 'loan_portfolio_account_id', type: 'asset', label: 'Loan Portfolio Account', placeholder: 'Select loan portfolio account' },
   { field: 'interest_income_account_id', type: 'income', label: 'Interest Income Account', placeholder: 'Select interest income account' },
   { field: 'interest_receivable_account_id', type: 'asset', label: 'Interest Receivable Account', placeholder: 'Select interest receivable account' },
@@ -26,6 +28,8 @@ export const ACCOUNT_FIELDS: readonly AccountFieldMeta[] = [
 
 /** Words an account's name or subtype must contain to be suggested for a field: one from each group. */
 const SUGGESTION_KEYWORDS: Record<LoanProductAccountField, string[][]> = {
+  commission_expense_account_id: [['commission'], ['expense']],
+  commission_payable_account_id: [['commission'], ['payable']],
   loan_portfolio_account_id: [['loan', 'portfolio']],
   interest_income_account_id: [['interest']],
   interest_receivable_account_id: [['interest'], ['receivable']],
@@ -47,7 +51,11 @@ function createDefaultForm(): LoanProductSettings {
     interest_method: null,
     interest_period: 'per_month',
     repayment_structure: 'equal_installment',
+    min_term: 1,
     max_term: null,
+    commission_rate: 20,
+    commission_expense_account_id: null,
+    commission_payable_account_id: null,
     duration_type: 'months',
     repayment_frequency: 'monthly',
     grace_period: 0,
@@ -96,7 +104,7 @@ export function useLoanProductForm(productId: Ref<number | null>, onSaved: (prod
   const accountsByType = computed(() => {
     const options = (type: AccountType) =>
       postableAccounts.value.filter((a) => a.type === type).map((a) => ({ id: a.id, name: `${a.code} - ${a.name}` }))
-    return { asset: options('asset'), income: options('income') } as Record<AccountType, { id: number; name: string }[]>
+    return { asset: options('asset'), income: options('income'), expense: options('expense'), liability: options('liability'), equity: options('equity') } as Record<AccountType, { id: number; name: string }[]>
   })
 
   async function fetchAccounts() {
@@ -223,6 +231,7 @@ export function useLoanProductForm(productId: Ref<number | null>, onSaved: (prod
     [
       () => form.value.min_amount,
       () => form.value.interest_rate,
+      () => form.value.commission_rate,
       () => form.value.interest_method,
       () => form.value.repayment_structure,
       () => form.value.interest_period,
@@ -243,9 +252,10 @@ export function useLoanProductForm(productId: Ref<number | null>, onSaved: (prod
     errors.value = {}
     message.value = ''
     try {
+      const payload = { ...form.value, max_amount: form.value.max_amount === '' ? null : form.value.max_amount }
       const product = productId.value !== null
-        ? await loanProductsApi.update(productId.value, form.value)
-        : await loanProductsApi.create(form.value)
+        ? await loanProductsApi.update(productId.value, payload)
+        : await loanProductsApi.create(payload)
       onSaved(product)
     } catch (e) {
       if (e instanceof ApiError && e.isValidation) {

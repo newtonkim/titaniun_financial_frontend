@@ -121,12 +121,17 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
             <p v-if="fieldError('min_amount')" class="mt-1 text-xs text-red-500">{{ fieldError('min_amount') }}</p>
           </div>
           <div>
-            <label :class="label" for="lp-max">Maximum Amount</label>
+            <label :class="label" for="lp-max">Maximum Amount (blank for no limit)</label>
             <input id="lp-max" v-model.number="form.max_amount" type="number" step="0.01" placeholder="0.00" :class="inputClass('max_amount')" />
             <p v-if="fieldError('max_amount')" class="mt-1 text-xs text-red-500">{{ fieldError('max_amount') }}</p>
           </div>
           <div>
-            <label :class="label" for="lp-duration">Loan Duration</label>
+            <label :class="label" for="lp-min-term">Minimum Term</label>
+            <input id="lp-min-term" v-model.number="form.min_term" type="number" min="1" :class="inputClass('min_term')" />
+            <p v-if="fieldError('min_term')" class="mt-1 text-xs text-red-500">{{ fieldError('min_term') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="lp-duration">Maximum Term</label>
             <input id="lp-duration" v-model.number="form.max_term" type="number" min="1" placeholder="e.g. 12" :class="inputClass('max_term')" />
             <p v-if="fieldError('max_term')" class="mt-1 text-xs text-red-500">{{ fieldError('max_term') }}</p>
           </div>
@@ -210,6 +215,14 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
             </select>
           </div>
         </div>
+      </div>
+
+      <div :class="card">
+        <h2 class="mb-3 text-base font-semibold text-neutral-900 dark:text-white">Interest distribution</h2>
+        <label :class="label" for="lp-commission">Commission share of collected interest (%)</label>
+        <input id="lp-commission" v-model.number="form.commission_rate" type="number" min="0" max="100" step="0.01" :class="inputClass('commission_rate')" />
+        <p v-if="fieldError('commission_rate')" class="mt-1 text-xs text-red-500">{{ fieldError('commission_rate') }}</p>
+        <p :class="hint">Company retains {{ 100 - Number(form.commission_rate) }}%; the selected officer or referring guarantor earns {{ form.commission_rate }}%. Only collected interest qualifies. Payout is at quarter-end after the client fully clears the loan; unpaid commission carries forward. Principal and fees do not earn commission.</p>
       </div>
 
       <!-- Workflow and eligibility -->
@@ -387,6 +400,11 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
                   <p class="mt-1 text-base font-semibold text-neutral-900 dark:text-white">{{ money(preview.total_repayment) }}</p>
                 </div>
               </div>
+            </div>
+
+            <div class="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800/60">
+              <p class="text-sm text-neutral-700 dark:text-neutral-300">Company interest share: <strong>{{ money(preview.company_interest ?? 0) }}</strong></p>
+              <p class="mt-1 text-sm text-neutral-700 dark:text-neutral-300">Commission: <strong>{{ money(preview.commission_amount ?? 0) }}</strong>, earned on collection and payable at quarter-end after full loan clearance.</p>
             </div>
 
             <!-- Total cost of credit -->

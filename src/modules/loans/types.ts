@@ -8,12 +8,47 @@ export type RepaymentFrequency = 'daily' | 'weekly' | 'biweekly' | 'monthly' | '
 export type DurationType = 'days' | 'weeks' | 'months' | 'years'
 export type ChargeType = 'none' | 'flat' | 'percentage'
 export type PenaltyType = ChargeType | 'percentage_per_day'
-export type LoanStatus = 'pending' | 'approved' | 'rejected' | 'disbursed' | 'closed' | 'written_off'
+export type LoanStatus =
+  | 'draft'
+  | 'awaiting_guarantors'
+  | 'submitted'
+  | 'under_review'
+  | 'awaiting_documents'
+  | 'returned_for_correction'
+  | 'officer_recommended'
+  | 'committee_voting'
+  | 'declined'
+  | 'cancelled'
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'disbursed'
+  | 'closed'
+  | 'written_off'
 
-export const LOAN_STATUSES: LoanStatus[] = ['pending', 'approved', 'rejected', 'disbursed', 'closed', 'written_off']
+export const LOAN_STATUSES: LoanStatus[] = [
+  'draft',
+  'awaiting_guarantors',
+  'submitted',
+  'under_review',
+  'awaiting_documents',
+  'returned_for_correction',
+  'officer_recommended',
+  'committee_voting',
+  'declined',
+  'cancelled',
+  'pending',
+  'approved',
+  'rejected',
+  'disbursed',
+  'closed',
+  'written_off',
+]
 
 /** The ledger accounts a loan product posts to. */
 export type LoanProductAccountField =
+  | 'commission_expense_account_id'
+  | 'commission_payable_account_id'
   | 'loan_portfolio_account_id'
   | 'interest_income_account_id'
   | 'interest_receivable_account_id'
@@ -34,6 +69,7 @@ export interface LoanProductSettings extends Record<LoanProductAccountField, num
   name: string
   code: string
   description: string | null
+  commission_rate: Money | number
   interest_rate: Money | number | null
   interest_method: InterestMethod | null
   interest_period: InterestPeriod
@@ -41,6 +77,7 @@ export interface LoanProductSettings extends Record<LoanProductAccountField, num
   repayment_frequency: RepaymentFrequency
   min_amount: Money | number | null
   max_amount: Money | number | null
+  min_term: number
   max_term: number | null
   duration_type: DurationType
   grace_period: number
@@ -61,7 +98,7 @@ export interface LoanProduct extends LoanProductSettings {
   interest_rate: Money
   interest_method: InterestMethod
   min_amount: Money
-  max_amount: Money
+  max_amount: Money | null
   min_term: number
   max_term: number
   loan_portfolio_account?: AccountSummary | null
@@ -89,6 +126,11 @@ export interface LoanProductPreviewRow {
 }
 
 export interface LoanProductPreview {
+  commission_rate?: number
+  commission_amount?: number
+  company_interest?: number
+  processing_fee?: number
+  net_disbursement?: number
   installment_amount: number
   total_interest: number
   total_repayment: number
@@ -100,6 +142,40 @@ export interface LoanProductPreview {
 export interface Loan {
   id: number
   loan_number: string
+  uses_workflow: boolean
+  purpose: string | null
+  repayment_source: string | null
+  loan_officer_id: number | null
+  officer?: { id: number; name: string } | null
+  created_by: number | null
+  appraised_by: number | null
+  recommended_by: number | null
+  recommended_amount: Money | null
+  recommended_term: number | null
+  recommended_interest_rate: Money | null
+  risk_rating: string | null
+  appraisal_notes: string | null
+  submitted_at: ISODateTime | null
+  disbursement_method: string | null
+  disbursement_reference: string | null
+  processing_fee_amount?: Money
+  net_disbursed_amount?: Money | null
+  commission_rate: Money
+  commission_member_id: number | null
+  commission_member?: { id: number; name: string; member_number: string } | null
+  interest_method: InterestMethod | null
+  recommended_interest_method: InterestMethod | null
+  scheduled_interest: Money
+  outstanding_interest?: Money
+  available_actions?: LoanAction[]
+  committee_votes_required?: number
+  repayment_preview?: LoanProductPreview
+  collaterals?: LoanCollateral[]
+  guarantors?: LoanGuarantor[]
+  documents?: LoanDocument[]
+  votes?: LoanVote[]
+  events?: LoanWorkflowEvent[]
+  installments?: LoanInstallment[]
   member_id: number
   borrower?: Member
   loan_product_id: number
@@ -117,7 +193,14 @@ export interface Loan {
 }
 
 export interface StoreLoanPayload {
-  loan_number: string
+  interest_method?: InterestMethod
+  commission_member_id?: number | null
+  loan_number?: string
+  purpose?: string
+  repayment_source?: string
+  loan_officer_id?: number | null
+  collaterals?: LoanCollateralInput[]
+  guarantors?: LoanGuarantorInput[]
   member_id: number
   loan_product_id: number
   principal: Money
@@ -125,6 +208,13 @@ export interface StoreLoanPayload {
 }
 
 export interface UpdateLoanPayload {
+  interest_method?: InterestMethod
+  commission_member_id?: number | null
+  purpose?: string
+  repayment_source?: string
+  loan_officer_id?: number | null
+  collaterals?: LoanCollateralInput[]
+  guarantors?: LoanGuarantorInput[]
   principal?: Money
   term?: number
 }
@@ -140,6 +230,10 @@ export interface LoanRepayment {
   amount: Money
   principal_paid: Money
   interest_paid: Money
+  company_interest: Money | null
+  commission_amount: Money | null
+  journal_entry_id: number | null
+  commission?: LoanCommission | null
   paid_at: ISODateTime
   reference: string | null
   created_at: ISODateTime | null
@@ -150,4 +244,130 @@ export interface StoreLoanRepaymentPayload {
   interest_paid: Money
   paid_at?: ISODateTime | null
   reference?: string | null
+}
+
+export type LoanAction =
+  | 'edit'
+  | 'submit'
+  | 'consent'
+  | 'take-review'
+  | 'resume-review'
+  | 'request-documents'
+  | 'return'
+  | 'appraise'
+  | 'recommend'
+  | 'vote'
+  | 'disburse'
+  | 'reject'
+  | 'cancel'
+  | 'reopen'
+  | 'repay'
+  | 'documents'
+export interface LoanCollateralInput {
+  asset_type: string
+  description: string
+  estimated_value: Money
+  notes: string
+}
+export interface LoanCollateral extends LoanCollateralInput {
+  id: number
+}
+export interface LoanGuarantorInput {
+  member_id: number
+  guaranteed_amount: Money
+}
+export interface LoanGuarantor extends LoanGuarantorInput {
+  id: number
+  status: string
+  consent_evidence: string | null
+  consented_at: ISODateTime | null
+  recorded_by: number | null
+  member: { id: number; name: string; member_number: string }
+}
+export interface LoanDocument {
+  id: number
+  title: string
+  original_name: string
+  mime_type: string
+  size: number
+  created_at: ISODateTime
+}
+export interface LoanVote {
+  id: number
+  user_id: number
+  decision: 'approve' | 'decline'
+  comments: string
+  created_at: ISODateTime
+  user: { id: number; name: string }
+}
+export interface LoanWorkflowEvent {
+  id: number
+  event: string
+  from_status: LoanStatus | null
+  to_status: LoanStatus
+  notes: string | null
+  created_at: ISODateTime
+  user: { id: number; name: string } | null
+}
+export interface LoanInstallment {
+  id: number
+  period: number
+  due_date: string
+  principal: Money
+  interest: Money
+  principal_paid: Money
+  interest_paid: Money
+}
+export interface LoanEligibility {
+  eligible: boolean
+  checks: { key: string; label: string; passed: boolean; reason?: string | null }[]
+  savings_balance: Money
+  required_savings: Money
+  required_security: Money
+  provided_security: Money
+}
+export interface LoanOptions {
+  officers: { id: number; name: string }[]
+  committee_votes_required: number
+}
+export interface LoanPaymentPayload {
+  amount: Money
+  paid_at: string
+  reference: string
+}
+
+export interface LoanCommission {
+  id: number
+  loan_id: number
+  loan_number?: string
+  loan_repayment_id: number
+  beneficiary_id: number | null
+  beneficiary_member_id: number | null
+  beneficiary_member?: { id: number; name: string; member_number: string } | null
+  recipient_type: 'loan_officer' | 'guarantor'
+  beneficiary?: { id: number; name: string }
+  interest_amount: Money
+  commission_rate: Money
+  amount: Money
+  status: 'payable' | 'paid'
+  payable_account_id: number
+  journal_entry_id: number
+  eligible_on: string | null
+  collection_quarter_end: string
+  loan_cleared_at: ISODateTime | null
+  held_for_clearance: boolean
+  earned_at: ISODateTime
+  paid_at: ISODateTime | null
+  paid_by: number | null
+  payment_reference: string | null
+  payment_method: string | null
+  payment_account_id: number | null
+  payment_journal_entry_id: number | null
+  recorded_by: number | null
+}
+export interface CommissionPaymentPayload {
+  paid_at: string
+  payment_reference: string
+  payment_method: string
+  payment_account_id: number
 }
