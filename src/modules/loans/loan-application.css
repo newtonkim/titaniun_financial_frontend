@@ -1,5 +1,6 @@
 .application-workspace { --application-navy: light-dark(#102640, #d9e5f4); --application-red: #b6202a; --application-muted: light-dark(#606b79, #b0bac6); }
-.application-header { display:flex; justify-content:space-between; align-items:center; gap:24px; margin:4px 0 28px; }
+.application-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:24px; margin:4px 0 28px; }
+.application-header-actions { display:flex; align-items:center; justify-content:flex-end; gap:12px; margin-left:auto; }
 .application-title { display:flex; align-items:flex-start; gap:14px; }
 .application-title h1 { font-size:28px; font-weight:650; letter-spacing:-.8px; color:var(--application-navy); margin:5px 0 6px; }
 .application-title > div > p:last-child { color:var(--application-muted); font-size:14px; }
@@ -87,3 +88,4 @@
 .execution-file-name { display:block; font-size:10px; color:var(--loan-muted); margin-top:4px; max-width:230px; overflow-wrap:anywhere; }
 
 .application-declaration-text { white-space: pre-line; }
+@media(max-width:560px) { .application-header { flex-direction:column; gap:16px; } .application-header-actions { align-self:flex-end; gap:8px; max-width:100%; } .application-header-actions .application-state { display:flex; font-size:11px; } .application-header-actions .loan-button { min-height:40px; padding:9px 12px; font-size:12px; } }
