@@ -180,6 +180,7 @@ export interface LoanSignature {
   details: Record<string, string> | null
 }
 export interface Loan {
+  execution_checklist?: { key: string; label: string; complete: boolean }[]
   application_version: number
   agreement_revision: number
   application_data: Partial<LoanApplicationData> | null
@@ -386,6 +387,9 @@ export interface LoanEligibility {
   provided_security: Money
 }
 export interface LoanOptions {
+  roles?: string[]
+  can_manage_access?: boolean
+  application_policy?: { minimum_guarantors: number; template_version: string }
   officers: { id: number; name: string }[]
   committee_votes_required: number
 }
@@ -429,4 +433,24 @@ export interface CommissionPaymentPayload {
   payment_reference: string
   payment_method: string
   payment_account_id: number
+}
+
+export interface LoanAgreementSnapshot {
+  template_version: string
+  revision: number
+  loan_number: string
+  applicant: Partial<LoanApplicationData>
+  principal: string
+  annual_interest_rate: string
+  monthly_interest_rate: string
+  interest_method: string
+  term: number
+  repayment_frequency: string
+  processing_fee_type: string
+  processing_fee_value: string
+  charges: LoanChargeInput[]
+  guarantors: { id: number; name: string; national_id: string; phone: string; address: string; guaranteed_amount: string }[]
+  collaterals: { asset_type: string; description: string; estimated_value: string; notes: string | null }[]
+  terms_hash: string
+  approved_at: string
 }

@@ -19,6 +19,8 @@ import {
 import { ApiError } from '@/core/api/http'
 import { formatDate, formatEnum, formatMoney } from '@/core/utils/format'
 import { loansApi } from '../api'
+import LoanExecutionPanel from '../components/LoanExecutionPanel.vue'
+import '../loan-application.css'
 import LoanCommissionLedger from '../components/LoanCommissionLedger.vue'
 import LoanPreviewCard from '../components/LoanPreviewCard.vue'
 import type { Loan, LoanAction, LoanRepayment, LoanStatus } from '../types'
@@ -416,6 +418,7 @@ onBeforeUnmount(() => {
         <div class="loan-main">
           <TabsRoot v-model="tab">
             <TabsList class="loan-tabs" aria-label="Loan information"
+              ><TabsTrigger v-if="loan.application_version >= 2" value="execution">Application pack</TabsTrigger
               ><TabsTrigger value="overview">Overview</TabsTrigger
               ><TabsTrigger value="security">Security & consent</TabsTrigger
               ><TabsTrigger value="documents"
@@ -425,6 +428,7 @@ onBeforeUnmount(() => {
               ><TabsTrigger value="commissions">Commissions</TabsTrigger
               ><TabsTrigger value="activity">Activity</TabsTrigger></TabsList
             >
+            <TabsContent v-if="loan.application_version >= 2" value="execution"><LoanExecutionPanel :loan="loan" @updated="loan = $event" /></TabsContent>
             <TabsContent value="overview"
               ><section class="loan-card">
                 <div class="loan-card-heading">
