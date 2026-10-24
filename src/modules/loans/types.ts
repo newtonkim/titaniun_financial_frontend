@@ -190,6 +190,7 @@ export interface Loan {
   application_data: Partial<LoanApplicationData> | null
   application_snapshot: Record<string, unknown> | null
   approved_snapshot: Record<string, unknown> | null
+  agreement_history: { snapshot: LoanAgreementSnapshot; pricing_review: Record<string, unknown> | null; archived_at: string }[]
   pricing_review: Record<string, unknown> | null
   deferred_until: string | null
   charges?: LoanCharge[]
@@ -445,6 +446,7 @@ export interface CommissionPaymentPayload {
 }
 
 export interface LoanAgreementSnapshot {
+  repayment_preview?: LoanProductPreview
   template_version: string
   revision: number
   loan_number: string

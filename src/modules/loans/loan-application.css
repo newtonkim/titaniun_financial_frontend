@@ -85,3 +85,5 @@
 .execution-tabs button { display:flex; gap:7px; align-items:center; border:0; border-bottom:2px solid transparent; background:none; color:var(--loan-muted); font-size:12px; padding:12px 10px; }
 .execution-tabs button.active { color:var(--loan-text); border-color:#b6202a; }
 .execution-file-name { display:block; font-size:10px; color:var(--loan-muted); margin-top:4px; max-width:230px; overflow-wrap:anywhere; }
+
+.application-declaration-text { white-space: pre-line; }
