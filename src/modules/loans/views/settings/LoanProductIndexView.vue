@@ -81,6 +81,7 @@ const {
               <th class="px-6 py-3 text-left">Name</th>
               <th class="px-6 py-3 text-left">Interest Method</th>
               <th class="px-6 py-3 text-left">Interest Rate</th>
+              <th class="px-6 py-3 text-left">Interest split</th>
               <th class="px-6 py-3 text-left">Duration</th>
               <th class="px-6 py-3 text-left">Status</th>
               <th class="px-6 py-3 text-right">Actions</th>
@@ -95,6 +96,9 @@ const {
               <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">{{ interestMethodLabel(product.interest_method) }}</td>
               <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">
                 {{ product.interest_rate != null ? `${product.interest_rate}% ${interestPeriodLabel(product.interest_period)}` : '—' }}
+              </td>
+              <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">
+                {{ 100 - Number(product.commission_rate) }}% company / {{ product.commission_rate }}% commission
               </td>
               <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">
                 {{ product.max_term != null ? `${product.max_term} ${product.duration_type ?? ''}` : '—' }}

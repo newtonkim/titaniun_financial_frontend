@@ -15,7 +15,12 @@ const columns: Column<Loan>[] = [
   { key: 'borrower', label: 'Borrower', value: (loan) => (loan.borrower ? loan.borrower.name : null) },
   { key: 'product', label: 'Product', value: (loan) => loan.product?.name },
   { key: 'principal', label: 'Principal', align: 'right', value: (loan) => formatMoney(loan.principal) },
-  { key: 'outstanding_principal', label: 'Outstanding', align: 'right', value: (loan) => formatMoney(loan.outstanding_principal) },
+  {
+    key: 'outstanding_principal',
+    label: 'Outstanding',
+    align: 'right',
+    value: (loan) => formatMoney(loan.outstanding_principal),
+  },
   { key: 'term', label: 'Term' },
   { key: 'status', label: 'Status' },
   { key: 'maturity_date', label: 'Matures', value: (loan) => formatDate(loan.maturity_date) },
@@ -50,15 +55,43 @@ const fetchPage = (page: number) => loansApi.list({ ...filters, page })
         <option v-for="status in LOAN_STATUSES" :key="status" :value="status">{{ formatEnum(status) }}</option>
       </select>
     </template>
+    <template #cell-loan_number="{ row }"
+      ><RouterLink class="loan-record-link" :to="{ name: 'loans.show', params: { id: row.id } }">{{
+        row.loan_number
+      }}</RouterLink></template
+    >
     <template #cell-status="{ row }"><StatusBadge :status="row.status" /></template>
     <template #row-actions="{ row, reload }">
-      <template v-if="row.status === 'pending'">
-        <button class="btn btn--small" :disabled="busyLoanId === row.id" @click="run(row, loansApi.approve, reload)">Approve</button>
-        <button class="btn btn--small btn--danger" :disabled="busyLoanId === row.id" @click="run(row, loansApi.reject, reload)">Reject</button>
+      <RouterLink class="btn btn--small" :to="{ name: 'loans.show', params: { id: row.id } }">Open</RouterLink>
+      <template v-if="!row.uses_workflow && row.status === 'pending'">
+        <button class="btn btn--small" :disabled="busyLoanId === row.id" @click="run(row, loansApi.approve, reload)">
+          Approve
+        </button>
+        <button
+          class="btn btn--small btn--danger"
+          :disabled="busyLoanId === row.id"
+          @click="run(row, loansApi.reject, reload)"
+        >
+          Reject
+        </button>
       </template>
-      <button v-else-if="row.status === 'approved'" class="btn btn--small" :disabled="busyLoanId === row.id" @click="run(row, disburse, reload)">
+      <button
+        v-else-if="!row.uses_workflow && row.status === 'approved'"
+        class="btn btn--small"
+        :disabled="busyLoanId === row.id"
+        @click="run(row, disburse, reload)"
+      >
         Disburse
       </button>
     </template>
   </ResourceTable>
 </template>
+
+<style scoped>
+.loan-record-link {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+</style>
