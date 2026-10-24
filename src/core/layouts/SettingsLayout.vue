@@ -7,6 +7,7 @@ import { settingsPages } from '@/modules'
 
 const route = useRoute()
 const search = ref('')
+const isProfile = computed(() => route.name === 'settings.profile')
 
 provide(SETTINGS_SEARCH, search)
 
@@ -28,7 +29,8 @@ function isCurrent(page: (typeof settingsPages)[number]): boolean {
 
 <template>
   <div class="settings">
-    <header class="settings__header">
+    <RouterView v-if="isProfile" />
+    <header v-if="!isProfile" class="settings__header">
       <div class="settings__heading">
         <h1 class="settings__title">Settings</h1>
         <span class="settings__divider" aria-hidden="true" />
@@ -52,7 +54,7 @@ function isCurrent(page: (typeof settingsPages)[number]): boolean {
       </label>
     </header>
 
-    <div class="settings__body">
+    <div v-if="!isProfile" class="settings__body">
       <aside class="settings__modules" aria-label="Settings modules">
         <h2 class="settings__modules-title">Settings modules</h2>
         <nav class="settings__modules-list">
