@@ -32,6 +32,7 @@ import '../loan-workflow.css'
 import '../loan-application.css'
 
 const router = useRouter()
+const applicationFormUrl = `${import.meta.env.BASE_URL}loan-application-form-titanium.pdf`
 const {
   editingId,
   loading,
@@ -57,7 +58,6 @@ const stage = ref(0)
 const registerOpen = ref(false)
 const pendingClient = ref<Member | null>(null)
 const checkingClient = ref(false)
-const downloadingForm = ref(false)
 const localError = ref('')
 const formHeading = ref<HTMLElement>()
 const accounts = ref<ChartOfAccount[]>([])
@@ -98,27 +98,6 @@ const upfront = computed(() =>
 )
 const totalRepayment = computed(() => (preview.value?.total_repayment ?? 0) + chargeTotal.value - upfront.value)
 const completion = computed(() => Math.round(((stage.value + 1) / applicationSteps.length) * 100))
-async function downloadForm() {
-  if (downloadingForm.value) return
-  downloadingForm.value = true
-  localError.value = ''
-  try {
-    const { downloadApplicationForm } = await import('../application-pack')
-    downloadApplicationForm({
-      form,
-      product: product.value,
-      member: member.value,
-      officerName: options.value.officers.find((officer) => officer.id === form.loan_officer_id)?.name,
-      guarantorNames: guarantorNames.value,
-      reference: editingId.value ? `Application #${editingId.value}` : undefined,
-    })
-  } catch (failure) {
-    localError.value =
-      failure instanceof Error ? failure.message : 'The application form could not be downloaded. Please try again.'
-  } finally {
-    downloadingForm.value = false
-  }
-}
 watch(member, (value) => {
   if (!value || (editingId.value && form.application_data.display_name)) return
   Object.assign(form.application_data, {
@@ -239,15 +218,13 @@ onMounted(async () => {
         <span class="application-state"
           ><Circle :size="8" fill="currentColor" /> {{ editingId ? 'Saved draft' : 'Draft application' }}</span
         >
-        <button
-          type="button"
+        <a
           class="loan-button loan-button--outline"
-          :disabled="loading || !!loadingError || busy || downloadingForm"
-          :aria-busy="downloadingForm"
-          @click="downloadForm"
+          :href="applicationFormUrl"
+          download="Loan Application Form Titanium.pdf"
         >
-          <Download :size="16" aria-hidden="true" />{{ downloadingForm ? 'Preparing…' : 'Download form' }}
-        </button>
+          <Download :size="16" aria-hidden="true" />Download form
+        </a>
       </div>
     </header>
     <div v-if="loading" class="application-skeleton" role="status" aria-label="Loading application">

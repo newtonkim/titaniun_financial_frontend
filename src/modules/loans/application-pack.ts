@@ -1,17 +1,21 @@
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import clauses from './application-guarantee.json'
-import type { LoanAgreementSnapshot, LoanProduct, LoanProductPreview, StoreLoanPayload } from './types'
-import type { Member } from '@/modules/members/types'
+import type { LoanAgreementSnapshot, LoanProductPreview } from './types'
 
-const money = (value: unknown) =>
-  Number(value ?? 0).toLocaleString('en-UG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-const text = (value: unknown) => String(value ?? '')
-
-function createApplicationDocument(compact = false) {
+/** Build the signed paper pack from the committee-approved, versioned snapshot. */
+export function downloadApplicationPack(
+  snapshot: LoanAgreementSnapshot,
+  preview?: LoanProductPreview,
+  archived = false,
+) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const navy: [number, number, number] = [16, 38, 64]
   const red: [number, number, number] = [182, 32, 42]
+  const money = (value: unknown) =>
+    Number(value ?? 0).toLocaleString('en-UG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const text = (value: unknown) => String(value ?? '')
+  const applicant = snapshot.applicant
   let y = 42
   let sectionTitle = ''
   const header = (title: string) => {
@@ -50,7 +54,7 @@ function createApplicationDocument(compact = false) {
       styles: {
         font: 'helvetica',
         fontSize: 9,
-        cellPadding: compact ? 2.5 : 3.3,
+        cellPadding: 3.3,
         textColor: [34, 44, 56],
         lineColor: [222, 226, 232],
         lineWidth: 0.2,
@@ -75,30 +79,6 @@ function createApplicationDocument(compact = false) {
     }
     y += 5
   }
-  const save = (filename: string, footer: string) => {
-    for (let index = 1; index <= doc.getNumberOfPages(); index++) {
-      doc.setPage(index)
-      doc.setDrawColor(...red)
-      doc.line(18, 280, 192, 280)
-      doc.setFontSize(7)
-      doc.setFont('helvetica', 'normal')
-      doc.setTextColor(90)
-      doc.text(footer, 18, 286)
-      doc.text(`Page ${index} of ${doc.getNumberOfPages()}`, 192, 286, { align: 'right' })
-    }
-    doc.save(filename)
-  }
-  return { header, page, table, paragraph, save }
-}
-
-/** Build the signed paper pack from the committee-approved, versioned snapshot. */
-export function downloadApplicationPack(
-  snapshot: LoanAgreementSnapshot,
-  preview?: LoanProductPreview,
-  archived = false,
-) {
-  const { header, page, table, paragraph, save } = createApplicationDocument()
-  const applicant = snapshot.applicant
   header('Client registration & credit application')
   table([
     ['Loan reference', snapshot.loan_number],
@@ -240,165 +220,19 @@ export function downloadApplicationPack(
   paragraph(
     'Retain verified signed copies of the application, facility agreement and each guarantee with the loan record. Staff approval of this application is recorded separately from the applicant’s signature.',
   )
-  save(
-    `${snapshot.loan_number}-application-pack-r${snapshot.revision}.pdf`,
-    `${snapshot.loan_number} | Revision ${snapshot.revision}${archived ? ' | ARCHIVED / SUPERSEDED' : ''}`,
-  )
-}
-
-interface ApplicationFormInput {
-  form: Pick<
-    StoreLoanPayload,
-    | 'application_data'
-    | 'charges'
-    | 'interest_method'
-    | 'purpose'
-    | 'repayment_source'
-    | 'collaterals'
-    | 'guarantors'
-    | 'principal'
-  > & { term: number | string }
-  product?: Pick<
-    LoanProduct,
-    'name' | 'interest_rate' | 'interest_period' | 'processing_fee_type' | 'processing_fee_value'
-  > | null
-  member?: Pick<
-    Member,
-    'member_number' | 'nationality' | 'gender' | 'marital_status' | 'next_of_kin' | 'next_of_kin_contact'
-  > | null
-  officerName?: string
-  guarantorNames: Record<number, string>
-  reference?: string
-}
-
-/** Export the current form without requiring a saved or approved loan. */
-export function downloadApplicationForm(input: ApplicationFormInput) {
-  const { header, page, table, paragraph, save } = createApplicationDocument(true)
-  const { form } = input
-  const applicant = form.application_data ?? {}
-  const blank = '___________________________________'
-  const field = (value: unknown) => text(value).trim() || blank
-  const amount = (value: unknown) =>
-    value !== '' && value != null && Number.isFinite(Number(value)) ? `UGX ${money(value)}` : blank
-  const reference = input.reference ?? 'New application'
-  const business = applicant.applicant_type === 'business'
-  header('Loan application form')
-  paragraph(
-    'DRAFT APPLICATION. Complete the information below. Requested terms are subject to appraisal, committee approval and finance review before the final agreement is issued.',
-  )
-  table([
-    ['Application reference', reference],
-    ['Member number', field(input.member?.member_number)],
-    ['Applicant type', business ? 'Business / company' : 'Individual'],
-    ['Full / registered name', field(applicant.display_name)],
-    ...(business
-      ? [
-          ['Registration / incorporation number', field(applicant.business_registration_number)],
-          ['Nature of business', field(applicant.business_activity)],
-          ['Authorized signatory', field(applicant.signatory_name)],
-          ['Designation', field(applicant.signatory_title)],
-          ['Signatory NIN', field(applicant.signatory_national_id)],
-        ]
-      : [
-          ['National identification number', field(applicant.national_id)],
-          ['Date of birth', field(applicant.date_of_birth)],
-          [
-            'Gender / marital status',
-            [input.member?.gender, input.member?.marital_status].filter(Boolean).join(' / ') || blank,
-          ],
-          ['Occupation / profession', field(applicant.occupation)],
-          ['Employer / place of work', field(applicant.employer)],
-          [
-            'Next of kin / contact',
-            [input.member?.next_of_kin, input.member?.next_of_kin_contact].filter(Boolean).join(' / ') || blank,
-          ],
-        ]),
-    ['Nationality', field(input.member?.nationality)],
-    ['Physical address', field(applicant.address)],
-    ['Town / division / district', field(applicant.district)],
-    ['Primary telephone', field(applicant.phone)],
-    ['Email address', field(applicant.email)],
-  ])
-  page('Requested loan & security')
-  table([
-    ['Loan product', field(input.product?.name)],
-    ['Requested principal', amount(form.principal)],
-    ['Requested term', form.term ? `${form.term} months` : blank],
-    [
-      'Product interest rate',
-      input.product
-        ? `${input.product.interest_rate}% ${input.product.interest_period === 'per_month' ? 'per month' : 'per year'}`
-        : blank,
-    ],
-    ['Interest calculation', form.interest_method === 'reducing_balance' ? 'Reducing balance' : 'Flat'],
-    [
-      'Product processing fee',
-      !input.product
-        ? blank
-        : input.product.processing_fee_type === 'percentage'
-          ? `${input.product.processing_fee_value}% of principal`
-          : input.product.processing_fee_type === 'flat'
-            ? amount(input.product.processing_fee_value)
-            : 'None',
-    ],
-    ['Purpose of the loan', field(form.purpose)],
-    ['Source of repayments', field(form.repayment_source)],
-    ['Assigned loan officer', field(input.officerName)],
-  ])
-  table(
-    form.charges?.length
-      ? form.charges.map((charge) => [
-          charge.name,
-          `${amount(charge.amount)} ${charge.frequency === 'monthly' ? 'per month' : 'once'}; ${charge.collection === 'upfront' ? 'deduct at disbursement' : 'collect with repayments'}`,
-        ])
-      : [
-          ['Charge name', blank],
-          ['Amount / frequency / collection', blank],
-        ],
-    ['Proposed additional charges', 'Amount and collection'],
-  )
-  table(
-    form.collaterals?.length
-      ? form.collaterals.map((asset) => [asset.asset_type, `${asset.description}; ${amount(asset.estimated_value)}`])
-      : [
-          ['Collateral type / description', blank],
-          ['Estimated value', blank],
-        ],
-    ['Proposed collateral', 'Description and estimated value'],
-  )
-  const guarantees = form.guarantors?.length
-    ? form.guarantors
-    : [
-        { member_id: 0, guaranteed_amount: '' },
-        { member_id: 0, guaranteed_amount: '' },
-      ]
-  table(
-    guarantees.map((guarantor, index) => [
-      `Guarantor ${index + 1}`,
-      `${field(input.guarantorNames[guarantor.member_id])}; guarantee ${amount(guarantor.guaranteed_amount)}`,
-    ]),
-    ['Savings-backed guarantors', 'Name and guaranteed amount'],
-  )
-  page('Applicant declaration & official use')
-  paragraph(clauses.declaration)
-  table([
-    [
-      'Applicant / authorized signatory',
-      field(applicant.declaration_name || applicant.signatory_name || applicant.display_name),
-    ],
-    ['Signature / common seal', blank],
-    ['Date', blank],
-    ['Witness name', blank],
-    ['Witness address and occupation', blank],
-    ['Witness signature and date', blank],
-  ])
-  paragraph('FOR OFFICIAL USE ONLY')
-  table([
-    ['Receiving officer / designation', blank],
-    ['Date received', blank],
-    ['Appraisal / recommendation', blank],
-    ['Committee decision / date', blank],
-    ['Finance pricing review', blank],
-  ])
-  save('Titanium-loan-application-form.pdf', `${reference} | DRAFT APPLICATION`)
+  for (let index = 1; index <= doc.getNumberOfPages(); index++) {
+    doc.setPage(index)
+    doc.setDrawColor(...red)
+    doc.line(18, 280, 192, 280)
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(90)
+    doc.text(
+      `${snapshot.loan_number} | Revision ${snapshot.revision}${archived ? ' | ARCHIVED / SUPERSEDED' : ''}`,
+      18,
+      286,
+    )
+    doc.text(`Page ${index} of ${doc.getNumberOfPages()}`, 192, 286, { align: 'right' })
+  }
+  doc.save(`${snapshot.loan_number}-application-pack-r${snapshot.revision}.pdf`)
 }
