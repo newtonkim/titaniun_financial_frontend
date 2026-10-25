@@ -4,9 +4,11 @@ import { ApiError } from '@/core/api/http'
 import { formatDate, formatMoney } from '@/core/utils/format'
 import { chartOfAccountsApi, journalEntriesApi } from '@/modules/accounting/api'
 import type { ChartOfAccount, JournalEntry } from '@/modules/accounting/types'
+import { useAuth } from '@/modules/auth/store'
 import { loanCommissionsApi } from '../api'
 import type { LoanCommission } from '../types'
 
+const auth = useAuth()
 const props = defineProps<{ loanId?: number }>()
 const items = ref<LoanCommission[]>([])
 const summary = ref({ earned: '0.00', payable: '0.00', paid: '0.00' })
@@ -121,6 +123,7 @@ function latestPayoutDate() {
   return date.toLocaleDateString('en-CA')
 }
 function canPay(item: LoanCommission) {
+  if (!auth.can('commissions.pay')) return false
   return (
     item.status === 'payable' &&
     !item.held_for_clearance &&

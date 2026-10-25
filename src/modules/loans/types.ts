@@ -398,6 +398,7 @@ export interface LoanEligibility {
 }
 export interface LoanOptions {
   roles?: string[]
+  permissions?: string[]
   can_manage_access?: boolean
   application_policy?: { minimum_guarantors: number; template_version: string }
   officers: { id: number; name: string }[]

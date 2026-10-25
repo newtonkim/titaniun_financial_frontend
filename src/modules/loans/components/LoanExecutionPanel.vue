@@ -4,7 +4,7 @@ import { CheckCircle2, Circle, Download, FileCheck2, FileUp, PenLine, ShieldChec
 import { ApiError } from '@/core/api/http'
 import { formatDate, formatEnum } from '@/core/utils/format'
 import { loanApplicationsApi, loansApi } from '../api'
-import { documentCategories, loanRoles } from '../application-policy'
+import { documentCategories } from '../application-policy'
 import { downloadApplicationPack } from '../application-pack'
 import type { Loan } from '../types'
 
@@ -14,11 +14,10 @@ const busy = ref(false)
 const error = ref('')
 const notice = ref('')
 const errors = ref<Record<string, string[]>>({})
-const roles = ref<string[]>([])
+const permissions = ref<string[]>([])
 const mode = ref('documents')
 const file = ref<File | null>(null)
 const fileInput = ref<HTMLInputElement>()
-const staff = ref<{ id: number; name: string; email: string; loan_roles: string[] | null }[]>([])
 const upload = reactive({ title: '', category: 'national_id', guarantor_id: null as number | null })
 const review = reactive({ document_id: 0, decision: 'verified', notes: '' })
 const pricing = reactive({ notes: '', acknowledged: false })
@@ -31,8 +30,7 @@ const signature = reactive({
   details: { address: '', occupation: '', designation: '', national_id: '' },
 })
 const defer = reactive({ notes: '', review_date: '' })
-const access = reactive({ user_id: 0, roles: [] as string[] })
-const can = (role: string) => roles.value.includes('administrator') || roles.value.includes(role)
+const can = (permission: string) => permissions.value.includes(permission)
 const pendingChecks = computed(() => (props.loan.execution_checklist ?? []).filter((item) => !item.complete))
 const currentDocuments = computed(() =>
   (props.loan.documents ?? []).filter(
@@ -102,18 +100,10 @@ async function downloadDocument(id: number, name: string) {
     error.value = failure instanceof Error ? failure.message : 'The document could not be downloaded.'
   }
 }
-async function getStaff() {
-  try {
-    staff.value = await loanApplicationsApi.staff()
-  } catch (failure) {
-    error.value = failure instanceof Error ? failure.message : 'Could not load staff.'
-  }
-}
 onMounted(async () => {
   try {
     const options = await loansApi.options()
-    roles.value = options.roles ?? []
-    if (can('administrator')) await getStaff()
+    permissions.value = options.permissions ?? []
   } catch (failure) {
     error.value = failure instanceof Error ? failure.message : 'Could not load your permissions.'
   }
@@ -168,28 +158,28 @@ onMounted(async () => {
       <button type="button" :class="{ active: mode === 'documents' }" @click="mode = 'documents'">
         <FileUp :size="15" />Documents</button
       ><button
-        v-if="can('loan_officer')"
+        v-if="can('loans.documents.verify')"
         type="button"
         :class="{ active: mode === 'signatures' }"
         @click="mode = 'signatures'"
       >
         <PenLine :size="15" />Signatures</button
       ><button
-        v-if="can('finance_officer')"
+        v-if="can('loans.pricing.review')"
         type="button"
         :class="{ active: mode === 'pricing' }"
         @click="mode = 'pricing'"
       >
         Pricing review</button
       ><button
-        v-if="can('committee_member') && loan.status === 'committee_voting'"
+        v-if="can('loans.vote') && loan.status === 'committee_voting'"
         type="button"
         :class="{ active: mode === 'defer' }"
         @click="mode = 'defer'"
       >
         Defer decision</button
       ><button
-        v-if="can('administrator')"
+        v-if="can('access.manage')"
         type="button"
         :class="{ active: mode === 'access' }"
         @click="mode = 'access'"
@@ -269,7 +259,7 @@ onMounted(async () => {
         </fieldset>
       </form>
       <form
-        v-if="can('loan_officer') && !['disbursed', 'closed'].includes(loan.status)"
+        v-if="can('loans.documents.verify') && !['disbursed', 'closed'].includes(loan.status)"
         class="loan-subform"
         @submit.prevent="run('verify-document', { ...review })"
       >
@@ -402,26 +392,10 @@ onMounted(async () => {
         </button>
       </fieldset>
     </form>
-    <form
-      v-else-if="mode === 'access'"
-      class="loan-subform"
-      @submit.prevent="run('roles', { ...access }).then(getStaff)"
-    >
-      <h3>Assign staff responsibilities</h3>
-      <fieldset :disabled="busy" class="application-fieldset">
-        <label class="loan-field-label"
-          >Approved staff account<select
-            v-model.number="access.user_id"
-            required
-            @change="access.roles = [...(staff.find((item) => item.id === access.user_id)?.loan_roles ?? [])]"
-          >
-            <option :value="0" disabled>Select staff member</option>
-            <option v-for="item in staff" :key="item.id" :value="item.id">{{ item.name }} · {{ item.email }}</option>
-          </select></label
-        ><label v-for="role in loanRoles" :key="role" class="application-checkbox"
-          ><input v-model="access.roles" type="checkbox" :value="role" /><span>{{ formatEnum(role) }}</span></label
-        ><button type="submit" class="loan-button loan-button--primary">Save staff roles</button>
-      </fieldset>
-    </form>
+    <div v-else-if="mode === 'access'" class="loan-subform">
+      <h3>Staff roles and permissions</h3>
+      <p class="loan-hint">Manage responsibilities and access for your whole team in Settings.</p>
+      <RouterLink class="loan-button loan-button--outline" :to="{ name: 'settings.roles' }">Open roles & permissions</RouterLink>
+    </div>
   </section>
 </template>
