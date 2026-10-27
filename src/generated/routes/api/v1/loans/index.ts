@@ -3,7 +3,7 @@ import documents from './documents'
 import repayments from './repayments'
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationStaff
-* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:31
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:56
 * @route '/api/v1/loans/application-staff'
 */
 export const applicationStaff = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -18,7 +18,7 @@ applicationStaff.definition = {
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationStaff
-* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:31
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:56
 * @route '/api/v1/loans/application-staff'
 */
 applicationStaff.url = (options?: RouteQueryOptions) => {
@@ -27,7 +27,7 @@ applicationStaff.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationStaff
-* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:31
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:56
 * @route '/api/v1/loans/application-staff'
 */
 applicationStaff.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -37,7 +37,7 @@ applicationStaff.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => 
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationStaff
-* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:31
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:56
 * @route '/api/v1/loans/application-staff'
 */
 applicationStaff.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -46,8 +46,42 @@ applicationStaff.head = (options?: RouteQueryOptions): RouteDefinition<'head'> =
 })
 
 /**
+* @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationPreview
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:25
+* @route '/api/v1/loans/application-preview'
+*/
+export const applicationPreview = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: applicationPreview.url(options),
+    method: 'post',
+})
+
+applicationPreview.definition = {
+    methods: ["post"],
+    url: '/api/v1/loans/application-preview',
+} satisfies RouteDefinition<["post"]>
+
+/**
+* @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationPreview
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:25
+* @route '/api/v1/loans/application-preview'
+*/
+applicationPreview.url = (options?: RouteQueryOptions) => {
+    return applicationPreview.definition.url + queryParams(options)
+}
+
+/**
+* @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationPreview
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:25
+* @route '/api/v1/loans/application-preview'
+*/
+applicationPreview.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+    url: applicationPreview.url(options),
+    method: 'post',
+})
+
+/**
 * @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationPack
-* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:20
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:43
 * @route '/api/v1/loans/{loan}/application-pack'
 */
 export const applicationPack = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -62,7 +96,7 @@ applicationPack.definition = {
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationPack
-* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:20
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:43
 * @route '/api/v1/loans/{loan}/application-pack'
 */
 applicationPack.url = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -95,7 +129,7 @@ applicationPack.url = (args: { loan: number | { id: number } } | [loan: number |
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationPack
-* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:20
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:43
 * @route '/api/v1/loans/{loan}/application-pack'
 */
 applicationPack.get = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -105,7 +139,7 @@ applicationPack.get = (args: { loan: number | { id: number } } | [loan: number |
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationPack
-* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:20
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:43
 * @route '/api/v1/loans/{loan}/application-pack'
 */
 applicationPack.head = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -115,7 +149,7 @@ applicationPack.head = (args: { loan: number | { id: number } } | [loan: number 
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationAction
-* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:38
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:63
 * @route '/api/v1/loans/{loan}/application/{action}'
 */
 export const applicationAction = (args: { loan: number | { id: number }, action: string | number } | [loan: number | { id: number }, action: string | number ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -130,7 +164,7 @@ applicationAction.definition = {
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationAction
-* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:38
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:63
 * @route '/api/v1/loans/{loan}/application/{action}'
 */
 applicationAction.url = (args: { loan: number | { id: number }, action: string | number } | [loan: number | { id: number }, action: string | number ], options?: RouteQueryOptions) => {
@@ -158,7 +192,7 @@ applicationAction.url = (args: { loan: number | { id: number }, action: string |
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanApplicationController::applicationAction
-* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:38
+* @see Modules/Loans/app/Http/Controllers/V1/LoanApplicationController.php:63
 * @route '/api/v1/loans/{loan}/application/{action}'
 */
 applicationAction.post = (args: { loan: number | { id: number }, action: string | number } | [loan: number | { id: number }, action: string | number ], options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -378,7 +412,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanController::show
-* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:68
+* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:69
 * @route '/api/v1/loans/{loan}'
 */
 export const show = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -393,7 +427,7 @@ show.definition = {
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanController::show
-* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:68
+* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:69
 * @route '/api/v1/loans/{loan}'
 */
 show.url = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -426,7 +460,7 @@ show.url = (args: { loan: number | { id: number } } | [loan: number | { id: numb
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanController::show
-* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:68
+* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:69
 * @route '/api/v1/loans/{loan}'
 */
 show.get = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -436,7 +470,7 @@ show.get = (args: { loan: number | { id: number } } | [loan: number | { id: numb
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanController::show
-* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:68
+* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:69
 * @route '/api/v1/loans/{loan}'
 */
 show.head = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -446,7 +480,7 @@ show.head = (args: { loan: number | { id: number } } | [loan: number | { id: num
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanController::update
-* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:76
+* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:77
 * @route '/api/v1/loans/{loan}'
 */
 export const update = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -461,7 +495,7 @@ update.definition = {
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanController::update
-* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:76
+* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:77
 * @route '/api/v1/loans/{loan}'
 */
 update.url = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -494,7 +528,7 @@ update.url = (args: { loan: number | { id: number } } | [loan: number | { id: nu
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanController::update
-* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:76
+* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:77
 * @route '/api/v1/loans/{loan}'
 */
 update.put = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -504,7 +538,7 @@ update.put = (args: { loan: number | { id: number } } | [loan: number | { id: nu
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanController::update
-* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:76
+* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:77
 * @route '/api/v1/loans/{loan}'
 */
 update.patch = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -514,7 +548,7 @@ update.patch = (args: { loan: number | { id: number } } | [loan: number | { id: 
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanController::destroy
-* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:112
+* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:114
 * @route '/api/v1/loans/{loan}'
 */
 export const destroy = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -529,7 +563,7 @@ destroy.definition = {
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanController::destroy
-* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:112
+* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:114
 * @route '/api/v1/loans/{loan}'
 */
 destroy.url = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -562,7 +596,7 @@ destroy.url = (args: { loan: number | { id: number } } | [loan: number | { id: n
 
 /**
 * @see \Modules\Loans\Http\Controllers\V1\LoanController::destroy
-* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:112
+* @see Modules/Loans/app/Http/Controllers/V1/LoanController.php:114
 * @route '/api/v1/loans/{loan}'
 */
 destroy.delete = (args: { loan: number | { id: number } } | [loan: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -746,6 +780,7 @@ disbursement.post = (args: { loan: number | { id: number } } | [loan: number | {
 
 const loans = {
     applicationStaff: Object.assign(applicationStaff, applicationStaff),
+    applicationPreview: Object.assign(applicationPreview, applicationPreview),
     applicationPack: Object.assign(applicationPack, applicationPack),
     applicationAction: Object.assign(applicationAction, applicationAction),
     options: Object.assign(options, options),

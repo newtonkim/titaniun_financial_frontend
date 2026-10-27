@@ -23,16 +23,17 @@ import { membersApi } from '@/modules/members/api'
 import MemberFormDrawer from '@/modules/members/components/MemberFormDrawer.vue'
 import LoanMemberPicker from '../components/LoanMemberPicker.vue'
 import LoanSecurityFields from '../components/LoanSecurityFields.vue'
+import ContinuingSchedulePreview from '../components/ContinuingSchedulePreview.vue'
+import { loansApi } from '../api'
 import { useLoanApplication } from '../composables/useLoanApplication'
 import { applicationSteps } from '../application-policy'
 import applicationWording from '../application-guarantee.json'
 import { formatEnum, formatMoney } from '@/core/utils/format'
-import type { LoanApplicationData, LoanChargeInput } from '../types'
+import type { Loan, LoanApplicationData, LoanChargeInput } from '../types'
 import '../loan-workflow.css'
 import '../loan-application.css'
 
 const router = useRouter()
-const applicationFormUrl = `${import.meta.env.BASE_URL}loan-application-form-titanium.pdf`
 const {
   editingId,
   loading,
@@ -54,6 +55,36 @@ const {
   refresh,
   save,
 } = useLoanApplication()
+const continuing = computed(() => form.application_type === 'continuing')
+const applicationFormUrl = computed(
+  () =>
+    `${import.meta.env.BASE_URL}${continuing.value ? 'continuing-client-loan-v1.pdf' : 'loan-application-form-titanium.pdf'}`,
+)
+const previousLoans = ref<Loan[]>([])
+const historyLoading = ref(false)
+const historyError = ref('')
+const historyMore = ref(false)
+let historySequence = 0
+watch([() => member.value?.id, continuing], async ([memberId, isContinuing]) => {
+  const current = ++historySequence
+  previousLoans.value = []
+  historyError.value = ''
+  historyMore.value = false
+  historyLoading.value = false
+  if (!memberId || !isContinuing) return
+  historyLoading.value = true
+  try {
+    const result = await loansApi.list({ member_id: Number(memberId) })
+    if (current !== historySequence) return
+    previousLoans.value = result.data.filter((item) => item.id !== editingId.value)
+    historyMore.value = Boolean(result.links?.next)
+  } catch (failure) {
+    if (current === historySequence)
+      historyError.value = failure instanceof Error ? failure.message : 'Loan history could not be loaded.'
+  } finally {
+    if (current === historySequence) historyLoading.value = false
+  }
+})
 const stage = ref(0)
 const registerOpen = ref(false)
 const pendingClient = ref<Member | null>(null)
@@ -86,7 +117,9 @@ const textFields = computed(() =>
         { key: 'occupation', label: 'Occupation / profession' },
       ],
 )
-const applicant = computed(() => form.application_data as LoanApplicationData & Record<string, string | boolean>)
+const applicant = computed(
+  () => form.application_data as LoanApplicationData & Record<string, string | boolean>,
+)
 const chargeTotal = computed(() =>
   form.charges.reduce(
     (sum, item) => sum + Number(item.amount) * (item.frequency === 'monthly' ? Number(form.term || 0) : 1),
@@ -94,9 +127,13 @@ const chargeTotal = computed(() =>
   ),
 )
 const upfront = computed(() =>
-  form.charges.filter((item) => item.collection === 'upfront').reduce((sum, item) => sum + Number(item.amount), 0),
+  form.charges
+    .filter((item) => item.collection === 'upfront')
+    .reduce((sum, item) => sum + Number(item.amount), 0),
 )
-const totalRepayment = computed(() => (preview.value?.total_repayment ?? 0) + chargeTotal.value - upfront.value)
+const totalRepayment = computed(
+  () => (preview.value?.total_repayment ?? 0) + (continuing.value ? 0 : chargeTotal.value - upfront.value),
+)
 const completion = computed(() => Math.round(((stage.value + 1) / applicationSteps.length) * 100))
 watch(member, (value) => {
   if (!value || (editingId.value && form.application_data.display_name)) return
@@ -132,17 +169,32 @@ function next() {
       !form.application_data.address ||
       !form.application_data.district ||
       !form.application_data.phone ||
-      textFields.value.some((field) => field.key !== 'employer' && !String(applicant.value[field.key] ?? '').trim()) ||
+      textFields.value.some(
+        (field) => field.key !== 'employer' && !String(applicant.value[field.key] ?? '').trim(),
+      ) ||
       (!business.value && !form.application_data.date_of_birth))
   )
     localError.value = 'Select an active client and complete their identity and contact details.'
   if (
     stage.value === 1 &&
-    (!product.value || !form.loan_officer_id || !Number(form.principal) || !Number(form.term) || !form.purpose.trim())
+    (!product.value ||
+      !form.loan_officer_id ||
+      !Number(form.principal) ||
+      !Number(form.term) ||
+      !form.purpose.trim())
   )
     localError.value = 'Choose a product, assign an officer, and complete the requested loan details.'
   if (stage.value === 2 && form.guarantors.length < 2)
     localError.value = 'Add the two savings-backed guarantors required for this application.'
+  if (
+    stage.value === 1 &&
+    continuing.value &&
+    (!form.agreement_date ||
+      !form.first_repayment_date ||
+      form.first_repayment_date <= form.agreement_date ||
+      previewError.value)
+  )
+    localError.value = previewError.value || 'Enter the agreement date and a later first repayment date.'
   if (
     stage.value === 3 &&
     (!form.application_data.declaration_accepted || !form.application_data.declaration_name.trim())
@@ -189,7 +241,9 @@ async function checkClientApproval() {
 onMounted(async () => {
   try {
     const result = await chartOfAccountsApi.list({ is_active: true })
-    accounts.value = result.data.filter((item) => item.is_postable && ['income', 'liability'].includes(item.type))
+    accounts.value = result.data.filter(
+      (item) => item.is_postable && ['income', 'liability'].includes(item.type),
+    )
   } catch {
     localError.value = 'Accounting accounts could not be loaded. Retry before adding charges.'
   }
@@ -216,12 +270,15 @@ onMounted(async () => {
       </div>
       <div class="application-header-actions">
         <span class="application-state"
-          ><Circle :size="8" fill="currentColor" /> {{ editingId ? 'Saved draft' : 'Draft application' }}</span
+          ><Circle :size="8" fill="currentColor" />
+          {{ editingId ? 'Saved draft' : 'Draft application' }}</span
         >
         <a
           class="loan-button loan-button--outline"
           :href="applicationFormUrl"
-          download="Loan Application Form Titanium.pdf"
+          :download="
+            continuing ? 'Continuing Clients Loan Document.pdf' : 'Loan Application Form Titanium.pdf'
+          "
         >
           <Download :size="16" aria-hidden="true" />Download form
         </a>
@@ -281,7 +338,10 @@ onMounted(async () => {
                   }}
                 </p>
               </div>
-              <component :is="[Landmark, Landmark, ShieldCheck, FileCheck2, CheckCircle2][stage]" :size="24" />
+              <component
+                :is="[Landmark, Landmark, ShieldCheck, FileCheck2, CheckCircle2][stage]"
+                :size="24"
+              />
             </div>
             <div v-if="message || localError" class="application-alert" role="alert">
               {{ localError || message }}
@@ -290,8 +350,8 @@ onMounted(async () => {
               <UserPlus :size="18" />
               <div>
                 <p>
-                  {{ pendingClient.name }} is registered and awaiting approval. Open their profile in another tab to
-                  keep this application on screen.
+                  {{ pendingClient.name }} is registered and awaiting approval. Open their profile in another
+                  tab to keep this application on screen.
                 </p>
                 <RouterLink
                   class="loan-link"
@@ -317,14 +377,66 @@ onMounted(async () => {
             </ul>
             <fieldset :disabled="busy" class="application-fieldset">
               <template v-if="stage === 0">
+                <div class="application-segmented" aria-label="Application type">
+                  <button
+                    type="button"
+                    :aria-pressed="!continuing"
+                    :class="{ selected: !continuing }"
+                    @click="form.application_type = 'standard'"
+                  >
+                    Standard application
+                  </button>
+                  <button
+                    type="button"
+                    :aria-pressed="continuing"
+                    :class="{ selected: continuing }"
+                    @click="form.application_type = 'continuing'"
+                  >
+                    Continuing / existing member
+                  </button>
+                </div>
+                <p v-if="continuing" class="loan-hint">
+                  Select an existing active member for the short loan agreement. Their earlier loans remain
+                  separate.
+                </p>
                 <div class="application-client-row">
                   <LoanMemberPicker v-model="member" label="Select client" /><button
+                    v-if="!continuing"
                     class="loan-button loan-button--outline"
                     type="button"
                     @click="registerOpen = true"
                   >
                     <UserPlus :size="16" />Register client
                   </button>
+                </div>
+                <div v-if="continuing && member" class="application-info" aria-live="polite">
+                  <div>
+                    <strong>{{ member.member_number }} · Previous loans</strong>
+                    <p v-if="historyLoading">Loading loan history…</p>
+                    <p v-else-if="historyError" role="alert">{{ historyError }}</p>
+                    <template v-else>
+                      <p v-if="!previousLoans.length">No previous loan applications recorded.</p>
+                      <p v-for="previous in previousLoans" :key="previous.id">
+                        <RouterLink
+                          :to="{ name: 'loans.show', params: { id: previous.id } }"
+                          target="_blank"
+                          rel="noopener"
+                          >{{ previous.loan_number }}</RouterLink
+                        >
+                        · {{ formatEnum(previous.status) }} · Principal outstanding
+                        {{ formatMoney(previous.outstanding_principal ?? previous.principal) }}
+                      </p>
+                      <p v-if="historyMore">
+                        Showing recent loans.
+                        <RouterLink
+                          :to="{ name: 'members.show', params: { id: member.id } }"
+                          target="_blank"
+                          rel="noopener"
+                          >View full member history</RouterLink
+                        >
+                      </p>
+                    </template>
+                  </div>
                 </div>
                 <div class="application-segmented" aria-label="Applicant type">
                   <button
@@ -346,7 +458,10 @@ onMounted(async () => {
                 <div class="loan-fields">
                   <label v-for="field in textFields" :key="field.key" :for="`app-${field.key}`"
                     >{{ field.label
-                    }}<input :id="`app-${field.key}`" v-model="applicant[field.key]" autocomplete="off" /></label
+                    }}<input
+                      :id="`app-${field.key}`"
+                      v-model="applicant[field.key]"
+                      autocomplete="off" /></label
                   ><label v-if="!business" for="app-dob"
                     >Date of birth<input
                       id="app-dob"
@@ -404,7 +519,9 @@ onMounted(async () => {
                       :max="product?.max_amount ?? undefined"
                     /><small v-if="product"
                       >{{ formatMoney(product.min_amount) }} –
-                      {{ product.max_amount === null ? 'No upper limit' : formatMoney(product.max_amount) }}</small
+                      {{
+                        product.max_amount === null ? 'No upper limit' : formatMoney(product.max_amount)
+                      }}</small
                     ></label
                   ><label for="app-term"
                     >Duration · months<input
@@ -423,10 +540,29 @@ onMounted(async () => {
                       id="app-source"
                       v-model="form.repayment_source"
                       placeholder="e.g. Business trading income" /></label
+                  ><template v-if="continuing">
+                    <label for="app-agreement-date"
+                      >Agreement / cash disbursement date<input
+                        id="app-agreement-date"
+                        v-model="form.agreement_date"
+                        type="date"
+                    /></label>
+                    <label for="app-first-repayment"
+                      >First monthly repayment date<input
+                        id="app-first-repayment"
+                        v-model="form.first_repayment_date"
+                        type="date"
+                        :min="form.agreement_date || undefined"
+                    /></label> </template
                   ><label class="loan-span-all" for="app-purpose"
                     >Purpose of the loan<textarea id="app-purpose" v-model="form.purpose" rows="2" />
                   </label>
                 </div>
+                <p v-if="continuing" class="loan-hint">
+                  This agreement uses cash disbursement and equal monthly installments. The printed rate is
+                  annual. The final installment clears any rounding difference; the separate schedule shows
+                  every amount and due date.
+                </p>
                 <div class="application-divider">
                   <h3>Additional charges</h3>
                   <span>Itemized separately from interest</span>
@@ -464,7 +600,8 @@ onMounted(async () => {
                 </div>
                 <div class="application-charge-editor loan-fields">
                   <label>Charge name<input v-model="charge.name" /></label
-                  ><label>Amount · UGX<input v-model="charge.amount" type="number" min="0.01" step="0.01" /></label
+                  ><label
+                    >Amount · UGX<input v-model="charge.amount" type="number" min="0.01" step="0.01" /></label
                   ><label
                     >Frequency<select v-model="charge.frequency">
                       <option value="once">One time</option>
@@ -473,7 +610,9 @@ onMounted(async () => {
                   ><label
                     >Collection<select v-model="charge.collection">
                       <option value="repayment">With repayments</option>
-                      <option value="upfront" :disabled="charge.frequency === 'monthly'">Deduct at disbursement</option>
+                      <option value="upfront" :disabled="charge.frequency === 'monthly'">
+                        Deduct at disbursement
+                      </option>
                     </select></label
                   ><label class="loan-span-all"
                     >Accounting account<select v-model.number="charge.chart_of_account_id">
@@ -492,8 +631,8 @@ onMounted(async () => {
                 ><div class="application-info">
                   <ShieldCheck :size="18" />
                   <p>
-                    Guarantors must be active members with enough unpledged savings to cover their guarantee. Their
-                    consent is recorded before appraisal.
+                    Guarantors must be active members with enough unpledged savings to cover their guarantee.
+                    Their consent is recorded before appraisal.
                   </p>
                 </div>
                 <LoanSecurityFields
@@ -514,8 +653,8 @@ onMounted(async () => {
                   </select></label
                 >
                 <p class="loan-hint">
-                  {{ product?.commission_rate ?? 20 }}% of collected interest is recorded as commission, held until full
-                  clearance, and paid at an eligible quarter-end.
+                  {{ product?.commission_rate ?? 20 }}% of collected interest is recorded as commission, held
+                  until full clearance, and paid at an eligible quarter-end.
                 </p></template
               >
               <template v-else-if="stage === 3"
@@ -524,22 +663,23 @@ onMounted(async () => {
                   <h3>Applicant declaration and acknowledgement</h3>
                   <p class="application-declaration-text">{{ applicationWording.declaration }}</p>
                   <p>
-                    The approved loan terms, itemized charges, repayment schedule and guarantee obligations will be
-                    presented for signature before funds are released.
+                    The approved loan terms, itemized charges, repayment schedule and guarantee obligations
+                    will be presented for signature before funds are released.
                   </p>
                   <label class="application-checkbox"
                     ><input v-model="form.application_data.declaration_accepted" type="checkbox" /><span
                       >The applicant has reviewed the information and acknowledged this declaration.</span
                     ></label
                   ><label class="loan-field-label"
-                    >Applicant / authorized signatory name<input v-model="form.application_data.declaration_name"
+                    >Applicant / authorized signatory name<input
+                      v-model="form.application_data.declaration_name"
                   /></label>
                 </div>
                 <div class="application-info">
                   <FileCheck2 :size="18" />
                   <p>
-                    After approval: finance reviews pricing, the agreement pack is generated, signed copies are
-                    uploaded, and staff verify every required signature.
+                    After approval: finance reviews pricing, the agreement pack is generated, signed copies
+                    are uploaded, and staff verify every required signature.
                   </p>
                 </div></template
               >
@@ -550,7 +690,8 @@ onMounted(async () => {
                     <dd>
                       {{ form.application_data.display_name
                       }}<small
-                        >{{ business ? 'Business / company' : 'Individual' }} · {{ member?.member_number }}</small
+                        >{{ business ? 'Business / company' : 'Individual' }} ·
+                        {{ member?.member_number }}</small
                       >
                     </dd>
                   </div>
@@ -559,18 +700,22 @@ onMounted(async () => {
                     <dd>
                       UGX {{ formatMoney(form.principal)
                       }}<small
-                        >{{ product?.name }} · {{ form.term }} months · {{ formatEnum(form.interest_method) }}</small
+                        >{{ product?.name }} · {{ form.term }} months ·
+                        {{ formatEnum(form.interest_method) }}</small
                       >
                     </dd>
                   </div>
                   <div>
                     <dt>Guarantors and security</dt>
-                    <dd>{{ form.guarantors.length }} guarantors · {{ form.collaterals.length }} collateral items</dd>
+                    <dd>
+                      {{ form.guarantors.length }} guarantors · {{ form.collaterals.length }} collateral items
+                    </dd>
                   </div>
                   <div>
                     <dt>Additional charges</dt>
                     <dd>
-                      UGX {{ formatMoney(chargeTotal) }}<small>{{ form.charges.length }} itemized charges</small>
+                      UGX {{ formatMoney(chargeTotal)
+                      }}<small>{{ form.charges.length }} itemized charges</small>
                     </dd>
                   </div>
                   <div>
@@ -596,7 +741,12 @@ onMounted(async () => {
               >
             </fieldset>
             <footer class="application-footer">
-              <button type="button" class="loan-button loan-button--quiet" :disabled="busy" @click="save(false)">
+              <button
+                type="button"
+                class="loan-button loan-button--quiet"
+                :disabled="busy"
+                @click="save(false)"
+              >
                 <Save :size="16" />Save draft
               </button>
               <div>
@@ -628,10 +778,19 @@ onMounted(async () => {
               </div>
             </footer>
           </section>
+          <ContinuingSchedulePreview
+            v-if="continuing && stage > 0"
+            :preview="preview"
+            :loading="checking"
+            :error="previewError"
+            :borrower="form.application_data.display_name"
+          />
         </main>
         <aside class="application-aside">
           <section class="application-summary">
-            <div class="application-summary-heading"><Landmark :size="20" /><span>Facility summary</span></div>
+            <div class="application-summary-heading">
+              <Landmark :size="20" /><span>Facility summary</span>
+            </div>
             <p class="application-summary-amount">
               {{ Number(form.principal) ? formatMoney(form.principal) : '0.00' }}<span>UGX requested</span>
             </p>
@@ -673,13 +832,16 @@ onMounted(async () => {
             </dl>
             <p v-if="checking" role="status">Updating your estimate…</p>
             <p v-else-if="previewError" role="alert">{{ previewError }}</p>
-            <p v-else>Estimates use the selected product. Final terms require committee approval and finance review.</p>
+            <p v-else>
+              Estimates use the selected product. Final terms require committee approval and finance review.
+            </p>
           </section>
           <section class="application-aside-note">
             <ShieldCheck :size="20" />
             <h3>Complete once. Keep a clear record.</h3>
             <p>
-              Client details, costs, security, documents and approvals stay together throughout this loan’s lifecycle.
+              Client details, costs, security, documents and approvals stay together throughout this loan’s
+              lifecycle.
             </p>
             <div class="application-completion"><span :style="{ width: `${completion}%` }" /></div>
             <small>{{ completion }}% through application steps</small>
