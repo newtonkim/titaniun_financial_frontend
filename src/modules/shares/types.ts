@@ -41,6 +41,8 @@ export interface ShareAccount {
   share_product_id: number
   product?: ShareProduct
   status: ShareAccountStatus
+  /** Instalments paid that do not yet add up to a whole share. */
+  subscription_balance: Money
   shares_held?: number
   share_value?: Money
   opened_at: ISODate
@@ -222,4 +224,47 @@ export interface StoreDividendPayload {
 export interface ApproveDividendPayload {
   agm_reference: string
   agm_held_on: ISODate
+}
+
+export interface ShareSubscriptionPayment {
+  id: number
+  share_account_id: number
+  amount: Money
+  shares_issued: number
+  balance_after: Money
+  paid_at: ISODateTime
+  reference: string | null
+  journal_entry_id: number | null
+}
+
+export interface StoreShareSubscriptionPayload {
+  amount: number
+  paid_at?: ISODateTime | null
+  reference?: string | null
+  payment_account_id?: number | null
+}
+
+export interface ShareCertificate {
+  id: number
+  certificate_number: string
+  share_account_id: number
+  account_number?: string
+  member_name?: string | null
+  member_number?: string | null
+  product_name?: string | null
+  number_of_shares: number
+  nominal_price: Money
+  value: Money
+  issued_on: ISODate
+  issued_by?: string | null
+  cancelled_at: ISODateTime | null
+}
+
+export interface ShareNominee {
+  id?: number
+  name: string
+  relationship: string
+  phone: string | null
+  national_id: string | null
+  percentage: Money | number
 }

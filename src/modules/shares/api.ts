@@ -8,6 +8,9 @@ import type {
   DividendDeclarations,
   MemberStanding,
   ShareAccount,
+  ShareCertificate,
+  ShareNominee,
+  ShareSubscriptionPayment,
   ShareAccountFilters,
   ShareProduct,
   ShareProductFilters,
@@ -19,6 +22,7 @@ import type {
   StoreShareAccountPayload,
   StoreShareAppropriationPayload,
   StoreShareProductPayload,
+  StoreShareSubscriptionPayload,
   StoreShareTransactionPayload,
   StoreShareTransferPayload,
   UpdateShareAccountPayload,
@@ -40,6 +44,14 @@ export const shareAccountsApi = {
     http.post<Wrapped<ShareTransaction>>(`/share-accounts/${accountId}/transactions`, payload).then((response) => response.data),
   transfer: (accountId: number, payload: StoreShareTransferPayload) =>
     http.post<Wrapped<ShareTransaction>>(`/share-accounts/${accountId}/transfers`, payload).then((response) => response.data),
+  subscriptions: (accountId: number, page = 1) => http.get<Paginated<ShareSubscriptionPayment>>(`/share-accounts/${accountId}/subscriptions`, { page }),
+  /** Pay an instalment; whole shares are issued as soon as the instalments cover them. */
+  payInstalment: (accountId: number, payload: StoreShareSubscriptionPayload) =>
+    http.post<Wrapped<ShareSubscriptionPayment>>(`/share-accounts/${accountId}/subscriptions`, payload).then((response) => response.data),
+  certificates: (accountId: number) => http.get<{ data: ShareCertificate[] }>(`/share-accounts/${accountId}/certificates`).then((response) => response.data),
+  /** Certify the shares held now, cancelling the previous certificate. */
+  issueCertificate: (accountId: number) =>
+    http.post<Wrapped<ShareCertificate>>(`/share-accounts/${accountId}/certificates`, {}).then((response) => response.data),
 }
 
 export const shareRegisterApi = {
@@ -62,4 +74,11 @@ export const dividendsApi = {
   approve: (id: number, payload: ApproveDividendPayload) =>
     http.post<Wrapped<DividendDeclaration>>(`/dividend-declarations/${id}/approve`, payload).then((response) => response.data),
   pay: (id: number) => http.post<Wrapped<DividendDeclaration>>(`/dividend-declarations/${id}/pay`, {}).then((response) => response.data),
+}
+
+export const shareNomineesApi = {
+  list: (memberId: number) => http.get<{ data: ShareNominee[] }>(`/members/${memberId}/share-nominees`).then((response) => response.data),
+  /** Replace the member's nominees; their percentages must total 100. */
+  save: (memberId: number, nominees: ShareNominee[]) =>
+    http.put<{ data: ShareNominee[] }>(`/members/${memberId}/share-nominees`, { nominees }).then((response) => response.data),
 }

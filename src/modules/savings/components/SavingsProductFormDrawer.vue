@@ -15,7 +15,7 @@ const emit = defineEmits<{ saved: [product: SavingsProduct] }>()
 
 const {
   isEditing, loading, saving, message, form, selectedChargeTab,
-  chartAccounts, products, liabilityAccounts,
+  chartAccounts, products, liabilityAccounts, cashAccounts,
   chargeRows, activityWarnings, monthlyFeeSummary,
   open: load, fieldError, addCharge, removeCharge, save,
 } = useSavingsProductForm(
@@ -122,6 +122,17 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
               placeholder="— select account —"
               :error="fieldError('liability_account_id') ?? undefined"
             />
+          </div>
+
+          <div>
+            <p :class="label">Deposits Paid Into</p>
+            <SearchableSelect
+              v-model="form.cash_account_id"
+              :options="cashAccounts"
+              placeholder="— select account —"
+              :error="fieldError('cash_account_id') ?? undefined"
+            />
+            <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">With both accounts set, deposits and withdrawals post to the ledger.</p>
           </div>
 
           <div class="sm:col-span-2">

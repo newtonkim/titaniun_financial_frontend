@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { formatMoney } from '@/core/utils/format'
+import { useAuth } from '@/modules/auth/store'
 import { shareRegisterApi } from '../api'
 import AllotSharesDrawer from '../components/AllotSharesDrawer.vue'
 import type { ShareRegister } from '../types'
 
+const { can } = useAuth()
 const register = ref<ShareRegister | null>(null)
 const loading = ref(false)
 const error = ref('')
@@ -36,7 +38,7 @@ onMounted(load)
     <header class="panel__header">
       <h1>Share register</h1>
       <div class="panel__actions">
-        <button type="button" class="btn btn--primary" @click="allotting = true">Allot shares</button>
+        <button v-if="can('shares.manage')" type="button" class="btn btn--primary" @click="allotting = true">Allot shares</button>
       </div>
     </header>
 

@@ -5,10 +5,12 @@ import FormField from '@/core/components/FormField.vue'
 import StatusBadge from '@/core/components/StatusBadge.vue'
 import { useForm } from '@/core/composables/useForm'
 import { formatDate, formatMoney } from '@/core/utils/format'
+import { useAuth } from '@/modules/auth/store'
 import { dividendsApi, shareAppropriationsApi, shareProductsApi } from '../api'
 import DividendDetailDrawer from '../components/DividendDetailDrawer.vue'
 import type { DividendDeclarations, ShareAppropriations, ShareProduct } from '../types'
 
+const { can } = useAuth()
 const lastYear = new Date().getFullYear() - 1
 const dividends = ref<DividendDeclarations | null>(null)
 const appropriations = ref<ShareAppropriations | null>(null)
@@ -77,7 +79,7 @@ onMounted(load)
     <header class="panel__header">
       <h1>Dividends</h1>
       <div class="panel__actions">
-        <button type="button" class="btn btn--primary" @click="preparing = true">Prepare dividend</button>
+        <button v-if="can('shares.dividends.manage')" type="button" class="btn btn--primary" @click="preparing = true">Prepare dividend</button>
       </div>
     </header>
 
@@ -132,7 +134,7 @@ onMounted(load)
       {{ appropriations?.meta.share_transfer_fund_maximum_rate ?? '5.00' }}% of share capital to the Share Transfer Fund, at the rate UMRA sets.
       The Share Transfer Fund holds {{ formatMoney(appropriations?.meta.share_transfer_fund_balance) }} for buy-backs.
     </p>
-    <form class="appropriate" @submit.prevent="appropriate">
+    <form v-if="can('accounting.manage')" class="appropriate" @submit.prevent="appropriate">
       <p v-if="appropriation.message.value" class="alert alert--error span-all" role="alert">{{ appropriation.message.value }}</p>
       <FormField label="Financial year" :error="appropriation.error('financial_year')">
         <input v-model.number="appropriation.data.financial_year" type="number" min="2000" :max="lastYear" required />

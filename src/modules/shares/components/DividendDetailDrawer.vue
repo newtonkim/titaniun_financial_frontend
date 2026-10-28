@@ -5,6 +5,7 @@ import FormField from '@/core/components/FormField.vue'
 import StatusBadge from '@/core/components/StatusBadge.vue'
 import { ApiError } from '@/core/api/http'
 import { formatDate, formatMoney, today } from '@/core/utils/format'
+import { useAuth } from '@/modules/auth/store'
 import { dividendsApi } from '../api'
 import type { DividendDeclaration } from '../types'
 
@@ -13,6 +14,7 @@ const open = defineModel<boolean>('open', { required: true })
 const props = defineProps<{ declarationId: number | null }>()
 const emit = defineEmits<{ changed: [] }>()
 
+const { can } = useAuth()
 const declaration = ref<DividendDeclaration | null>(null)
 const busy = ref(false)
 const error = ref('')
@@ -71,7 +73,7 @@ watch(
         Approved at {{ declaration.agm_reference }} on {{ formatDate(declaration.agm_held_on) }}<template v-if="declaration.approved_by"> by {{ declaration.approved_by }}</template>.
       </p>
 
-      <form v-if="declaration.status === 'draft'" class="dividend-step" @submit.prevent="approve">
+      <form v-if="declaration.status === 'draft' && can('shares.dividends.approve')" class="dividend-step" @submit.prevent="approve">
         <h2>Record AGM approval</h2>
         <div class="form-grid">
           <FormField label="AGM reference" :error="errors.agm_reference?.[0]">
@@ -84,7 +86,7 @@ watch(
         <div class="form-actions"><button type="submit" class="btn btn--primary" :disabled="busy">Approve dividend</button></div>
       </form>
 
-      <div v-else-if="declaration.status === 'approved'" class="dividend-step">
+      <div v-else-if="declaration.status === 'approved' && can('shares.dividends.manage')" class="dividend-step">
         <h2>Pay members</h2>
         <p class="muted">Credits {{ unpaid }} {{ unpaid === 1 ? 'member' : 'members' }}' dividends to their active savings accounts. Members without one stay payable until a later run.</p>
         <div class="form-actions"><button type="button" class="btn btn--primary" :disabled="busy || unpaid === 0" @click="pay">Credit to savings</button></div>
