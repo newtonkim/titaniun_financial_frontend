@@ -13,6 +13,12 @@ export default defineModule({
       route: { path: 'profile', name: 'settings.profile', meta: { title: 'Profile' }, component: () => import('./views/ProfileView.vue') },
     },
     {
+      label: 'Roles & permissions',
+      description: 'Define roles, choose permissions and manage staff access.',
+      icon: 'lock',
+      route: { path: 'roles', name: 'settings.roles', meta: { title: 'Roles & permissions' }, component: () => import('./views/RolesPermissionsView.vue') },
+    },
+    {
       label: 'Security',
       description: 'Change your password and sign out other devices.',
       icon: 'lock',

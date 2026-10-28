@@ -2,6 +2,8 @@ import type { ISODateTime } from '@/core/api/types'
 
 export interface User {
   id: number
+  roles: string[]
+  permissions: string[]
   name: string
   email: string
   email_verified_at: ISODateTime | null

@@ -61,6 +61,7 @@ router.beforeEach(async (to) => {
     }
   }
 
+  if (!auth.canRoute(to.name)) return { name: 'settings.index', query: { access: 'denied' } }
   return true
 })
 

@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import { clearToken, getToken, setToken } from '@/core/auth/token'
+import { permissionForRoute } from '@/core/auth/permissions'
 import { authApi } from './api'
 import type { LoginPayload, LoginResponse, User } from './types'
 
@@ -44,10 +45,20 @@ async function logout(): Promise<void> {
   }
 }
 
+function can(permission?: string): boolean {
+  return !!user.value?.approved_at && (!permission || user.value.permissions?.includes(permission) === true)
+}
+
+function canRoute(name: unknown): boolean {
+  return can(permissionForRoute(String(name ?? '')))
+}
+
 export function useAuth() {
   return {
     user: computed(() => user.value),
     isAuthenticated: computed(() => token.value !== null),
+    can,
+    canRoute,
     login,
     loadUser,
     setUser,

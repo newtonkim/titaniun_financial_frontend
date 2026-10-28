@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { useAuth } from '@/modules/auth/store'
 import AppIcon from '@/core/components/AppIcon.vue'
 import { SETTINGS_SEARCH } from '@/core/settings'
 import { settingsPages } from '@/modules'
@@ -7,11 +9,14 @@ import { settingsPages } from '@/modules'
 /** Brand tints the tiles cycle through. */
 const TONES = ['crimson', 'navy', 'blue'] as const
 
+const auth = useAuth()
+const route = useRoute()
 const search = inject(SETTINGS_SEARCH, ref(''))
 
 const tiles = computed(() => {
   const term = search.value.trim().toLowerCase()
   return settingsPages
+    .filter(page => auth.canRoute(page.route.name))
     .map((page, index) => ({ page, tone: TONES[index % TONES.length] }))
     .filter(({ page }) => !term || page.label.toLowerCase().includes(term) || page.description.toLowerCase().includes(term))
 })
@@ -24,6 +29,7 @@ const tiles = computed(() => {
       <p class="settings-home__lede">Clicking a module jumps to its configuration page.</p>
     </header>
 
+<p v-if="route.query.access === 'denied'" class="alert alert--error" role="alert">Your account does not have permission to open that page.</p>
     <div class="settings-home__grid">
       <RouterLink
         v-for="{ page, tone } in tiles"
