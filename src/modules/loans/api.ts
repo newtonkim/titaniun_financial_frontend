@@ -1,4 +1,9 @@
-import { applicationAction, applicationPack, applicationStaff } from '@/generated/routes/api/v1/loans'
+import {
+  applicationAction,
+  applicationPack,
+  applicationStaff,
+  applicationPreview,
+} from '@/generated/routes/api/v1/loans'
 import { index as commissionIndex, pay as commissionPay } from '@/generated/routes/api/v1/loan-commissions'
 import { download, http } from '@/core/api/http'
 import { createResourceApi } from '@/core/api/resource'
@@ -33,7 +38,10 @@ export const loanProductsApi = {
       preview_amount?: number | null
       preview_term?: number | null
     },
-  ) => http.post<Wrapped<LoanProductPreview>>('/loan-products/preview', payload).then((response) => response.data),
+  ) =>
+    http
+      .post<Wrapped<LoanProductPreview>>('/loan-products/preview', payload)
+      .then((response) => response.data),
 }
 
 const transition = (loanId: number, action: 'approval' | 'rejection' | 'disbursement', body?: object) =>
@@ -45,7 +53,13 @@ export const loansApi = {
     http.post<Wrapped<LoanEligibility>>('/loans/eligibility', payload).then((response) => response.data),
   workflow: (id: number, action: LoanAction, payload: Record<string, unknown> = {}) =>
     http.post<Wrapped<Loan>>(`/loans/${id}/workflow/${action}`, payload).then((response) => response.data),
-  uploadDocument: (id: number, title: string, file: File, category = 'other', guarantorId?: number | null) => {
+  uploadDocument: (
+    id: number,
+    title: string,
+    file: File,
+    category = 'other',
+    guarantorId?: number | null,
+  ) => {
     const body = new FormData()
     body.append('title', title)
     body.append('file', file)
@@ -60,9 +74,12 @@ export const loansApi = {
   reject: (loanId: number) => transition(loanId, 'rejection'),
   disburse: (loanId: number, disbursedAt?: ISODateTime) =>
     transition(loanId, 'disbursement', { disbursed_at: disbursedAt }),
-  repayments: (loanId: number, page = 1) => http.get<Paginated<LoanRepayment>>(`/loans/${loanId}/repayments`, { page }),
+  repayments: (loanId: number, page = 1) =>
+    http.get<Paginated<LoanRepayment>>(`/loans/${loanId}/repayments`, { page }),
   recordRepayment: (loanId: number, payload: StoreLoanRepaymentPayload | LoanPaymentPayload) =>
-    http.post<Wrapped<LoanRepayment>>(`/loans/${loanId}/repayments`, payload).then((response) => response.data),
+    http
+      .post<Wrapped<LoanRepayment>>(`/loans/${loanId}/repayments`, payload)
+      .then((response) => response.data),
 }
 
 /** Generated routes include the API prefix; the shared HTTP client supplies the configured API base. */
@@ -90,7 +107,24 @@ export const loanCommissionsApi = {
 }
 
 export const loanApplicationsApi = {
-  action: (loan: number, action: string, payload: Record<string, unknown>) => http.post<Wrapped<Loan>>(commissionApiPath(applicationAction.url({ loan, action })), payload).then(result => result.data),
-  pack: (loan: number) => http.get<Wrapped<{ snapshot: LoanAgreementSnapshot; preview: LoanProductPreview }>>(commissionApiPath(applicationPack.url(loan))).then(result => result.data),
-  staff: () => http.get<Wrapped<{ id: number; name: string; email: string; loan_roles: string[] | null }[]>>(commissionApiPath(applicationStaff.url())).then(result => result.data),
+  preview: (payload: StoreLoanPayload) =>
+    http
+      .post<Wrapped<LoanProductPreview>>(commissionApiPath(applicationPreview.url()), payload)
+      .then((result) => result.data),
+  action: (loan: number, action: string, payload: Record<string, unknown>) =>
+    http
+      .post<Wrapped<Loan>>(commissionApiPath(applicationAction.url({ loan, action })), payload)
+      .then((result) => result.data),
+  pack: (loan: number) =>
+    http
+      .get<Wrapped<{ snapshot: LoanAgreementSnapshot; preview: LoanProductPreview }>>(
+        commissionApiPath(applicationPack.url(loan)),
+      )
+      .then((result) => result.data),
+  staff: () =>
+    http
+      .get<Wrapped<{ id: number; name: string; email: string; loan_roles: string[] | null }[]>>(
+        commissionApiPath(applicationStaff.url()),
+      )
+      .then((result) => result.data),
 }

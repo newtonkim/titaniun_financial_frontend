@@ -6,9 +6,11 @@ import { formatDate, formatEnum } from '@/core/utils/format'
 import { loanApplicationsApi, loansApi } from '../api'
 import { documentCategories } from '../application-policy'
 import { downloadApplicationPack } from '../application-pack'
-import type { Loan } from '../types'
+import { createRepaymentSchedule, downloadContinuingAgreement } from '../continuing-agreement'
+import type { Loan, LoanAgreementSnapshot } from '../types'
 
 const props = defineProps<{ loan: Loan }>()
+const originalContinuingFormUrl = `${import.meta.env.BASE_URL}continuing-client-loan-v1.pdf`
 const emit = defineEmits<{ updated: [loan: Loan] }>()
 const busy = ref(false)
 const error = ref('')
@@ -34,7 +36,8 @@ const can = (permission: string) => permissions.value.includes(permission)
 const pendingChecks = computed(() => (props.loan.execution_checklist ?? []).filter((item) => !item.complete))
 const currentDocuments = computed(() =>
   (props.loan.documents ?? []).filter(
-    (item) => item.verification_status === 'verified' && item.agreement_revision === props.loan.agreement_revision,
+    (item) =>
+      item.verification_status === 'verified' && item.agreement_revision === props.loan.agreement_revision,
   ),
 )
 const needsGuarantor = computed(() => ['guarantor', 'guarantor_witness'].includes(signature.signer_type))
@@ -92,6 +95,27 @@ async function downloadPack() {
     busy.value = false
   }
 }
+async function downloadContinuingDocument(schedule = false, archived?: LoanAgreementSnapshot) {
+  busy.value = true
+  error.value = ''
+  try {
+    const snapshot = archived ?? (await loanApplicationsApi.pack(props.loan.id)).snapshot
+    if (schedule) {
+      if (!snapshot.repayment_preview) throw new Error('The approved schedule is unavailable.')
+      createRepaymentSchedule(
+        snapshot.repayment_preview,
+        snapshot.applicant.display_name ?? '',
+        `${snapshot.loan_number} · Revision ${snapshot.revision}`,
+      ).save(`${snapshot.loan_number}-repayment-schedule-r${snapshot.revision}.pdf`)
+    } else {
+      await downloadContinuingAgreement(snapshot, Boolean(archived))
+    }
+  } catch (failure) {
+    error.value = failure instanceof Error ? failure.message : 'The document could not be downloaded.'
+  } finally {
+    busy.value = false
+  }
+}
 async function downloadDocument(id: number, name: string) {
   error.value = ''
   try {
@@ -118,32 +142,70 @@ onMounted(async () => {
       <span class="execution-revision">Revision {{ loan.agreement_revision }}</span>
     </div>
     <p class="loan-hint">
-      Approved terms, verified documents and witnessed signatures stay linked to this revision. Material changes require
-      fresh approval and signatures.
+      Approved terms, verified documents and witnessed signatures stay linked to this revision. Material
+      changes require fresh approval and signatures.
     </p>
     <div class="execution-readiness">
       <strong>{{
-        pendingChecks.length ? `${pendingChecks.length} conditions to complete` : 'All release conditions complete'
+        pendingChecks.length
+          ? `${pendingChecks.length} conditions to complete`
+          : 'All release conditions complete'
       }}</strong>
       <div v-for="item in loan.execution_checklist" :key="item.key">
-        <CheckCircle2 v-if="item.complete" :size="16" /><Circle v-else :size="16" /><span>{{ item.label }}</span>
+        <CheckCircle2 v-if="item.complete" :size="16" /><Circle v-else :size="16" /><span>{{
+          item.label
+        }}</span>
       </div>
     </div>
     <div class="execution-toolbar">
+      <template v-if="loan.application_type === 'continuing'">
+        <a
+          class="loan-button loan-button--outline"
+          :href="originalContinuingFormUrl"
+          download="Continuing Clients Loan Document.pdf"
+          ><Download :size="16" />Original form</a
+        >
+        <button
+          type="button"
+          class="loan-button loan-button--primary"
+          :disabled="
+            busy || !['approved', 'disbursed', 'closed'].includes(loan.status) || !loan.pricing_review
+          "
+          @click="downloadContinuingDocument(false)"
+        >
+          <Download :size="16" />Short loan agreement
+        </button>
+        <button
+          type="button"
+          class="loan-button loan-button--outline"
+          :disabled="
+            busy || !['approved', 'disbursed', 'closed'].includes(loan.status) || !loan.pricing_review
+          "
+          @click="downloadContinuingDocument(true)"
+        >
+          <Download :size="16" />Repayment schedule
+        </button>
+      </template>
       <button
         type="button"
         class="loan-button loan-button--primary"
         :disabled="busy || !['approved', 'disbursed', 'closed'].includes(loan.status) || !loan.pricing_review"
         @click="downloadPack"
       >
-        <Download :size="16" />Download pack</button
+        <Download :size="16" />{{
+          loan.application_type === 'continuing' ? 'Supporting application & guarantees' : 'Download pack'
+        }}</button
       ><span class="loan-hint">Committee approval and finance review are required before issue.</span>
     </div>
     <div v-if="loan.agreement_history?.length" class="application-checks">
       <h3>Previous approved terms</h3>
-      <p class="loan-hint">Earlier revisions remain available for audit. Archived copies are marked as superseded.</p>
+      <p class="loan-hint">
+        Earlier revisions remain available for audit. Archived copies are marked as superseded.
+      </p>
       <div v-for="revision in loan.agreement_history" :key="revision.snapshot.revision">
-        <span>Revision {{ revision.snapshot.revision }} · archived {{ formatDate(revision.archived_at) }}</span>
+        <span
+          >Revision {{ revision.snapshot.revision }} · archived {{ formatDate(revision.archived_at) }}</span
+        >
         <button
           type="button"
           class="loan-link"
@@ -151,6 +213,15 @@ onMounted(async () => {
           @click="downloadApplicationPack(revision.snapshot, revision.snapshot.repayment_preview, true)"
         >
           Download archived copy
+        </button>
+        <button
+          v-if="revision.snapshot.application_type === 'continuing'"
+          type="button"
+          class="loan-link"
+          :disabled="busy || !revision.pricing_review"
+          @click="downloadContinuingDocument(false, revision.snapshot)"
+        >
+          Archived short agreement
         </button>
       </div>
     </div>
@@ -205,7 +276,11 @@ onMounted(async () => {
           <tbody>
             <tr v-for="item in loan.documents" :key="item.id">
               <td>
-                <button type="button" class="loan-link" @click="downloadDocument(item.id, item.original_name)">
+                <button
+                  type="button"
+                  class="loan-link"
+                  @click="downloadDocument(item.id, item.original_name)"
+                >
                   {{ item.title }}</button
                 ><small class="execution-file-name">{{ item.original_name }}</small>
               </td>
@@ -226,7 +301,11 @@ onMounted(async () => {
       <p v-else class="loan-empty">
         Upload identity documents first. Signed copies are added after committee approval.
       </p>
-      <form v-if="loan.available_actions?.includes('documents')" class="loan-subform" @submit.prevent="uploadFile">
+      <form
+        v-if="loan.available_actions?.includes('documents')"
+        class="loan-subform"
+        @submit.prevent="uploadFile"
+      >
         <h3>Upload a document</h3>
         <fieldset :disabled="busy" class="application-fieldset">
           <div class="loan-fields">
@@ -253,7 +332,12 @@ onMounted(async () => {
                 @change="file = ($event.target as HTMLInputElement).files?.[0] ?? null"
             /></label>
           </div>
-          <button class="loan-button loan-button--outline" type="submit" :disabled="!file" style="margin-top: 16px">
+          <button
+            class="loan-button loan-button--outline"
+            type="submit"
+            :disabled="!file"
+            style="margin-top: 16px"
+          >
             {{ busy ? 'Uploading…' : 'Upload document' }}
           </button>
         </fieldset>
@@ -315,7 +399,9 @@ onMounted(async () => {
         "
       >
         <h3>Record a verified paper signature</h3>
-        <p class="loan-hint">Signatures reference a verified signed copy. Upload and verify that document first.</p>
+        <p class="loan-hint">
+          Signatures reference a verified signed copy. Upload and verify that document first.
+        </p>
         <fieldset :disabled="busy" class="application-fieldset">
           <div class="loan-fields">
             <label
@@ -357,13 +443,19 @@ onMounted(async () => {
           </button>
         </fieldset>
       </form>
-      <p v-else class="loan-empty">Final signatures can be recorded once the committee approves the application.</p>
+      <p v-else class="loan-empty">
+        Final signatures can be recorded once the committee approves the application.
+      </p>
     </div>
-    <form v-else-if="mode === 'pricing'" class="loan-subform" @submit.prevent="run('review-pricing', { ...pricing })">
+    <form
+      v-else-if="mode === 'pricing'"
+      class="loan-subform"
+      @submit.prevent="run('review-pricing', { ...pricing })"
+    >
       <h3>Finance review of approved pricing</h3>
       <p class="loan-hint">
-        Review the actual product rate, calculation method and every charge. This review does not change the approved
-        terms.
+        Review the actual product rate, calculation method and every charge. This review does not change the
+        approved terms.
       </p>
       <fieldset :disabled="busy || loan.status !== 'approved'" class="application-fieldset">
         <label class="loan-field-label"
@@ -386,7 +478,8 @@ onMounted(async () => {
       <fieldset :disabled="busy" class="application-fieldset">
         <label class="loan-field-label"
           >Reason and required follow-up<textarea v-model="defer.notes" required rows="3" /></label
-        ><label class="loan-field-label">Review date<input v-model="defer.review_date" type="date" required /></label
+        ><label class="loan-field-label"
+          >Review date<input v-model="defer.review_date" type="date" required /></label
         ><button type="submit" class="loan-button loan-button--outline" style="margin-top: 16px">
           Record deferral
         </button>

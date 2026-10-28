@@ -118,6 +118,7 @@ export interface LoanProduct extends LoanProductSettings {
 export type LoanProductFilters = { active?: boolean; search?: string; per_page?: number }
 
 export interface LoanProductPreviewRow {
+  due_date?: string
   fees?: number
   period: number
   principal: number
@@ -184,13 +185,20 @@ export interface LoanSignature {
   details: Record<string, string> | null
 }
 export interface Loan {
+  application_type: 'standard' | 'continuing'
+  agreement_date: ISODate | null
+  first_repayment_date: ISODate | null
   execution_checklist?: { key: string; label: string; complete: boolean }[]
   application_version: number
   agreement_revision: number
   application_data: Partial<LoanApplicationData> | null
   application_snapshot: Record<string, unknown> | null
   approved_snapshot: Record<string, unknown> | null
-  agreement_history: { snapshot: LoanAgreementSnapshot; pricing_review: Record<string, unknown> | null; archived_at: string }[]
+  agreement_history: {
+    snapshot: LoanAgreementSnapshot
+    pricing_review: Record<string, unknown> | null
+    archived_at: string
+  }[]
   pricing_review: Record<string, unknown> | null
   deferred_until: string | null
   charges?: LoanCharge[]
@@ -250,6 +258,9 @@ export interface Loan {
 }
 
 export interface StoreLoanPayload {
+  application_type?: 'standard' | 'continuing'
+  agreement_date?: ISODate | null
+  first_repayment_date?: ISODate | null
   application_data?: Partial<LoanApplicationData>
   charges?: LoanChargeInput[]
   interest_method?: InterestMethod
@@ -267,6 +278,9 @@ export interface StoreLoanPayload {
 }
 
 export interface UpdateLoanPayload {
+  application_type?: 'standard' | 'continuing'
+  agreement_date?: ISODate | null
+  first_repayment_date?: ISODate | null
   application_data?: Partial<LoanApplicationData>
   charges?: LoanChargeInput[]
   interest_method?: InterestMethod
@@ -447,6 +461,10 @@ export interface CommissionPaymentPayload {
 }
 
 export interface LoanAgreementSnapshot {
+  application_type?: 'standard' | 'continuing'
+  template_sha256?: string
+  agreement_date?: string | null
+  first_repayment_date?: string | null
   repayment_preview?: LoanProductPreview
   template_version: string
   revision: number
@@ -461,7 +479,14 @@ export interface LoanAgreementSnapshot {
   processing_fee_type: string
   processing_fee_value: string
   charges: LoanChargeInput[]
-  guarantors: { id: number; name: string; national_id: string; phone: string; address: string; guaranteed_amount: string }[]
+  guarantors: {
+    id: number
+    name: string
+    national_id: string
+    phone: string
+    address: string
+    guaranteed_amount: string
+  }[]
   collaterals: { asset_type: string; description: string; estimated_value: string; notes: string | null }[]
   terms_hash: string
   approved_at: string

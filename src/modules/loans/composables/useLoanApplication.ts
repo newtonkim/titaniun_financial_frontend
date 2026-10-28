@@ -2,7 +2,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ApiError } from '@/core/api/http'
 import type { Member } from '@/modules/members/types'
-import { loanProductsApi, loansApi } from '../api'
+import { loanApplicationsApi, loanProductsApi, loansApi } from '../api'
 import type {
   InterestMethod,
   LoanCollateralInput,
@@ -29,8 +29,29 @@ export function useLoanApplication() {
   const member = ref<Member | null>(null)
   const products = ref<LoanProduct[]>([])
   const options = ref<LoanOptions>({ officers: [], committee_votes_required: 2 })
-  const blankApplication = (): LoanApplicationData => ({ applicant_type: 'individual', display_name: '', national_id: '', date_of_birth: '', employer: '', occupation: '', address: '', district: '', phone: '', email: '', business_registration_number: '', business_activity: '', signatory_name: '', signatory_title: '', signatory_national_id: '', declaration_accepted: false, declaration_name: '' })
+  const blankApplication = (): LoanApplicationData => ({
+    applicant_type: 'individual',
+    display_name: '',
+    national_id: '',
+    date_of_birth: '',
+    employer: '',
+    occupation: '',
+    address: '',
+    district: '',
+    phone: '',
+    email: '',
+    business_registration_number: '',
+    business_activity: '',
+    signatory_name: '',
+    signatory_title: '',
+    signatory_national_id: '',
+    declaration_accepted: false,
+    declaration_name: '',
+  })
   const form = reactive({
+    application_type: 'standard' as 'standard' | 'continuing',
+    agreement_date: '',
+    first_repayment_date: '',
     application_data: blankApplication(),
     charges: [] as LoanChargeInput[],
     loan_product_id: null as number | null,
@@ -58,6 +79,9 @@ export function useLoanApplication() {
 
   function payload(): StoreLoanPayload {
     return {
+      application_type: form.application_type,
+      agreement_date: form.application_type === 'continuing' ? form.agreement_date || null : null,
+      first_repayment_date: form.application_type === 'continuing' ? form.first_repayment_date || null : null,
       member_id: member.value?.id ?? 0,
       application_data: { ...form.application_data },
       charges: form.charges,
@@ -96,8 +120,19 @@ export function useLoanApplication() {
           products.value.push(loan.product)
         member.value = loan.borrower ?? null
         Object.assign(form, {
+          application_type: loan.application_type ?? 'standard',
+          agreement_date: loan.agreement_date ?? '',
+          first_repayment_date: loan.first_repayment_date ?? '',
           application_data: { ...blankApplication(), ...(loan.application_data ?? {}) },
-          charges: (loan.charges ?? []).map(({ name, amount, frequency, collection, chart_of_account_id }) => ({ name, amount, frequency, collection, chart_of_account_id })),
+          charges: (loan.charges ?? []).map(
+            ({ name, amount, frequency, collection, chart_of_account_id }) => ({
+              name,
+              amount,
+              frequency,
+              collection,
+              chart_of_account_id,
+            }),
+          ),
           loan_product_id: loan.loan_product_id,
           loan_officer_id: loan.loan_officer_id,
           commission_member_id: loan.commission_member_id,
@@ -106,12 +141,14 @@ export function useLoanApplication() {
           term: loan.term,
           purpose: loan.purpose ?? '',
           repayment_source: loan.repayment_source ?? '',
-          collaterals: (loan.collaterals ?? []).map(({ asset_type, description, estimated_value, notes }) => ({
-            asset_type,
-            description,
-            estimated_value,
-            notes: notes ?? '',
-          })),
+          collaterals: (loan.collaterals ?? []).map(
+            ({ asset_type, description, estimated_value, notes }) => ({
+              asset_type,
+              description,
+              estimated_value,
+              notes: notes ?? '',
+            }),
+          ),
           guarantors: (loan.guarantors ?? []).map(({ member_id, guaranteed_amount }) => ({
             member_id,
             guaranteed_amount,
@@ -188,17 +225,23 @@ export function useLoanApplication() {
     }
     checking.value = true
     const results = await Promise.allSettled([
-      loanProductsApi.preview({
-        ...product.value,
-        interest_method: form.interest_method,
-        preview_amount: Number(form.principal),
-        preview_term: Number(form.term),
-      }),
+      form.application_type === 'continuing'
+        ? loanApplicationsApi.preview(payload())
+        : loanProductsApi.preview({
+            ...product.value,
+            interest_method: form.interest_method,
+            preview_amount: Number(form.principal),
+            preview_term: Number(form.term),
+          }),
       loansApi.eligibility(payload()),
     ])
     if (current !== sequence || disposed) return
     if (results[0].status === 'fulfilled') preview.value = results[0].value
-    else previewError.value = 'The repayment preview could not be calculated. Try again.'
+    else
+      previewError.value =
+        results[0].reason instanceof ApiError
+          ? Object.values(results[0].reason.errors).flat().join(' ') || results[0].reason.message
+          : 'The repayment preview could not be calculated. Try again.'
     if (results[1].status === 'fulfilled') eligibility.value = results[1].value
     else eligibilityError.value = 'Eligibility could not be checked. Try again before submitting.'
     checking.value = false
@@ -212,6 +255,10 @@ export function useLoanApplication() {
       () => form.term,
       () => form.collaterals,
       () => form.guarantors,
+      () => form.charges,
+      () => form.application_type,
+      () => form.agreement_date,
+      () => form.first_repayment_date,
     ],
     () => {
       ++sequence
@@ -225,13 +272,29 @@ export function useLoanApplication() {
   )
   async function save(submit: boolean): Promise<void> {
     if (busy.value || !validate(2)) {
-      if (Object.keys(errors.value).some((key) => ['member_id', 'loan_product_id', 'loan_officer_id'].includes(key)))
+      if (
+        Object.keys(errors.value).some((key) =>
+          ['member_id', 'loan_product_id', 'loan_officer_id'].includes(key),
+        )
+      )
         step.value = 1
       else step.value = 2
       return
     }
     if (submit && (!eligibility.value?.eligible || checking.value)) {
       message.value = 'Resolve the eligibility checks before submitting. You can still save a draft.'
+      return
+    }
+    if (
+      submit &&
+      form.application_type === 'continuing' &&
+      (!form.agreement_date ||
+        !form.first_repayment_date ||
+        form.first_repayment_date <= form.agreement_date ||
+        !preview.value ||
+        previewError.value)
+    ) {
+      message.value = 'Complete the agreement dates and resolve the repayment schedule before submitting.'
       return
     }
     busy.value = true
@@ -279,6 +342,9 @@ export function useLoanApplication() {
     message.value = ''
     errors.value = {}
     Object.assign(form, {
+      application_type: 'standard',
+      agreement_date: '',
+      first_repayment_date: '',
       application_data: blankApplication(),
       charges: [],
       loan_product_id: null,

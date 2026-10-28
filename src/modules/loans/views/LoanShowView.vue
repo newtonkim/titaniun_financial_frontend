@@ -88,7 +88,9 @@ const actions = computed(() =>
       ? ['repay' as LoanAction]
       : [],
 )
-const formActions = computed(() => actions.value.filter((action) => !['edit', 'documents', 'consent'].includes(action)))
+const formActions = computed(() =>
+  actions.value.filter((action) => !['edit', 'documents', 'consent'].includes(action)),
+)
 const needsNotes = computed(() =>
   ['request-documents', 'return', 'reject', 'cancel', 'recommend'].includes(selectedAction.value),
 )
@@ -117,10 +119,13 @@ const ranks: Partial<Record<LoanStatus, number>> = {
 const outstanding = computed(
   () =>
     Number(loan.value?.outstanding_principal ?? loan.value?.principal ?? 0) +
-    Number(loan.value?.outstanding_interest ?? 0) + Number(loan.value?.outstanding_charges ?? 0),
+    Number(loan.value?.outstanding_interest ?? 0) +
+    Number(loan.value?.outstanding_charges ?? 0),
 )
 const votesFor = computed(() => loan.value?.votes?.filter((vote) => vote.decision === 'approve').length ?? 0)
-const votesAgainst = computed(() => loan.value?.votes?.filter((vote) => vote.decision === 'decline').length ?? 0)
+const votesAgainst = computed(
+  () => loan.value?.votes?.filter((vote) => vote.decision === 'decline').length ?? 0,
+)
 let sequence = 0
 
 async function loadPayments(page = 1): Promise<void> {
@@ -139,7 +144,8 @@ async function load(): Promise<void> {
     loan.value = result
     await loadPayments()
   } catch (error) {
-    if (current === sequence) loadError.value = error instanceof Error ? error.message : 'Could not load this loan.'
+    if (current === sequence)
+      loadError.value = error instanceof Error ? error.message : 'Could not load this loan.'
   } finally {
     if (current === sequence) loading.value = false
   }
@@ -169,8 +175,14 @@ watch(loan, (current) => {
       (current.product?.interest_period === 'per_month' ? 12 : 1)
     ).toFixed(2),
     recommended_interest_method:
-      current.recommended_interest_method ?? current.interest_method ?? current.product?.interest_method ?? 'flat',
+      current.recommended_interest_method ??
+      current.interest_method ??
+      current.product?.interest_method ??
+      'flat',
     risk_rating: current.risk_rating ?? 'low',
+    disbursement_method: current.application_type === 'continuing' ? 'cash' : 'bank_transfer',
+    disbursed_at:
+      current.application_type === 'continuing' ? (current.agreement_date ?? localToday) : localToday,
   })
   consentId.value = current.guarantors?.find((item) => item.status === 'requested')?.id ?? null
 })
@@ -329,7 +341,9 @@ onBeforeUnmount(() => {
     <section v-else-if="loadError" class="loan-card loan-empty" role="alert">
       <p>{{ loadError }}</p>
       <button type="button" class="loan-button loan-button--outline" @click="load">Try again</button
-      ><RouterLink class="loan-button loan-button--quiet" :to="{ name: 'loans.index' }">Back to loans</RouterLink>
+      ><RouterLink class="loan-button loan-button--quiet" :to="{ name: 'loans.index' }"
+        >Back to loans</RouterLink
+      >
     </section>
     <template v-else-if="loan">
       <header class="loan-page-header">
@@ -372,7 +386,9 @@ onBeforeUnmount(() => {
       >
         <p>{{ message }}</p>
         <ul v-if="Object.keys(errors).length">
-          <li v-for="(messages, field) in errors" :key="field">{{ formatEnum(String(field)) }}: {{ messages[0] }}</li>
+          <li v-for="(messages, field) in errors" :key="field">
+            {{ formatEnum(String(field)) }}: {{ messages[0] }}
+          </li>
         </ul>
       </div>
       <div v-if="loan.uses_workflow" class="loan-pipeline loan-card" aria-label="Loan lifecycle">
@@ -381,8 +397,8 @@ onBeforeUnmount(() => {
           :key="stage"
           :class="{ 'is-active': ranks[loan.status] === index }"
           :aria-current="ranks[loan.status] === index ? 'step' : undefined"
-          ><Check v-if="(ranks[loan.status] ?? -1) > index" :size="14" /><span v-else>{{ index + 1 }}.</span>{{ stage
-          }}<ArrowRight v-if="index < pipeline.length - 1" :size="12" aria-hidden="true"
+          ><Check v-if="(ranks[loan.status] ?? -1) > index" :size="14" /><span v-else>{{ index + 1 }}.</span
+          >{{ stage }}<ArrowRight v-if="index < pipeline.length - 1" :size="12" aria-hidden="true"
         /></span>
       </div>
       <dl class="loan-kpis">
@@ -392,12 +408,18 @@ onBeforeUnmount(() => {
         </div>
         <div class="loan-card">
           <dt>
-            {{ ['disbursed', 'closed'].includes(loan.status) ? 'Outstanding balance' : 'Estimated total repayment' }}
+            {{
+              ['disbursed', 'closed'].includes(loan.status)
+                ? 'Outstanding balance'
+                : 'Estimated total repayment'
+            }}
           </dt>
           <dd>
             {{
               formatMoney(
-                ['disbursed', 'closed'].includes(loan.status) ? outstanding : loan.repayment_preview?.total_repayment,
+                ['disbursed', 'closed'].includes(loan.status)
+                  ? outstanding
+                  : loan.repayment_preview?.total_repayment,
               )
             }}
           </dd>
@@ -409,7 +431,11 @@ onBeforeUnmount(() => {
         <div class="loan-card">
           <dt>Borrower interest rate</dt>
           <dd>
-            {{ (Number(loan.interest_rate) / (loan.product?.interest_period === 'per_month' ? 12 : 1)).toFixed(2) }}%
+            {{
+              (Number(loan.interest_rate) / (loan.product?.interest_period === 'per_month' ? 12 : 1)).toFixed(
+                2,
+              )
+            }}%
             {{ loan.product?.interest_period === 'per_month' ? 'per month' : 'per year' }}
           </dd>
         </div>
@@ -418,17 +444,21 @@ onBeforeUnmount(() => {
         <div class="loan-main">
           <TabsRoot v-model="tab">
             <TabsList class="loan-tabs" aria-label="Loan information"
-              ><TabsTrigger v-if="loan.application_version >= 2" value="execution">Application pack</TabsTrigger
+              ><TabsTrigger v-if="loan.application_version >= 2" value="execution"
+                >Application pack</TabsTrigger
               ><TabsTrigger value="overview">Overview</TabsTrigger
               ><TabsTrigger value="security">Security & consent</TabsTrigger
               ><TabsTrigger value="documents"
-                >Documents <span v-if="loan.documents?.length">({{ loan.documents.length }})</span></TabsTrigger
+                >Documents
+                <span v-if="loan.documents?.length">({{ loan.documents.length }})</span></TabsTrigger
               ><TabsTrigger value="schedule">Schedule</TabsTrigger
               ><TabsTrigger value="repayments">Repayments</TabsTrigger
               ><TabsTrigger value="commissions">Commissions</TabsTrigger
               ><TabsTrigger value="activity">Activity</TabsTrigger></TabsList
             >
-            <TabsContent v-if="loan.application_version >= 2" value="execution"><LoanExecutionPanel :loan="loan" @updated="loan = $event" /></TabsContent>
+            <TabsContent v-if="loan.application_version >= 2" value="execution"
+              ><LoanExecutionPanel :loan="loan" @updated="loan = $event"
+            /></TabsContent>
             <TabsContent value="overview"
               ><section class="loan-card">
                 <div class="loan-card-heading">
@@ -437,11 +467,32 @@ onBeforeUnmount(() => {
                 </div>
                 <dl class="loan-review-list">
                   <div>
+                    <dt>Application type</dt>
+                    <dd>
+                      {{
+                        loan.application_type === 'continuing'
+                          ? 'Continuing / existing member'
+                          : 'Standard application'
+                      }}
+                    </dd>
+                  </div>
+                  <template v-if="loan.application_type === 'continuing'">
+                    <div>
+                      <dt>Agreement / cash disbursement date</dt>
+                      <dd>{{ formatDate(loan.agreement_date) }}</dd>
+                    </div>
+                    <div>
+                      <dt>First repayment date</dt>
+                      <dd>{{ formatDate(loan.first_repayment_date) }}</dd>
+                    </div>
+                  </template>
+                  <div>
                     <dt>Member</dt>
                     <dd>
-                      <RouterLink class="loan-link" :to="{ name: 'members.show', params: { id: loan.member_id } }">{{
-                        loan.borrower?.name
-                      }}</RouterLink
+                      <RouterLink
+                        class="loan-link"
+                        :to="{ name: 'members.show', params: { id: loan.member_id } }"
+                        >{{ loan.borrower?.name }}</RouterLink
                       ><small>{{ loan.borrower?.member_number }}</small>
                     </dd>
                   </div>
@@ -465,11 +516,16 @@ onBeforeUnmount(() => {
                   </div>
                   <div>
                     <dt>Interest distribution</dt>
-                    <dd>{{ 100 - Number(loan.commission_rate) }}% company / {{ loan.commission_rate }}% commission</dd>
+                    <dd>
+                      {{ 100 - Number(loan.commission_rate) }}% company / {{ loan.commission_rate }}%
+                      commission
+                    </dd>
                   </div>
                   <div>
                     <dt>Term</dt>
-                    <dd>{{ loan.term }} {{ formatEnum(loan.product?.repayment_frequency) }} repayment periods</dd>
+                    <dd>
+                      {{ loan.term }} {{ formatEnum(loan.product?.repayment_frequency) }} repayment periods
+                    </dd>
                   </div>
                   <div>
                     <dt>Purpose</dt>
@@ -491,7 +547,9 @@ onBeforeUnmount(() => {
                     <dt>Disbursed</dt>
                     <dd>
                       {{ formatDate(loan.disbursed_at)
-                      }}<small>{{ formatEnum(loan.disbursement_method) }} · {{ loan.disbursement_reference }}</small>
+                      }}<small
+                        >{{ formatEnum(loan.disbursement_method) }} · {{ loan.disbursement_reference }}</small
+                      >
                     </dd>
                   </div>
                   <div v-if="loan.net_disbursed_amount">
@@ -577,14 +635,17 @@ onBeforeUnmount(() => {
                 </ul>
                 <p v-else class="loan-empty">No guarantors recorded.</p>
                 <form
-                  v-if="actions.includes('consent') && loan.guarantors?.some((item) => item.status === 'requested')"
+                  v-if="
+                    actions.includes('consent') &&
+                    loan.guarantors?.some((item) => item.status === 'requested')
+                  "
                   class="loan-action-form loan-subform"
                   @submit.prevent="recordConsent"
                 >
                   <h3>Record verified guarantor consent</h3>
                   <p class="loan-hint">
-                    Record the guarantor’s response after verifying their identity and consent. Accepting a guarantee
-                    reserves that amount from their available savings.
+                    Record the guarantor’s response after verifying their identity and consent. Accepting a
+                    guarantee reserves that amount from their available savings.
                   </p>
                   <fieldset class="loan-form-reset" :disabled="busy">
                     <div class="loan-fields loan-fields--single">
@@ -679,9 +740,14 @@ onBeforeUnmount(() => {
                       @change="documentFile = ($event.target as HTMLInputElement).files?.[0] ?? null"
                   /></label>
                   <p class="loan-hint">
-                    PDF, JPG, PNG, or WebP, up to 5 MB. Documents require an authenticated staff session to download.
+                    PDF, JPG, PNG, or WebP, up to 5 MB. Documents require an authenticated staff session to
+                    download.
                   </p>
-                  <button type="submit" class="loan-button loan-button--primary" :disabled="busy || !documentFile">
+                  <button
+                    type="submit"
+                    class="loan-button loan-button--primary"
+                    :disabled="busy || !documentFile"
+                  >
                     <Upload :size="16" />{{ busy ? 'Uploading…' : 'Upload document' }}
                   </button>
                 </form>
@@ -701,7 +767,8 @@ onBeforeUnmount(() => {
                           <th>Period</th>
                           <th>Due date</th>
                           <th class="num">Principal</th>
-                          <th class="num">Interest</th><th class="num">Fees</th>
+                          <th class="num">Interest</th>
+                          <th class="num">Fees</th>
                           <th class="num">Paid</th>
                           <th class="num">Remaining</th>
                           <th>Status</th>
@@ -712,24 +779,36 @@ onBeforeUnmount(() => {
                           <td>{{ item.period }}</td>
                           <td>{{ formatDate(item.due_date) }}</td>
                           <td class="num">{{ formatMoney(item.principal) }}</td>
-                          <td class="num">{{ formatMoney(item.interest) }}</td><td class="num">{{ formatMoney(item.fees) }}</td>
+                          <td class="num">{{ formatMoney(item.interest) }}</td>
+                          <td class="num">{{ formatMoney(item.fees) }}</td>
                           <td class="num">
-                            {{ formatMoney(Number(item.principal_paid) + Number(item.interest_paid) + Number(item.fees_paid ?? 0)) }}
+                            {{
+                              formatMoney(
+                                Number(item.principal_paid) +
+                                  Number(item.interest_paid) +
+                                  Number(item.fees_paid ?? 0),
+                              )
+                            }}
                           </td>
                           <td class="num">
                             {{
                               formatMoney(
                                 Number(item.principal) +
-                                  Number(item.interest) + Number(item.fees ?? 0) -
+                                  Number(item.interest) +
+                                  Number(item.fees ?? 0) -
                                   Number(item.principal_paid) -
-                                  Number(item.interest_paid) - Number(item.fees_paid ?? 0),
+                                  Number(item.interest_paid) -
+                                  Number(item.fees_paid ?? 0),
                               )
                             }}
                           </td>
                           <td>
                             {{
                               Number(item.principal) + Number(item.interest) + Number(item.fees ?? 0) <=
-                              Number(item.principal_paid) + Number(item.interest_paid) + Number(item.fees_paid ?? 0) + 0.001
+                              Number(item.principal_paid) +
+                                Number(item.interest_paid) +
+                                Number(item.fees_paid ?? 0) +
+                                0.001
                                 ? 'Paid'
                                 : item.due_date.slice(0, 10) < localToday
                                   ? 'Overdue'
@@ -741,12 +820,19 @@ onBeforeUnmount(() => {
                     </table>
                   </div></template
                 ><template v-else
-                  ><p class="loan-hint">The final dated schedule is generated when funds are disbursed.</p>
+                  ><p class="loan-hint">
+                    {{
+                      loan.application_type === 'continuing'
+                        ? 'Proposed dated schedule. Repayment tracking starts when funds are disbursed.'
+                        : 'The final dated schedule is generated when funds are disbursed.'
+                    }}
+                  </p>
                   <div v-if="loan.repayment_preview" class="loan-table-wrap" style="margin-top: 17px">
                     <table class="loan-table">
                       <thead>
                         <tr>
                           <th>Period</th>
+                          <th v-if="loan.application_type === 'continuing'">Due date</th>
                           <th class="num">Principal</th>
                           <th class="num">Interest</th>
                           <th class="num">Installment</th>
@@ -756,6 +842,9 @@ onBeforeUnmount(() => {
                       <tbody>
                         <tr v-for="item in loan.repayment_preview.schedule_preview" :key="item.period">
                           <td>{{ item.period }}</td>
+                          <td v-if="loan.application_type === 'continuing'">
+                            {{ item.due_date ? formatDate(item.due_date) : 'Not set' }}
+                          </td>
                           <td class="num">{{ formatMoney(item.principal) }}</td>
                           <td class="num">{{ formatMoney(item.interest) }}</td>
                           <td class="num">{{ formatMoney(item.installment) }}</td>
@@ -782,7 +871,8 @@ onBeforeUnmount(() => {
                         <th class="num">Amount</th>
                         <th class="num">Principal</th>
                         <th class="num">Interest</th>
-                        <th class="num">Fees</th><th class="num">Company share</th>
+                        <th class="num">Fees</th>
+                        <th class="num">Company share</th>
                         <th class="num">Commission</th>
                       </tr>
                     </thead>
@@ -901,7 +991,10 @@ onBeforeUnmount(() => {
                         step="0.01"
                         required /></label
                     ><label for="appraisal-method"
-                      >Interest method<select id="appraisal-method" v-model="actionForm.recommended_interest_method">
+                      >Interest method<select
+                        id="appraisal-method"
+                        v-model="actionForm.recommended_interest_method"
+                      >
                         <option value="flat">Flat</option>
                         <option value="reducing_balance">Reducing balance</option>
                       </select></label
@@ -929,7 +1022,13 @@ onBeforeUnmount(() => {
                         : selectedAction === 'vote'
                           ? 'Decision rationale'
                           : 'Reason / notes'
-                    }}<textarea id="action-notes" v-model="actionForm.notes" rows="4" maxlength="2000" required />
+                    }}<textarea
+                      id="action-notes"
+                      v-model="actionForm.notes"
+                      rows="4"
+                      maxlength="2000"
+                      required
+                    />
                   </label>
                   <template v-if="selectedAction === 'disburse'"
                     ><label for="disbursement-date"
@@ -940,9 +1039,16 @@ onBeforeUnmount(() => {
                         :max="localToday"
                         required /></label
                     ><label for="disbursement-method"
-                      >Payment method<select id="disbursement-method" v-model="actionForm.disbursement_method">
-                        <option value="bank_transfer">Bank transfer</option>
-                        <option value="mobile_money">Mobile money</option>
+                      >Payment method<select
+                        id="disbursement-method"
+                        v-model="actionForm.disbursement_method"
+                      >
+                        <option v-if="loan.application_type !== 'continuing'" value="bank_transfer">
+                          Bank transfer
+                        </option>
+                        <option v-if="loan.application_type !== 'continuing'" value="mobile_money">
+                          Mobile money
+                        </option>
                         <option value="cash">Cash</option>
                       </select></label
                     ><label for="disbursement-reference"
@@ -953,12 +1059,13 @@ onBeforeUnmount(() => {
                         required
                     /></label>
                     <p class="loan-hint" v-if="loan.repayment_preview">
-                      Net disbursement: {{ formatMoney(loan.repayment_preview.net_disbursement) }} · Processing fee:
+                      Net disbursement: {{ formatMoney(loan.repayment_preview.net_disbursement) }} ·
+                      Processing fee:
                       {{ formatMoney(loan.repayment_preview.processing_fee) }}
                     </p>
                     <p class="loan-hint">
-                      Confirm that funds have been released before recording disbursement. This action posts accounting
-                      entries and creates the repayment schedule.
+                      Confirm that funds have been released before recording disbursement. This action posts
+                      accounting entries and creates the repayment schedule.
                     </p></template
                   >
                   <template v-if="selectedAction === 'repay'"
@@ -1003,8 +1110,8 @@ onBeforeUnmount(() => {
                         required
                     /></label>
                     <p v-if="loan.uses_workflow" class="loan-hint">
-                      Payments cover interest then principal, oldest installment first. The loan closes when all
-                      scheduled principal and interest are paid.
+                      Payments cover interest then principal, oldest installment first. The loan closes when
+                      all scheduled principal and interest are paid.
                     </p></template
                   >
                 </div>
@@ -1052,8 +1159,8 @@ onBeforeUnmount(() => {
               <h2>Committee votes</h2>
             </div>
             <p class="loan-hint">
-              {{ votesFor }} approve · {{ votesAgainst }} decline · {{ loan.committee_votes_required }} matching
-              independent votes required.
+              {{ votesFor }} approve · {{ votesAgainst }} decline ·
+              {{ loan.committee_votes_required }} matching independent votes required.
             </p>
             <div v-for="vote in loan.votes" :key="vote.id" class="loan-vote">
               <div>
