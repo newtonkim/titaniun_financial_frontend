@@ -2,7 +2,7 @@ import type { ISODate, ISODateTime, Money } from '@/core/api/types'
 import type { Member } from '@/modules/members/types'
 
 export type SavingsAccountStatus = 'active' | 'dormant' | 'closed'
-export type SavingsTransactionType = 'deposit' | 'withdrawal' | 'interest'
+export type SavingsTransactionType = 'deposit' | 'withdrawal' | 'interest' | 'dividend'
 
 export const SAVINGS_ACCOUNT_STATUSES: SavingsAccountStatus[] = ['active', 'dormant', 'closed']
 
@@ -50,6 +50,7 @@ export interface SavingsProductSettings {
   maturity_action: MaturityAction | null
   convert_to_product_id: number | null
   liability_account_id: number | null
+  cash_account_id: number | null
   interest_expense_account_id: number | null
   interest_payable_account_id: number | null
   is_active: boolean

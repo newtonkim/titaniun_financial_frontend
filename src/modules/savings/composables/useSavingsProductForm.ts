@@ -35,6 +35,7 @@ function createDefaultForm(): SavingsProductForm {
     maturity_action: 'manual',
     convert_to_product_id: null,
     liability_account_id: null,
+    cash_account_id: null,
     interest_expense_account_id: null,
     interest_payable_account_id: null,
     is_active: true,
@@ -74,6 +75,11 @@ export function useSavingsProductForm(productId: Ref<number | null>, onSaved: (p
 
   const liabilityAccounts = computed(() =>
     chartAccounts.value.filter((a) => a.type === 'liability').map((a) => ({ id: a.id, name: `${a.code} — ${a.name}` })),
+  )
+  const cashAccounts = computed(() =>
+    chartAccounts.value
+      .filter((a) => a.type === 'asset' && ['Cash', 'Bank'].includes(a.subtype ?? ''))
+      .map((a) => ({ id: a.id, name: `${a.code} — ${a.name}` })),
   )
 
   async function loadSupportingData() {
@@ -202,7 +208,7 @@ export function useSavingsProductForm(productId: Ref<number | null>, onSaved: (p
 
   return {
     isEditing, loading, saving, message, form, selectedChargeTab,
-    chartAccounts, products, liabilityAccounts,
+    chartAccounts, products, liabilityAccounts, cashAccounts,
     chargeRows, activityWarnings, monthlyFeeSummary,
     open, fieldError, addCharge, removeCharge, save,
   }
