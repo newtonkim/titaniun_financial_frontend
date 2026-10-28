@@ -2,6 +2,7 @@
 import { computed, nextTick, ref } from 'vue'
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from 'reka-ui'
 import { CalendarDays, Camera, Check, Clock3, LockKeyhole, Mail, MapPin, Monitor, Pencil, Phone, ShieldCheck } from 'lucide-vue-next'
+import { formatEnum } from '@/core/utils/format'
 import { useForm } from '@/core/composables/useForm'
 import { useAuth } from '@/modules/auth/store'
 import { settingsApi } from '../api'
@@ -19,7 +20,7 @@ const nameInput = ref<HTMLInputElement>()
 const tabPanel = ref<HTMLElement>()
 const fullName = computed(() => auth.user.value?.name.trim() || 'Your profile')
 const email = computed(() => auth.user.value?.email ?? '')
-const role = computed(() => auth.user.value?.approved_at ? 'Staff' : 'Pending approval')
+const role = computed(() => auth.user.value?.roles?.map(formatEnum).join(', ') || 'No role assigned')
 const accountStatus = computed(() => auth.user.value?.approved_at ? 'Active' : 'Pending')
 const initials = computed(() => fullName.value.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part.charAt(0).toUpperCase()).join(''))
 const location = computed(() => details.value.officeLocation)
@@ -317,7 +318,13 @@ function removePhoto(): void {
         <TabsContent value="permissions" class="profile-card profile-permissions" aria-labelledby="profile-permissions-title">
           <header class="profile-section-heading"><h2 id="profile-permissions-title">Permissions</h2><p>Your account access is managed by an administrator.</p></header>
           <dl class="profile-account__rows"><div><dt>Current role</dt><dd><span class="profile-badge">{{ role }}</span></dd></div><div><dt>Staff access</dt><dd>{{ auth.user.value?.approved_at ? 'Approved' : 'Awaiting approval' }}</dd></div></dl>
-          <p class="profile-permissions__note">Contact your administrator to review or change your access. Detailed permissions are not available here.</p>
+          <div class="profile-permissions__note">
+            <h3>Granted permissions</h3>
+            <ul v-if="auth.user.value?.permissions?.length" class="profile-permission-list"><li v-for="permission in auth.user.value.permissions" :key="permission">{{ formatEnum(permission.replaceAll('.', ' · ')) }}</li></ul>
+            <p v-else>No business permissions have been assigned. Contact your administrator to arrange access.</p>
+            <RouterLink v-if="auth.can('access.manage')" :to="{ name: 'settings.roles' }" class="profile-link">Manage roles & permissions</RouterLink>
+            <p v-else>Contact your administrator to review or change your access.</p>
+          </div>
         </TabsContent>
       </div>
     </TabsRoot>
@@ -505,4 +512,10 @@ function removePhoto(): void {
   .profile-activity__list time { flex-basis: 100%; margin-left: 42px; }
   .profile-form-error { margin-inline: 20px !important; }
 }
+</style>
+
+<style scoped>
+.profile-permission-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 22px; padding:0; margin:18px 0; list-style:none; }
+.profile-permission-list li { overflow-wrap:anywhere; font-size:12px; }
+@media(max-width:560px) { .profile-permission-list { grid-template-columns:1fr; } }
 </style>

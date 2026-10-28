@@ -3,8 +3,10 @@ import { computed, provide, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import AppIcon from '@/core/components/AppIcon.vue'
 import { SETTINGS_SEARCH } from '@/core/settings'
+import { useAuth } from '@/modules/auth/store'
 import { settingsPages } from '@/modules'
 
+const auth = useAuth()
 const route = useRoute()
 const search = ref('')
 const isProfile = computed(() => route.name === 'settings.profile')
@@ -14,7 +16,7 @@ provide(SETTINGS_SEARCH, search)
 const visiblePages = computed(() => {
   const term = search.value.trim().toLowerCase()
   return settingsPages.filter(
-    (page) => !term || page.label.toLowerCase().includes(term) || page.description.toLowerCase().includes(term),
+    (page) => auth.canRoute(page.route.name) && (!term || page.label.toLowerCase().includes(term) || page.description.toLowerCase().includes(term)),
   )
 })
 

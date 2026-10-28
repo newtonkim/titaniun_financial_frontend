@@ -41,3 +41,4 @@ __screenshots__/
 # Local tool data
 .qodo
 .remember
+*.code-workspace

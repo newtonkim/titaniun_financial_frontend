@@ -26,10 +26,10 @@ const { isDark, toggleTheme } = useTheme()
 const dashboardItem: NavItem = { label: 'Dashboard', to: { name: 'dashboard' }, icon: 'dashboard', group: 'overview' }
 const navItems = [dashboardItem, ...modules.flatMap((module) => module.nav)]
 
-const groups = NAV_GROUPS.map((group) => ({
+const groups = computed(() => NAV_GROUPS.map((group) => ({
   ...group,
-  entries: toEntries(navItems.filter((item) => item.group === group.id)),
-})).filter((group) => group.entries.length > 0)
+  entries: toEntries(navItems.filter((item) => item.group === group.id && auth.canRoute(router.resolve(item.to).name))),
+})).filter((group) => group.entries.length > 0))
 
 const compactQuery = window.matchMedia('(max-width: 1080px)')
 const isCompact = ref(compactQuery.matches)
