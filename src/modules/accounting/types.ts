@@ -43,7 +43,6 @@ export interface ChartOfAccount {
   is_control: boolean
   is_postable: boolean
   allow_manual: boolean
-  ifrs_category: string | null
   description: string | null
   income_statement_line: string | null
   sort_order: number | null
@@ -63,7 +62,6 @@ export interface StoreChartOfAccountPayload {
   is_control?: boolean
   is_postable?: boolean
   allow_manual?: boolean
-  ifrs_category?: string | null
   income_statement_line?: string | null
   sort_order?: number | null
   description?: string | null
