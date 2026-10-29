@@ -20,6 +20,7 @@ export interface StaffAccess {
   approved_at: ISODateTime | null
   roles: string[]
   permissions: string[]
+  created_at: ISODateTime | null
 }
 export interface AccessActivity {
   id: number

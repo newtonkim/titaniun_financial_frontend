@@ -7,9 +7,10 @@ import reports from './reports'
 import savings from './savings'
 import settings from './settings'
 import shares from './shares'
+import staff from './staff'
 import { moduleStatuses } from './statuses'
 
-const registered: AppModule[] = [members, savings, loans, shares, accounting, expenses, reports, settings]
+const registered: AppModule[] = [members, staff, savings, loans, shares, accounting, expenses, reports, settings]
 
 export const modules: AppModule[] = registered.filter((module) => moduleStatuses[module.name] !== false)
 

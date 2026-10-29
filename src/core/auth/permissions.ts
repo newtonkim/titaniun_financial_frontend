@@ -1,6 +1,6 @@
 /** Permission required to open a named application page. */
 export function permissionForRoute(name: string): string | undefined {
-  if (name === 'settings.roles') return 'access.manage'
+  if (name === 'settings.roles' || name.startsWith('staff.')) return 'access.manage'
   if (name === 'dashboard') return 'dashboard.view'
   if (name === 'loans.commissions') return 'commissions.view'
   if (name === 'loans.create' || name === 'loans.edit') return 'loans.manage'
