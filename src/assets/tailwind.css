@@ -19,6 +19,7 @@
 /* main.css owns `.inline` (a muted inline-flex row); never let the utility of that name override it. */
 @source not inline('inline');
 @source '../modules/shares';
+@source '../modules/staff';
 /* main.css owns `.inline` (a muted inline-flex row); never let the utility of that name override it. */
 @source not inline('inline');
 @source '../core/components/SearchableSelect.vue';
