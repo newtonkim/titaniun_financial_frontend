@@ -326,6 +326,24 @@ onBeforeUnmount(() => {
           </template>
         </section>
       </nav>
+
+      <div class="sidebar__footer">
+        <div class="theme-toggle">
+          <AppIcon class="theme-toggle__icon" :name="isDark ? 'moon' : 'sun'" :size="16" />
+          <span v-if="!iconOnly" class="theme-toggle__label">Dark mode</span>
+          <button
+            type="button"
+            role="switch"
+            class="switch"
+            :class="{ 'switch--on': isDark }"
+            :aria-checked="isDark"
+            aria-label="Dark mode"
+            @click="toggleTheme"
+          >
+            <span class="switch__thumb" />
+          </button>
+        </div>
+      </div>
     </aside>
     <div class="shell__scrim" aria-hidden="true" @click="sidebarOpen = false" />
 
@@ -347,17 +365,6 @@ onBeforeUnmount(() => {
         </nav>
 
         <div class="topbar__actions">
-          <button
-            class="icon-button icon-button--ghost"
-            type="button"
-            role="switch"
-            :aria-checked="isDark"
-            aria-label="Dark mode"
-            :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
-            @click="toggleTheme"
-          >
-            <AppIcon :name="isDark ? 'moon' : 'sun'" :size="20" />
-          </button>
           <div class="user-menu">
             <button
               type="button"
@@ -393,19 +400,24 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .shell {
-  /* A light sidebar on the page surface; the brand crimson marks the current page. */
-  --nav-bg: var(--surface);
-  --nav-text: color-mix(in srgb, var(--text) 78%, transparent);
-  --nav-label: var(--muted);
-  --nav-hover: var(--surface-sunken);
+  /* The sidebar is always dark, in the brand ink, whatever the theme. */
+  --nav-bg: var(--ink-panel);
+  --nav-text: rgb(255 255 255 / 0.6);
+  --nav-strong: #fff;
+  --nav-label: rgb(255 255 255 / 0.35);
+  --nav-hover: rgb(255 255 255 / 0.08);
+  --nav-rule: rgb(255 255 255 / 0.06);
+  --nav-accent: #e0565b;
   --sidebar-width: 17rem;
 
   display: grid;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  /* One viewport-high row: a long sidebar scrolls its nav and keeps the footer in view. */
+  grid-template-rows: minmax(0, 1fr);
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  background: var(--bg);
+  background: var(--nav-bg);
   transition: grid-template-columns 200ms var(--ease-out);
 }
 
@@ -420,7 +432,6 @@ onBeforeUnmount(() => {
   min-width: 0;
   height: 100%;
   padding: 1rem 0.875rem;
-  border-right: 1px solid var(--border);
   background: var(--nav-bg);
   color: var(--nav-text);
 }
@@ -453,7 +464,7 @@ onBeforeUnmount(() => {
   height: 2.75rem;
   border-radius: 0.75rem;
   background: #fff;
-  box-shadow: 0 0 0 1px var(--border), 0 2px 6px rgb(16 24 40 / 0.08);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.3);
   transition: width 200ms var(--ease-out), height 200ms var(--ease-out), border-radius 200ms var(--ease-out);
 }
 
@@ -469,7 +480,7 @@ onBeforeUnmount(() => {
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.02em;
-  color: var(--heading);
+  color: var(--nav-strong);
 }
 
 .sidebar__toggle {
@@ -488,7 +499,7 @@ onBeforeUnmount(() => {
 
 .sidebar__toggle:hover {
   background: var(--nav-hover);
-  color: var(--heading);
+  color: var(--nav-strong);
 }
 
 .sidebar__nav {
@@ -498,7 +509,7 @@ onBeforeUnmount(() => {
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  scrollbar-color: rgb(255 255 255 / 0.15) transparent;
 }
 
 .nav-group {
@@ -521,7 +532,7 @@ onBeforeUnmount(() => {
   width: calc(100% - 1rem);
   margin: 0.5rem auto;
   border: 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--nav-rule);
 }
 
 .nav-item {
@@ -548,7 +559,7 @@ onBeforeUnmount(() => {
 
 .nav-item:hover {
   background: var(--nav-hover);
-  color: var(--heading);
+  color: var(--nav-strong);
 }
 
 .nav-item :deep(svg) {
@@ -563,7 +574,7 @@ onBeforeUnmount(() => {
 }
 
 .nav-item__chevron {
-  color: var(--muted);
+  color: rgb(255 255 255 / 0.3);
   transition: transform 200ms var(--ease-out);
 }
 
@@ -572,7 +583,7 @@ onBeforeUnmount(() => {
 }
 
 .nav-item--open {
-  color: var(--heading);
+  color: var(--nav-strong);
 }
 
 /* The current page: a solid brand-crimson pill. */
@@ -623,7 +634,7 @@ onBeforeUnmount(() => {
 
 .submenu__link:hover {
   background: var(--nav-hover);
-  color: var(--heading);
+  color: var(--nav-strong);
 }
 
 .submenu__dot {
@@ -631,18 +642,19 @@ onBeforeUnmount(() => {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--navy) 35%, var(--surface));
+  background: rgb(255 255 255 / 0.25);
 }
 
 .submenu__link--active,
 .submenu__link--active:hover {
-  background: var(--crimson-soft);
-  color: var(--primary);
+  background: rgb(224 86 91 / 0.14);
+  color: var(--nav-strong);
   font-weight: 600;
 }
 
 .submenu__link--active .submenu__dot {
-  background: var(--primary);
+  background: var(--nav-accent);
+  box-shadow: 0 0 8px rgb(224 86 91 / 0.6);
 }
 
 /* Flyout menu: the icon-only sidebar's menus, beside their trigger. */
@@ -813,13 +825,81 @@ onBeforeUnmount(() => {
   to { opacity: 1; transform: none; }
 }
 
-/* Main column */
+/* Footer: dark mode switch */
+.sidebar__footer {
+  padding-top: 0.75rem;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.05);
+  border-radius: 0.75rem;
+  background: rgb(255 255 255 / 0.05);
+}
+
+.shell--collapsed .theme-toggle {
+  flex-direction: column;
+  padding: 0.75rem 0.25rem;
+}
+
+.theme-toggle__icon {
+  flex: none;
+  color: var(--nav-accent);
+}
+
+.theme-toggle__label {
+  flex: 1;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.switch {
+  position: relative;
+  flex: none;
+  width: 2.5rem;
+  height: 1.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  cursor: pointer;
+  transition: background-color 300ms var(--ease-out);
+}
+
+.switch--on {
+  background: var(--crimson);
+}
+
+.switch__thumb {
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.3);
+  transition: transform 300ms var(--ease-out);
+}
+
+.switch--on .switch__thumb {
+  transform: translateX(1.25rem);
+}
+
+/* Main column: an inset card on the dark frame */
 .main {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  margin: 0.5rem 0.5rem 0.5rem 0;
   overflow-y: auto;
+  border-radius: 0.75rem;
   background: var(--bg);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
 }
 
 .topbar {
@@ -854,15 +934,6 @@ onBeforeUnmount(() => {
 
 .icon-button:hover {
   background: var(--surface-sunken);
-}
-
-.icon-button--ghost {
-  border-color: transparent;
-  color: var(--muted);
-}
-
-.icon-button--ghost:hover {
-  color: var(--heading);
 }
 
 .icon-button.topbar__menu {
@@ -1041,16 +1112,7 @@ onBeforeUnmount(() => {
     background: rgb(15 16 19 / 0.45);
   }
 
-  .icon-button--ghost {
-  border-color: transparent;
-  color: var(--muted);
-}
-
-.icon-button--ghost:hover {
-  color: var(--heading);
-}
-
-.icon-button.topbar__menu {
+  .icon-button.topbar__menu {
     display: inline-grid;
   }
 
