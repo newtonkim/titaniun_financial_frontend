@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T">
 import { onMounted, watch } from 'vue'
+import AppIcon from '@/core/components/AppIcon.vue'
 import type { Collection } from '@/core/api/types'
 import { useCollection } from '@/core/composables/useCollection'
 
@@ -12,6 +13,7 @@ export interface Column<Row> {
 
 const props = defineProps<{
   title: string
+  description?: string
   columns: Column<T>[]
   fetch: (page: number) => Promise<Collection<T>>
   /** Reloads from page 1 whenever these change. */
@@ -37,12 +39,15 @@ defineExpose({ reload })
 </script>
 
 <template>
-  <section class="panel">
-    <header class="panel__header">
-      <h1>{{ title }}</h1>
-      <div class="panel__actions"><slot name="actions" /></div>
-    </header>
+  <header class="page-head">
+    <div>
+      <h1 class="page-head__title">{{ title }}</h1>
+      <p v-if="description" class="page-head__lede">{{ description }}</p>
+    </div>
+    <div v-if="$slots.actions" class="page-head__actions"><slot name="actions" /></div>
+  </header>
 
+  <section class="panel panel--table">
     <div v-if="$slots.filters" class="filters"><slot name="filters" /></div>
 
     <p v-if="error" class="alert alert--error">{{ error }}</p>
@@ -70,9 +75,16 @@ defineExpose({ reload })
     </div>
 
     <footer v-if="meta && meta.last_page > 1" class="pagination">
-      <button class="btn" :disabled="loading || meta.current_page <= 1" @click="load(meta.current_page - 1)">Previous</button>
-      <span>Page {{ meta.current_page }} of {{ meta.last_page }} · {{ meta.total }} records</span>
-      <button class="btn" :disabled="loading || meta.current_page >= meta.last_page" @click="load(meta.current_page + 1)">Next</button>
+      <span>Showing {{ meta.from }}–{{ meta.to }} of {{ meta.total }}</span>
+      <div class="pagination__pages">
+        <button class="btn btn--icon" type="button" aria-label="Previous page" :disabled="loading || meta.current_page <= 1" @click="load(meta.current_page - 1)">
+          <AppIcon name="arrow-left" :size="16" />
+        </button>
+        <span>Page {{ meta.current_page }} of {{ meta.last_page }}</span>
+        <button class="btn btn--icon" type="button" aria-label="Next page" :disabled="loading || meta.current_page >= meta.last_page" @click="load(meta.current_page + 1)">
+          <AppIcon name="arrow-right" :size="16" />
+        </button>
+      </div>
     </footer>
   </section>
 </template>

@@ -13,5 +13,5 @@ const fetchPage = (page: number) => expenseCategoriesApi.list({ page })
 </script>
 
 <template>
-  <ResourceTable title="Expense categories" :columns="columns" :fetch="fetchPage" />
+  <ResourceTable title="Expense categories" description="How operating expenses are grouped." :columns="columns" :fetch="fetchPage" />
 </template>

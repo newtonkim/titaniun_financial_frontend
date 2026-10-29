@@ -530,27 +530,21 @@ onBeforeUnmount(() => {
   color: rgb(255 255 255 / 0.3);
 }
 
-.nav-item--open,
-.nav-item--active {
+.nav-item--open {
   background: var(--nav-active);
   color: #fff;
 }
 
-.nav-item--active::before {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 3px;
-  height: 2rem;
-  border-radius: 0 999px 999px 0;
-  background: var(--nav-accent);
-  box-shadow: 0 0 10px rgb(224 86 91 / 0.5);
-  transform: translateY(-50%);
-  content: '';
+/* The current page: a solid brand-crimson pill. */
+.nav-item--active,
+.nav-item--active:hover {
+  background: var(--crimson);
+  color: #fff;
+  box-shadow: 0 6px 16px rgb(184 50 54 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.12);
 }
 
-.nav-item--active > :deep(svg:first-child) {
-  color: var(--nav-accent);
+.nav-item--active .nav-item__chevron {
+  color: rgb(255 255 255 / 0.7);
 }
 
 /* Flyout menu */
