@@ -211,6 +211,7 @@ onMounted(load)
                     <button type="button" class="btn btn--small btn--danger" :disabled="busy.has(account.id)" @click="remove(account)">Confirm delete</button>
                     <button type="button" class="btn btn--small" @click="confirmingDelete = null">Keep</button>
                   </template>
+                  <span v-else-if="!account.is_postable" class="muted" title="Headers are the chart's fixed structure and cannot be edited or deleted.">—</span>
                   <template v-else>
                     <button type="button" class="btn btn--small" @click="edit(account)">Edit</button>
                     <button type="button" class="btn btn--small btn--danger" :disabled="account.has_postings" :title="account.has_postings ? 'Accounts with postings cannot be deleted; deactivate them instead.' : undefined" @click="confirmingDelete = account.id">Delete</button>
