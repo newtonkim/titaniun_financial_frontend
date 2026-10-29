@@ -15,6 +15,7 @@ import {
   MapPin,
   MinusCircle,
   Phone,
+  Printer,
   RotateCcw,
   ShieldCheck,
   ShieldX,
@@ -31,21 +32,33 @@ import { formatDate, formatEnum, formatMoney } from '@/core/utils/format'
 import { useAuth } from '@/modules/auth/store'
 import OpenSavingsAccountDrawer from '@/modules/savings/components/OpenSavingsAccountDrawer.vue'
 import SavingsTransactionDrawer from '@/modules/savings/components/SavingsTransactionDrawer.vue'
-import type { SavingsAccount } from '@/modules/savings/types'
+import { savingsReversalsApi, savingsTransactionsApi } from '@/modules/savings/api'
+import { openSavingsReceipt } from '@/modules/savings/receipt-pdf'
+import type { SavingsAccount, SavingsReversal } from '@/modules/savings/types'
 import { membersApi } from '../api'
+import CustomFeeDrawer from '../components/CustomFeeDrawer.vue'
 import MemberAccountsTable from '../components/MemberAccountsTable.vue'
 import MemberLedger from '../components/MemberLedger.vue'
-import type { Member, MemberTransaction } from '../types'
+import MemberStatement from '../components/MemberStatement.vue'
+import PendingReversalsPanel from '../components/PendingReversalsPanel.vue'
+import type { Member, MemberStatus, MemberTransaction } from '../types'
 import { genderPill, memberInitials } from '../utils'
 
 const props = defineProps<{ id: string }>()
-const { can } = useAuth()
+const { can, user } = useAuth()
 
-type Tab = 'profile' | 'transactions' | 'savings' | 'withdrawal' | 'loans' | 'shares'
+type Tab = 'profile' | 'transactions' | 'savings' | 'withdrawal' | 'loans' | 'shares' | 'statement'
 
 const CURRENCY = 'UGX'
 const member = ref<Member | null>(null)
 const transactions = ref<MemberTransaction[]>([])
+const reversals = ref<SavingsReversal[]>([])
+const printing = ref<number | null>(null)
+const reversing = ref<MemberTransaction | null>(null)
+const reversalReason = ref('')
+const feeAccount = ref<SavingsAccount | null>(null)
+const feeOpen = ref(false)
+const statusChange = ref<MemberStatus | null>(null)
 const loading = ref(true)
 const error = ref('')
 const notice = ref('')
@@ -69,9 +82,14 @@ async function load(quiet = false): Promise<void> {
   if (!quiet) loading.value = true
   error.value = ''
   try {
-    const [loaded, ledger] = await Promise.all([membersApi.show(memberId.value), membersApi.transactions(memberId.value)])
+    const [loaded, ledger, pending] = await Promise.all([
+      membersApi.show(memberId.value),
+      membersApi.transactions(memberId.value),
+      savingsReversalsApi.list({ status: 'pending', member_id: memberId.value }),
+    ])
     member.value = loaded
     transactions.value = ledger
+    reversals.value = pending
   } catch {
     error.value = 'Failed to load the member.'
   } finally {
@@ -88,6 +106,7 @@ const tabs = computed((): { id: Tab; label: string; icon: Component; count: numb
   { id: 'withdrawal', label: 'Member Withdrawal', icon: MinusCircle, count: transactions.value.filter((txn) => txn.source === 'savings' && txn.type === 'withdrawal').length },
   { id: 'loans', label: 'Member Loans', icon: Wallet, count: member.value?.loans?.length ?? 0 },
   { id: 'shares', label: 'Member Shares', icon: BarChart3, count: transactions.value.filter((txn) => txn.source === 'shares').length },
+  { id: 'statement', label: 'Member Statement', icon: Printer, count: null },
 ])
 
 const sharesHeld = computed(() => (member.value?.share_accounts ?? []).reduce((sum, account) => sum + (account.shares_held ?? 0), 0))
@@ -225,7 +244,81 @@ function startTransaction(type: 'deposit' | 'withdrawal', account: SavingsAccoun
 
 async function savingsChanged(message: string): Promise<void> {
   notice.value = message
+  error.value = ''
   await load(true)
+}
+
+async function printReceipt(txn: MemberTransaction): Promise<void> {
+  printing.value = txn.id
+  error.value = ''
+  try {
+    openSavingsReceipt(await savingsTransactionsApi.receipt(txn.id))
+  } catch (e) {
+    error.value = e instanceof ApiError ? e.message : 'Failed to load the receipt.'
+  } finally {
+    printing.value = null
+  }
+}
+
+function startReversal(txn: MemberTransaction): void {
+  if (!txn.is_reversible) return
+  reversing.value = txn
+  reversalReason.value = ''
+}
+
+async function requestReversal(): Promise<void> {
+  const txn = reversing.value
+  if (!txn) return
+  busy.value = true
+  error.value = ''
+  try {
+    const reversal = await savingsTransactionsApi.requestReversal(txn.id, reversalReason.value.trim())
+    reversing.value = null
+    await savingsChanged(reversal.status === 'approved' ? `Transaction #${txn.id} reversed.` : `Reversal of transaction #${txn.id} requested. Someone else with approval rights must approve it.`)
+  } catch (e) {
+    error.value = e instanceof ApiError ? e.message : 'The reversal could not be requested.'
+  } finally {
+    busy.value = false
+  }
+}
+
+function openCustomFee(account: SavingsAccount): void {
+  feeAccount.value = account
+  feeOpen.value = true
+}
+
+/** The statuses a member can move to from their current one, through the approval and dormancy actions. */
+const statusOptions = computed((): { value: MemberStatus; label: string }[] => {
+  const status = member.value?.status
+  const current = status ? [{ value: status, label: formatEnum(status) }] : []
+  if (status === 'pending') return [...current, { value: 'active', label: 'Active (approve)' }, { value: 'rejected', label: 'Rejected' }]
+  if (status === 'rejected') return [...current, { value: 'pending', label: 'Pending (send back for approval)' }]
+  if (status === 'active') return [...current, { value: 'dormant', label: 'Dormant' }]
+  if (status && ['dormant', 'suspended', 'inactive'].includes(status)) return [...current, { value: 'active', label: 'Active' }]
+  return current
+})
+const canChangeStatus = computed(() => can('members.approve') || can('members.manage'))
+
+function chooseStatus(event: Event): void {
+  const select = event.target as HTMLSelectElement
+  const next = select.value as MemberStatus
+  select.value = member.value?.status ?? ''
+  if (next === member.value?.status) return
+  if (next === 'rejected') {
+    rejectOpen.value = true
+    return
+  }
+  statusChange.value = next
+}
+
+async function confirmStatusChange(): Promise<void> {
+  const next = statusChange.value
+  const current = member.value?.status
+  statusChange.value = null
+  if (!next || !current) return
+  if (next === 'active') await run(() => (current === 'pending' ? membersApi.approve(memberId.value) : membersApi.activate(memberId.value)))
+  else if (next === 'dormant') await run(() => membersApi.markDormant(memberId.value))
+  else if (next === 'pending') await run(() => membersApi.requeue(memberId.value))
 }
 
 async function uploadAvatar(event: Event): Promise<void> {
@@ -331,10 +424,18 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
         <div :class="[card, 'p-6']">
           <h3 class="mb-5 text-[12px] font-bold uppercase tracking-wider text-neutral-500">Quick Info</h3>
           <div class="space-y-[18px]">
-            <div class="flex items-center justify-between">
-              <span class="text-[13px] text-neutral-500">Status</span>
-              <span :class="['inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-bold capitalize ring-1 ring-inset', badgeClass(member.status)]">{{ formatEnum(member.status) }}</span>
-            </div>
+            <label class="block">
+              <span class="mb-1.5 block text-[13px] text-neutral-500">Status</span>
+              <select
+                id="member-status"
+                :value="member.status"
+                :disabled="!canChangeStatus || busy || statusOptions.length < 2"
+                class="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold capitalize text-neutral-800 outline-none focus:border-brand disabled:bg-neutral-50 disabled:text-neutral-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                @change="chooseStatus"
+              >
+                <option v-for="option in statusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+              </select>
+            </label>
             <div v-for="item in quickInfo" :key="item.label" :class="['flex items-center justify-between gap-3', item.border ? 'mt-1 border-t border-neutral-100 pt-1 dark:border-neutral-800' : '']">
               <span class="text-[13px] text-neutral-500">{{ item.label }}</span>
               <span class="text-right font-mono text-[13px] tracking-tight text-neutral-700 dark:text-neutral-200">{{ item.value }}</span>
@@ -375,10 +476,20 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
           </button>
         </div>
 
+        <PendingReversalsPanel
+          :reversals="reversals"
+          :can-approve="can('savings.reversals.approve')"
+          :current-user-id="user?.id ?? null"
+          @decided="savingsChanged"
+          @failed="(message) => (error = message)"
+        />
+
         <MemberAccountsTable
           :accounts="member.savings_accounts ?? []"
           :can-transact="canTransact"
           :can-open="canTransact"
+          :can-configure-fees="can('savings.products.manage')"
+          @custom-fee="openCustomFee"
           @deposit="(account) => startTransaction('deposit', account)"
           @withdraw="(account) => startTransaction('withdrawal', account)"
           @new-account="openAccountOpen = true"
@@ -441,10 +552,11 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
             </div>
           </div>
 
-          <MemberLedger v-else-if="tab === 'transactions'" :transactions="transactions" mode="all" />
-          <MemberLedger v-else-if="tab === 'savings'" :transactions="transactions" mode="deposit" />
-          <MemberLedger v-else-if="tab === 'withdrawal'" :transactions="transactions" mode="withdrawal" />
+          <MemberLedger v-else-if="tab === 'transactions'" :transactions="transactions" mode="all" :can-reverse="can('savings.manage')" :printing="printing" @print="printReceipt" @reverse="startReversal" />
+          <MemberLedger v-else-if="tab === 'savings'" :transactions="transactions" mode="deposit" :can-reverse="can('savings.manage')" :printing="printing" @print="printReceipt" @reverse="startReversal" />
+          <MemberLedger v-else-if="tab === 'withdrawal'" :transactions="transactions" mode="withdrawal" :can-reverse="can('savings.manage')" :printing="printing" @print="printReceipt" @reverse="startReversal" />
           <MemberLedger v-else-if="tab === 'shares'" :transactions="transactions" mode="shares" />
+          <MemberStatement v-else-if="tab === 'statement'" :accounts="member.savings_accounts ?? []" />
 
           <!-- Loans -->
           <div v-else class="overflow-x-auto">
@@ -485,7 +597,43 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
       </div>
     </div>
 
+    <!-- Reverse transaction dialog -->
+    <div v-if="reversing" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="reverse-title">
+      <form class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900" @submit.prevent="requestReversal">
+        <div class="flex items-start gap-4">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30"><RotateCcw :size="20" class="text-amber-600" /></span>
+          <div class="min-w-0 flex-1">
+            <h3 id="reverse-title" class="text-[15px] font-bold normal-case tracking-normal text-neutral-900 dark:text-white">Reverse {{ reversing.type }} of {{ CURRENCY }} {{ formatMoney(reversing.amount) }}?</h3>
+            <p class="mt-1 text-sm text-neutral-500">Transaction <strong class="text-neutral-700 dark:text-neutral-200">{{ reversing.reference || `#${reversing.id}` }}</strong> on {{ reversing.account }}.</p>
+            <textarea v-model="reversalReason" required minlength="3" maxlength="1000" rows="3" aria-label="Reason for the reversal" placeholder="Enter a reason for the reversal" class="mt-3 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700 dark:text-white" />
+            <p class="mt-2 text-[12px] text-neutral-400">
+              A counter-transaction undoes this entry once someone else with approval rights approves it. The original stays in the audit trail marked as <em>reversed</em>.
+            </p>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end gap-3">
+          <button type="button" class="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300" @click="reversing = null">Cancel</button>
+          <button type="submit" :disabled="busy || reversalReason.trim().length < 3" class="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700 disabled:opacity-50">
+            <RotateCcw :size="14" /> Request reversal
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Status change confirmation -->
+    <div v-if="statusChange" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="status-title">
+      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
+        <h3 id="status-title" class="mb-1 text-[15px] font-bold normal-case tracking-normal text-neutral-900 dark:text-white">Change member status</h3>
+        <p class="mb-4 text-[13px] text-neutral-500">Move {{ member?.name }} from <strong>{{ formatEnum(member?.status) }}</strong> to <strong>{{ formatEnum(statusChange) }}</strong>?</p>
+        <div class="flex justify-end gap-2">
+          <button type="button" class="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200" @click="statusChange = null">Cancel</button>
+          <button type="button" :disabled="busy" class="rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy/90 disabled:opacity-50" @click="confirmStatusChange">Change status</button>
+        </div>
+      </div>
+    </div>
+
     <template v-if="member">
+      <CustomFeeDrawer v-model:open="feeOpen" :account="feeAccount" @saved="(account) => savingsChanged(`Custom fee saved for ${account.account_number}.`)" />
       <SavingsTransactionDrawer
         v-model:open="transactionOpen"
         :type="transactionType"

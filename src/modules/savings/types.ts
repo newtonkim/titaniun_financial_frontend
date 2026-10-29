@@ -2,7 +2,7 @@ import type { ISODate, ISODateTime, Money } from '@/core/api/types'
 import type { Member } from '@/modules/members/types'
 
 export type SavingsAccountStatus = 'active' | 'dormant' | 'closed'
-export type SavingsTransactionType = 'deposit' | 'withdrawal' | 'interest' | 'dividend'
+export type SavingsTransactionType = 'deposit' | 'withdrawal' | 'interest' | 'dividend' | 'fee'
 
 export const SAVINGS_ACCOUNT_STATUSES: SavingsAccountStatus[] = ['active', 'dormant', 'closed']
 
@@ -78,6 +78,9 @@ export interface SavingsAccount {
   savings_product_id: number
   product?: SavingsProduct
   status: SavingsAccountStatus
+  custom_monthly_fee_enabled?: boolean
+  custom_monthly_fee_type?: FeeMeasure | null
+  custom_monthly_fee_amount?: Money | null
   balance?: Money
   opened_at: ISODate
   closed_at: ISODate | null
@@ -113,6 +116,9 @@ export interface SavingsTransaction {
   narration?: string | null
   transacted_by?: string | null
   recorded_by?: string | null
+  reversal_of_id?: number | null
+  reversed_at?: ISODateTime | null
+  is_reversible?: boolean
 }
 
 export interface StoreSavingsTransactionPayload {
@@ -125,4 +131,68 @@ export interface StoreSavingsTransactionPayload {
   narration?: string | null
   /** Who paid the money in or collected it. */
   transacted_by?: string | null
+}
+
+export type ReversalStatus = 'pending' | 'approved' | 'rejected'
+
+export interface SavingsReversal {
+  id: number
+  status: ReversalStatus
+  reason: string
+  savings_transaction_id: number
+  transaction?: SavingsTransaction
+  account_number?: string
+  member_name?: string
+  requested_by?: string | null
+  requested_by_id: number | null
+  decided_by?: string | null
+  decided_at: ISODateTime | null
+  rejection_reason: string | null
+  reversal_transaction_id: number | null
+  created_at: ISODateTime | null
+}
+
+export interface CustomFeePayload {
+  custom_monthly_fee_enabled: boolean
+  custom_monthly_fee_type: FeeMeasure | null
+  custom_monthly_fee_amount: number | string | null
+}
+
+export interface SavingsReceipt {
+  receipt_number: string
+  reference: string | null
+  transaction_type: SavingsTransactionType
+  transacted_at: ISODateTime
+  recorded_at: ISODateTime | null
+  payment_mode: string | null
+  received_by: string | null
+  transacted_by: string | null
+  narration: string | null
+  currency_code: string
+  branding: { sacco_name: string; tagline: string }
+  member: { name: string; member_number: string; phone: string | null }
+  account: { account_number: string; product: string }
+  amount: Money
+  balance_after: Money
+  is_reversal: boolean
+  is_reversed: boolean
+}
+
+export interface SavingsStatement {
+  member: { name: string; member_number: string; phone: string | null; address: string | null }
+  account: { id: number; account_number: string; product: string | null; status: string; opened_at: ISODate }
+  period: { from: ISODate; to: ISODate }
+  balances: { opening: Money; credits: Money; debits: Money; closing: Money }
+  transactions: {
+    id: number
+    date: ISODate
+    type: SavingsTransactionType
+    description: string
+    reference: string | null
+    credit: Money
+    debit: Money
+    balance: Money
+    is_reversal: boolean
+    is_reversed: boolean
+  }[]
 }
