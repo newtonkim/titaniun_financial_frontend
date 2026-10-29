@@ -76,39 +76,62 @@ export type ChartOfAccountFilters = {
   search?: string
 }
 
+export const JOURNAL_ENTRY_TYPES = ['adjusting', 'manual', 'opening', 'closing', 'reversal'] as const
+/** The types a person can pick, plus `system` for entries posted by deposits, loans and the like. */
+export type JournalEntryType = (typeof JOURNAL_ENTRY_TYPES)[number] | 'system'
+export type JournalEntryStatus = 'draft' | 'posted'
+
+export const COST_CENTRES = ['Finance', 'Operations', 'Administration', 'Branch'] as const
+export type CostCentre = (typeof COST_CENTRES)[number]
+
 export interface JournalEntryLine {
-  id: number
+  /** Null on a draft, whose lines are not on the ledger yet. */
+  id: number | null
   chart_of_account_id: number
-  account?: ChartOfAccount
+  account?: ChartOfAccount | null
   debit: Money
   credit: Money
   memo: string | null
+  cost_centre: CostCentre | null
 }
 
 export interface JournalEntry {
   id: number
+  voucher_number: string
   reference: string
+  entry_type: JournalEntryType
+  status: JournalEntryStatus
   entry_date: ISODate
+  /** Accounting period, YYYY-MM. */
+  period: string | null
   description: string | null
+  total_amount: Money | null
   source_type: string | null
   source_id: number | null
   lines?: JournalEntryLine[]
+  posted_at: ISODateTime | null
   created_at: ISODateTime | null
 }
 
 export interface StoreJournalEntryPayload {
-  reference: string
+  reference?: string | null
   entry_date: ISODate
-  description?: string | null
+  period?: string | null
+  entry_type: Exclude<JournalEntryType, 'system'>
+  status: JournalEntryStatus
+  description: string
   lines: Array<{
     chart_of_account_id: number
-    debit?: Money | null
-    credit?: Money | null
+    debit?: Money | number | null
+    credit?: Money | number | null
     memo?: string | null
+    cost_centre?: CostCentre | null
   }>
 }
 
 export type JournalEntryFilters = {
+  search?: string
+  status?: JournalEntryStatus | ''
   from?: ISODate
   to?: ISODate
 }

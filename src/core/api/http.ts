@@ -78,12 +78,12 @@ export async function request<T>(method: Method, path: string, options: RequestO
 }
 
 /** Fetch a file the API serves (e.g. an Excel template) and hand it to the browser as a download. */
-export async function download(path: string, filename: string): Promise<void> {
+export async function download(path: string, filename: string, query?: Query): Promise<void> {
   const headers: Record<string, string> = {}
   const token = getToken()
   if (token) headers.Authorization = `Bearer ${token}`
 
-  const response = await fetch(buildUrl(path), { headers })
+  const response = await fetch(buildUrl(path, query), { headers })
   if (!response.ok) {
     if (response.status === 401) {
       clearToken()
