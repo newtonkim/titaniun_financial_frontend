@@ -104,8 +104,8 @@ const actionButton = 'inline-flex items-center gap-1.5 rounded-lg border px-3 py
   <div class="tw-scope flex h-full flex-1 flex-col gap-6">
     <div class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="text-4xl font-black tracking-tight text-navy dark:text-white">Members list</h1>
-        <p class="text-sm text-neutral-500 dark:text-neutral-400">Manage all members.</p>
+        <h1 class="text-[1.75rem] font-extrabold leading-tight tracking-tight text-navy dark:text-white">Members</h1>
+        <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Everyone registered with the SACCO, and their status.</p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button
@@ -118,7 +118,7 @@ const actionButton = 'inline-flex items-center gap-1.5 rounded-lg border px-3 py
         </button>
         <button
           type="button"
-          class="flex items-center gap-2 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-navy/90"
+          class="flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-dark"
           @click="openForm()"
         >
           <Plus class="h-4 w-4" />
