@@ -15,6 +15,9 @@
 @source '../modules/savings';
 @source '../modules/members';
 @source '../modules/settings';
+@source '../modules/shares';
+/* main.css owns `.inline` (a muted inline-flex row); never let the utility of that name override it. */
+@source not inline('inline');
 @source '../core/components/SearchableSelect.vue';
 @source '../core/components/AppDrawer.vue';
 
