@@ -132,10 +132,18 @@ export interface MemberTransaction {
   id: number
   source: 'savings' | 'shares' | 'loans'
   type: string
+  account_id: number
   account: string
+  /** The account's product. */
+  account_type: string | null
   amount: Money
   date: ISODate
+  transacted_at: ISODateTime
   reference: string | null
+  narration: string | null
+  transacted_by: string | null
+  recorded_by: string | null
+  journal_entry_id: number | null
 }
 
 export interface MemberImportResult {
