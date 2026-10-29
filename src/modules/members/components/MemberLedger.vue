@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { ChevronLeft, ChevronRight, RotateCcw, Search, ShieldCheck } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Printer, RotateCcw, Search, ShieldCheck, Undo2 } from 'lucide-vue-next'
 import { formatDate, formatMoney } from '@/core/utils/format'
 import type { MemberTransaction } from '../types'
 
@@ -8,7 +8,8 @@ import type { MemberTransaction } from '../types'
  * A member's transactions as a ledger: debits, credits and a running balance per account, with
  * totals, date, type and text filters, and paging. The mode picks which movements it shows.
  */
-const props = defineProps<{ transactions: MemberTransaction[]; mode: 'all' | 'deposit' | 'withdrawal' | 'shares' }>()
+const props = defineProps<{ transactions: MemberTransaction[]; mode: 'all' | 'deposit' | 'withdrawal' | 'shares'; canReverse?: boolean; printing?: number | null }>()
+const emit = defineEmits<{ print: [txn: MemberTransaction]; reverse: [txn: MemberTransaction] }>()
 
 const CURRENCY = 'UGX'
 const CREDIT_TYPES = new Set(['deposit', 'interest', 'dividend', 'purchase', 'transfer_in', 'repayment'])
@@ -22,6 +23,7 @@ const TYPE_LABELS: Record<string, string> = {
   transfer_in: 'Shares transferred in',
   transfer_out: 'Shares transferred out',
   repayment: 'Loan repayment',
+  fee: 'Account fee',
 }
 
 const page = ref(1)
@@ -48,7 +50,13 @@ const showCredit = computed(() => props.mode !== 'withdrawal')
 const isCredit = (txn: MemberTransaction) => CREDIT_TYPES.has(txn.type)
 const credit = (txn: MemberTransaction) => (isCredit(txn) ? Number(txn.amount) : 0)
 const debit = (txn: MemberTransaction) => (isCredit(txn) ? 0 : Number(txn.amount))
-const typeLabel = (txn: MemberTransaction) => TYPE_LABELS[txn.type] ?? txn.type
+const typeLabel = (txn: MemberTransaction) => (txn.reversal_of_id ? `Reversal of #${txn.reversal_of_id}` : (TYPE_LABELS[txn.type] ?? txn.type))
+const status = (txn: MemberTransaction): 'posted' | 'reversed' | 'reversal' => (txn.reversal_of_id ? 'reversal' : txn.reversed_at ? 'reversed' : 'posted')
+const statusClass: Record<ReturnType<typeof status>, string> = {
+  posted: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+  reversed: 'bg-neutral-100 text-neutral-600 ring-neutral-500/20',
+  reversal: 'bg-amber-50 text-amber-700 ring-amber-600/20',
+}
 const key = (txn: MemberTransaction) => `${txn.source}-${txn.id}`
 
 const inMode = computed(() =>
@@ -100,7 +108,7 @@ const totals = computed(() => {
 
 const pages = computed(() => Math.max(1, Math.ceil(filtered.value.length / perPage.value)))
 const rows = computed(() => filtered.value.slice((page.value - 1) * perPage.value, page.value * perPage.value))
-const columns = computed(() => 6 + (showDebit.value ? 1 : 0) + (showCredit.value ? 1 : 0) + (props.mode === 'all' ? 1 : 0))
+const columns = computed(() => 8 + (showDebit.value ? 1 : 0) + (showCredit.value ? 1 : 0) + (props.mode === 'all' ? 1 : 0))
 const balanceLabel = computed(() => (props.mode === 'all' ? 'Latest balance' : 'Closing balance'))
 const balanceHelp = computed(() => {
   if (props.mode === 'deposit') return 'Running balance is the cumulative total of deposits shown in this ledger.'
@@ -202,11 +210,13 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
             <th class="px-5 py-3">Narration</th>
             <th class="px-5 py-3">Receipt</th>
             <th v-if="mode === 'all'" class="px-5 py-3">Captured by</th>
+            <th class="px-5 py-3">Status</th>
+            <th class="px-5 py-3 text-center">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
           <tr v-if="!rows.length">
-            <td :colspan="columns + 1" class="px-5 py-12 text-center">
+            <td :colspan="columns" class="px-5 py-12 text-center">
               <p class="text-sm font-bold text-neutral-700 dark:text-neutral-200">No ledger entries found</p>
               <p class="mt-1 text-xs font-medium text-neutral-500">Adjust the date range, type, or search terms.</p>
             </td>
@@ -239,6 +249,27 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
               </span>
             </td>
             <td v-if="mode === 'all'" class="whitespace-nowrap px-5 py-3.5 text-xs font-semibold text-neutral-600 dark:text-neutral-300">{{ txn.recorded_by || 'System' }}</td>
+            <td class="whitespace-nowrap px-5 py-3.5">
+              <span :class="['inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold capitalize ring-1 ring-inset', statusClass[status(txn)]]">{{ status(txn) }}</span>
+            </td>
+            <td class="whitespace-nowrap px-5 py-3.5 text-center">
+              <div v-if="txn.source === 'savings'" class="flex items-center justify-center gap-1.5">
+                <button type="button" :disabled="printing === txn.id" title="Print receipt" class="rounded-lg border border-neutral-200 p-1.5 text-neutral-500 transition-colors hover:border-brand hover:text-brand disabled:opacity-40 dark:border-neutral-700" @click="emit('print', txn)">
+                  <Printer :size="14" />
+                </button>
+                <button
+                  v-if="canReverse"
+                  type="button"
+                  :disabled="!txn.is_reversible"
+                  :title="txn.reversed_at ? 'Already reversed' : txn.reversal_of_id ? 'Reversal entry' : txn.is_reversible ? 'Reverse transaction' : 'Only deposits and withdrawals can be reversed'"
+                  class="rounded-lg border border-neutral-200 p-1.5 text-neutral-500 transition-colors hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-30 dark:border-neutral-700"
+                  @click="emit('reverse', txn)"
+                >
+                  <Undo2 :size="14" />
+                </button>
+              </div>
+              <span v-else class="text-neutral-300">—</span>
+            </td>
           </tr>
         </tbody>
         <tfoot v-if="filtered.length" class="border-t-2 border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800/40">
@@ -259,7 +290,7 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
               <div class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{{ balanceLabel }}</div>
               <div v-if="totals.latest !== null" class="mt-1 font-mono text-sm font-bold text-neutral-950 dark:text-white">{{ money(totals.latest) }}</div>
             </td>
-            <td :colspan="mode === 'all' ? 3 : 2" class="px-5 py-4 text-xs font-medium text-neutral-500">{{ balanceHelp }}</td>
+            <td :colspan="mode === 'all' ? 5 : 4" class="px-5 py-4 text-xs font-medium text-neutral-500">{{ balanceHelp }}</td>
           </tr>
         </tfoot>
       </table>

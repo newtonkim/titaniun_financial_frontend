@@ -144,6 +144,9 @@ export interface MemberTransaction {
   transacted_by: string | null
   recorded_by: string | null
   journal_entry_id: number | null
+  reversal_of_id: number | null
+  reversed_at: ISODateTime | null
+  is_reversible: boolean
 }
 
 export interface MemberImportResult {

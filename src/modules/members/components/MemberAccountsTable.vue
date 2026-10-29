@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Check, CircleDollarSign, CircleMinus, Copy, Landmark, Plus, Wallet } from 'lucide-vue-next'
+import { Check, CircleDollarSign, CircleMinus, Copy, Landmark, Plus, Star, Wallet } from 'lucide-vue-next'
 import { formatMoney } from '@/core/utils/format'
 import type { SavingsAccount } from '@/modules/savings/types'
 
 /** The member's savings accounts with their balances, and a deposit and withdrawal action on each. */
-defineProps<{ accounts: SavingsAccount[]; canTransact: boolean; canOpen: boolean }>()
-const emit = defineEmits<{ deposit: [account: SavingsAccount]; withdraw: [account: SavingsAccount]; newAccount: [] }>()
+defineProps<{ accounts: SavingsAccount[]; canTransact: boolean; canOpen: boolean; canConfigureFees: boolean }>()
+const emit = defineEmits<{ deposit: [account: SavingsAccount]; withdraw: [account: SavingsAccount]; newAccount: []; customFee: [account: SavingsAccount] }>()
 
 const CURRENCY = 'UGX'
 const copied = ref<string | null>(null)
@@ -98,6 +98,16 @@ const th = 'px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.
             </td>
             <td class="whitespace-nowrap px-5 py-3">
               <div class="flex items-center justify-end gap-2">
+                <button
+                  v-if="canConfigureFees"
+                  type="button"
+                  :title="account.custom_monthly_fee_enabled ? 'Custom monthly fee set' : 'Set a custom monthly fee'"
+                  class="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-[12px] font-bold transition-colors"
+                  :class="account.custom_monthly_fee_enabled ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-neutral-200 bg-white text-neutral-500 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900'"
+                  @click="emit('customFee', account)"
+                >
+                  <Star :size="14" /> Custom fee
+                </button>
                 <button
                   type="button"
                   :disabled="!canTransact || account.status !== 'active'"
