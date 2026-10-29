@@ -31,7 +31,6 @@ const blank = (): Required<StoreChartOfAccountPayload> => ({
   is_control: false,
   is_postable: true,
   allow_manual: true,
-  ifrs_category: '',
   income_statement_line: null,
   sort_order: null,
   description: '',
@@ -39,7 +38,7 @@ const blank = (): Required<StoreChartOfAccountPayload> => ({
 })
 
 const form = useForm(blank(), (data) => {
-  const payload = { ...data, subtype: data.subtype || null, ifrs_category: data.ifrs_category || null, description: data.description || null }
+  const payload = { ...data, subtype: data.subtype || null, description: data.description || null }
   if (!INCOME_STATEMENT_LINES.some((line) => line.type === payload.type && line.key === payload.income_statement_line)) payload.income_statement_line = null
   return props.account ? chartOfAccountsApi.update(props.account.id, payload) : chartOfAccountsApi.create(payload)
 })
@@ -91,7 +90,7 @@ watch(open, (isOpen) => {
   Object.assign(
     form.data,
     account
-      ? { ...blank(), ...account, subtype: account.subtype ?? '', ifrs_category: account.ifrs_category ?? '', description: account.description ?? '' }
+      ? { ...blank(), ...account, subtype: account.subtype ?? '', description: account.description ?? '' }
       : { ...blank(), code: nextGlCode('asset', null, props.accounts) },
   )
   form.errors.value = {}
@@ -145,9 +144,6 @@ async function save() {
           <option :value="null">Inherit from parent / unclassified</option>
           <option v-for="line in lines" :key="line.key" :value="line.key">{{ line.label }}</option>
         </select>
-      </FormField>
-      <FormField label="IFRS category" :error="form.error('ifrs_category')">
-        <input id="coa-ifrs" v-model="form.data.ifrs_category" maxlength="100" />
       </FormField>
       <FormField label="Sort order" :error="form.error('sort_order')">
         <input id="coa-sort" v-model.number="form.data.sort_order" type="number" min="0" />

@@ -21,7 +21,6 @@ const typeFilter = ref<AccountType | ''>('')
 const collapsed = ref(new Set<AccountType>())
 const editing = ref(false)
 const selected = ref<ChartOfAccount | null>(null)
-const confirmingDelete = ref<number | null>(null)
 const busy = ref(new Set<number>())
 let debounce: ReturnType<typeof setTimeout> | undefined
 let sequence = 0
@@ -98,14 +97,6 @@ const saveLine = (account: ChartOfAccount, event: Event) =>
       select.value = account.income_statement_line ?? ''
       throw failure
     }
-  })
-
-const remove = (account: ChartOfAccount) =>
-  withRow(account, async () => {
-    confirmingDelete.value = null
-    await chartOfAccountsApi.remove(account.id)
-    notice.value = `${account.code} · ${account.name} deleted.`
-    await load()
   })
 
 function edit(account: ChartOfAccount | null) {
@@ -207,15 +198,8 @@ onMounted(load)
               </td>
               <td v-if="manage" class="num">
                 <div class="row-actions">
-                  <template v-if="confirmingDelete === account.id">
-                    <button type="button" class="btn btn--small btn--danger" :disabled="busy.has(account.id)" @click="remove(account)">Confirm delete</button>
-                    <button type="button" class="btn btn--small" @click="confirmingDelete = null">Keep</button>
-                  </template>
-                  <span v-else-if="!account.is_postable" class="muted" title="Headers are the chart's fixed structure and cannot be edited or deleted.">—</span>
-                  <template v-else>
-                    <button type="button" class="btn btn--small" @click="edit(account)">Edit</button>
-                    <button type="button" class="btn btn--small btn--danger" :disabled="account.has_postings" :title="account.has_postings ? 'Accounts with postings cannot be deleted; deactivate them instead.' : undefined" @click="confirmingDelete = account.id">Delete</button>
-                  </template>
+                  <button v-if="account.is_postable" type="button" class="btn btn--small" @click="edit(account)">Edit</button>
+                  <span v-else class="muted" title="Headers are the chart's fixed structure and cannot be edited.">—</span>
                 </div>
               </td>
             </tr>
