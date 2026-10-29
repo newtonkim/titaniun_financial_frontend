@@ -44,6 +44,8 @@ const flyout = ref<HTMLElement[]>([])
 
 /** Icons only: the desktop sidebar has been collapsed. On small screens the sidebar is a full-width drawer. */
 const iconOnly = computed(() => collapsed.value && !isCompact.value)
+/** Menus expand in place under their trigger, except in the icon-only sidebar where they fly out beside it. */
+const inlineMenus = computed(() => !iconOnly.value)
 const fullBleed = computed(() => route.matched.some((record) => record.meta.fullBleed))
 
 const pageTitle = computed(() => route.meta.title ?? '')
@@ -104,7 +106,10 @@ function toggleCollapsed(): void {
 
 function isActive(item: NavItem): boolean {
   const target = router.resolve(item.to)
-  return target.name === 'dashboard' ? route.name === 'dashboard' : route.path.startsWith(target.path)
+  if (target.name === 'dashboard') return route.name === 'dashboard'
+  // Links that differ only by query (Members vs New member) match on the query too.
+  const queryMatches = Object.entries(target.query).every(([key, value]) => route.query[key] === value)
+  return route.path.startsWith(target.path) && queryMatches
 }
 
 function menuIsActive(entry: SidebarEntry): boolean {
@@ -116,8 +121,8 @@ function menuId(label: string): string {
 }
 
 /**
- * Open a flyout beside its trigger, kept inside the viewport. On small screens the menu opens
- * in place under its trigger instead.
+ * Expand a menu in place, or in the icon-only sidebar open it as a flyout beside its trigger,
+ * kept inside the viewport.
  */
 async function toggleMenu(label: string, event: MouseEvent): Promise<void> {
   if (openMenu.value === label) {
@@ -128,7 +133,7 @@ async function toggleMenu(label: string, event: MouseEvent): Promise<void> {
   const trigger = (event.currentTarget as HTMLElement).getBoundingClientRect()
   openMenu.value = label
 
-  if (isCompact.value) return
+  if (inlineMenus.value) return
 
   flyoutTop.value = trigger.top
   flyoutLeft.value = trigger.right + FLYOUT_GAP
@@ -142,6 +147,18 @@ async function toggleMenu(label: string, event: MouseEvent): Promise<void> {
 
 function closeMenu(): void {
   openMenu.value = null
+}
+
+/** Flyouts close when the page moves under them; an expanded inline menu stays open. */
+function closeFlyout(): void {
+  if (!inlineMenus.value) closeMenu()
+}
+
+/** Expand the menu holding the current page, so its link shows without a click. */
+function openActiveMenu(): void {
+  if (!inlineMenus.value) return
+  const active = groups.value.flatMap((group) => group.entries).find(menuIsActive)
+  if (active?.kind === 'menu') openMenu.value = active.label
 }
 
 async function signOut(): Promise<void> {
@@ -161,12 +178,13 @@ function onKeydown(event: KeyboardEvent): void {
 function onDocumentClick(event: MouseEvent): void {
   const target = event.target as Element | null
   if (!target?.closest('.user-menu')) userMenuOpen.value = false
-  if (!target?.closest('.nav-menu')) closeMenu()
+  if (!target?.closest('.nav-menu')) closeFlyout()
 }
 
 function onCompactChange(event: MediaQueryListEvent): void {
   isCompact.value = event.matches
   closeMenu()
+  openActiveMenu()
 }
 
 watch(
@@ -174,20 +192,27 @@ watch(
   () => {
     sidebarOpen.value = false
     userMenuOpen.value = false
-    closeMenu()
+    closeFlyout()
+    openActiveMenu()
   },
 )
 
+watch(iconOnly, () => {
+  closeMenu()
+  openActiveMenu()
+})
+
 onMounted(() => {
+  openActiveMenu()
   window.addEventListener('keydown', onKeydown)
   window.addEventListener('click', onDocumentClick)
-  window.addEventListener('resize', closeMenu)
+  window.addEventListener('resize', closeFlyout)
   compactQuery.addEventListener('change', onCompactChange)
 })
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
   window.removeEventListener('click', onDocumentClick)
-  window.removeEventListener('resize', closeMenu)
+  window.removeEventListener('resize', closeFlyout)
   compactQuery.removeEventListener('change', onCompactChange)
 })
 </script>
@@ -197,7 +222,7 @@ onBeforeUnmount(() => {
     <aside class="sidebar" aria-label="Main navigation">
       <div class="sidebar__head">
         <RouterLink class="sidebar__brand" :to="{ name: 'dashboard' }" aria-label="Titaniun Financial home">
-          <span class="sidebar__logo"><BrandLogo :size="iconOnly ? 30 : 50" /></span>
+          <span class="sidebar__logo"><BrandLogo :size="iconOnly ? 30 : 36" /></span>
           <span v-if="!iconOnly" class="sidebar__name">Titaniun Financial</span>
         </RouterLink>
         <button
@@ -215,7 +240,7 @@ onBeforeUnmount(() => {
         </button>
       </div>
 
-      <nav class="sidebar__nav" @scroll.passive="closeMenu">
+      <nav class="sidebar__nav" @scroll.passive="closeFlyout">
         <section v-for="group in groups" :key="group.id" class="nav-group" :aria-label="group.label">
           <h2 v-if="!iconOnly" class="nav-group__label">{{ group.label }}</h2>
           <hr v-else class="nav-group__rule" />
@@ -246,20 +271,36 @@ onBeforeUnmount(() => {
                 <AppIcon :name="entry.icon" :size="18" />
                 <template v-if="!iconOnly">
                   <span class="nav-item__label">{{ entry.label }}</span>
-                  <AppIcon class="nav-item__chevron" :name="openMenu === entry.label ? 'chevron-down' : 'chevron-right'" :size="14" />
+                  <AppIcon class="nav-item__chevron" :class="{ 'nav-item__chevron--open': openMenu === entry.label }" name="chevron-down" :size="16" />
                 </template>
               </button>
 
+              <div v-if="inlineMenus && openMenu === entry.label" :id="menuId(entry.label)" class="submenu">
+                <template v-for="section in entry.sections" :key="section.heading">
+                  <p v-if="entry.sections.length > 1" class="submenu__heading">{{ section.heading }}</p>
+                  <RouterLink
+                    v-for="item in section.items"
+                    :key="item.label"
+                    :to="item.to"
+                    class="submenu__link"
+                    :class="{ 'submenu__link--active': isActive(item) }"
+                    :aria-current="isActive(item) ? 'page' : undefined"
+                  >
+                    <span class="submenu__dot" aria-hidden="true" />
+                    {{ item.label }}
+                  </RouterLink>
+                </template>
+              </div>
+
               <Transition name="flyout">
                 <div
-                  v-if="openMenu === entry.label"
+                  v-if="!inlineMenus && openMenu === entry.label"
                   :id="menuId(entry.label)"
                   ref="flyout"
                   class="flyout"
-                  :class="{ 'flyout--inline': isCompact }"
-                  :style="isCompact ? undefined : { top: `${flyoutTop}px`, left: `${flyoutLeft}px` }"
+                  :style="{ top: `${flyoutTop}px`, left: `${flyoutLeft}px` }"
                 >
-                  <span v-if="!isCompact" class="flyout__notch" :style="{ top: `${notchTop}px` }" aria-hidden="true" />
+                  <span class="flyout__notch" :style="{ top: `${notchTop}px` }" aria-hidden="true" />
                   <div class="flyout__panel">
                     <div class="flyout__accent" aria-hidden="true" />
                     <div v-for="section in entry.sections" :key="section.heading" class="flyout__section">
@@ -277,7 +318,7 @@ onBeforeUnmount(() => {
                         <span v-if="isActive(item)" class="flyout__active-dot" aria-hidden="true" />
                       </RouterLink>
                     </div>
-                    <p v-if="!isCompact" class="flyout__footer"><kbd>Esc</kbd> to close</p>
+                    <p class="flyout__footer"><kbd>Esc</kbd> to close</p>
                   </div>
                 </div>
               </Transition>
@@ -333,7 +374,10 @@ onBeforeUnmount(() => {
               @click="userMenuOpen = !userMenuOpen"
             >
               <span class="avatar" aria-hidden="true">{{ initials }}</span>
-              <span class="user-menu__name">{{ auth.user.value?.name }}</span>
+              <span class="user-menu__who">
+                <span class="user-menu__name">{{ auth.user.value?.name }}</span>
+                <span class="user-menu__mail">{{ auth.user.value?.email }}</span>
+              </span>
               <AppIcon name="chevron-down" :size="16" />
             </button>
             <div v-if="userMenuOpen" class="user-menu__panel" role="menu">
@@ -359,14 +403,17 @@ onBeforeUnmount(() => {
   /* The sidebar is always dark, in the brand ink, whatever the theme. */
   --nav-bg: var(--ink-panel);
   --nav-text: rgb(255 255 255 / 0.6);
+  --nav-strong: #fff;
   --nav-label: rgb(255 255 255 / 0.35);
   --nav-hover: rgb(255 255 255 / 0.08);
-  --nav-active: rgb(255 255 255 / 0.1);
+  --nav-rule: rgb(255 255 255 / 0.06);
   --nav-accent: #e0565b;
-  --sidebar-width: 16rem;
+  --sidebar-width: 17rem;
 
   display: grid;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  /* One viewport-high row: a long sidebar scrolls its nav and keeps the footer in view. */
+  grid-template-rows: minmax(0, 1fr);
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
@@ -384,7 +431,8 @@ onBeforeUnmount(() => {
   flex-direction: column;
   min-width: 0;
   height: 100%;
-  padding: 1rem 0.75rem;
+  padding: 1rem 0.875rem;
+  background: var(--nav-bg);
   color: var(--nav-text);
 }
 
@@ -393,7 +441,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0 0.25rem 0.5rem;
+  padding: 0.25rem 0.25rem 1rem;
 }
 
 .shell--collapsed .sidebar__head {
@@ -412,9 +460,9 @@ onBeforeUnmount(() => {
   display: grid;
   flex: none;
   place-items: center;
-  width: 4rem;
-  height: 4rem;
-  border-radius: 1rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
   background: #fff;
   box-shadow: 0 4px 12px rgb(0 0 0 / 0.3);
   transition: width 200ms var(--ease-out), height 200ms var(--ease-out), border-radius 200ms var(--ease-out);
@@ -429,11 +477,10 @@ onBeforeUnmount(() => {
 .sidebar__name {
   overflow: hidden;
   font-size: 1.125rem;
-  font-weight: 700;
-  font-style: italic;
+  font-weight: 800;
   line-height: 1.2;
-  letter-spacing: -0.01em;
-  color: #fff;
+  letter-spacing: -0.02em;
+  color: var(--nav-strong);
 }
 
 .sidebar__toggle {
@@ -451,8 +498,8 @@ onBeforeUnmount(() => {
 }
 
 .sidebar__toggle:hover {
-  background: rgb(255 255 255 / 0.1);
-  color: #fff;
+  background: var(--nav-hover);
+  color: var(--nav-strong);
 }
 
 .sidebar__nav {
@@ -468,7 +515,7 @@ onBeforeUnmount(() => {
 .nav-group {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 0.25rem;
 }
 
 .nav-group__label {
@@ -485,21 +532,21 @@ onBeforeUnmount(() => {
   width: calc(100% - 1rem);
   margin: 0.5rem auto;
   border: 0;
-  border-top: 1px solid rgb(255 255 255 / 0.06);
+  border-top: 1px solid var(--nav-rule);
 }
 
 .nav-item {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.75rem 0.9rem;
   border: 0;
   border-radius: 0.75rem;
   background: transparent;
   color: var(--nav-text);
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
@@ -512,7 +559,7 @@ onBeforeUnmount(() => {
 
 .nav-item:hover {
   background: var(--nav-hover);
-  color: #fff;
+  color: var(--nav-strong);
 }
 
 .nav-item :deep(svg) {
@@ -528,11 +575,15 @@ onBeforeUnmount(() => {
 
 .nav-item__chevron {
   color: rgb(255 255 255 / 0.3);
+  transition: transform 200ms var(--ease-out);
+}
+
+.nav-item__chevron--open {
+  transform: rotate(180deg);
 }
 
 .nav-item--open {
-  background: var(--nav-active);
-  color: #fff;
+  color: var(--nav-strong);
 }
 
 /* The current page: a solid brand-crimson pill. */
@@ -540,17 +591,73 @@ onBeforeUnmount(() => {
 .nav-item--active:hover {
   background: var(--crimson);
   color: #fff;
-  box-shadow: 0 6px 16px rgb(184 50 54 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.12);
+  box-shadow: 0 3px 8px rgb(184 50 54 / 0.25), inset 0 1px 0 rgb(255 255 255 / 0.12);
 }
 
 .nav-item--active .nav-item__chevron {
   color: rgb(255 255 255 / 0.7);
 }
 
-/* Flyout menu */
+/* Inline menu: the links under an expanded sidebar entry. */
 .nav-menu {
   position: relative;
 }
+
+.submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0.375rem 0 0.25rem;
+  padding-left: 1rem;
+}
+
+.submenu__heading {
+  margin: 0.5rem 0.75rem 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nav-label);
+}
+
+.submenu__link {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.6rem;
+  color: var(--nav-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+
+.submenu__link:hover {
+  background: var(--nav-hover);
+  color: var(--nav-strong);
+}
+
+.submenu__dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.25);
+}
+
+.submenu__link--active,
+.submenu__link--active:hover {
+  background: rgb(224 86 91 / 0.14);
+  color: var(--nav-strong);
+  font-weight: 600;
+}
+
+.submenu__link--active .submenu__dot {
+  background: var(--nav-accent);
+  box-shadow: 0 0 8px rgb(224 86 91 / 0.6);
+}
+
+/* Flyout menu: the icon-only sidebar's menus, beside their trigger. */
 
 .flyout {
   position: fixed;
@@ -703,17 +810,6 @@ onBeforeUnmount(() => {
   background: var(--surface-sunken);
   font: 700 0.625rem var(--font-sans);
   color: var(--muted);
-}
-
-.flyout--inline {
-  position: static;
-  width: auto;
-  margin: 0.25rem 0 0.5rem;
-}
-
-.flyout--inline .flyout__panel {
-  border-radius: 14px;
-  box-shadow: none;
 }
 
 .flyout-enter-active {
@@ -907,12 +1003,30 @@ onBeforeUnmount(() => {
   font-size: 0.9rem;
 }
 
-.user-menu__name {
+.user-menu__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.user-menu__name,
+.user-menu__mail {
   max-width: 12rem;
   overflow: hidden;
-  font-weight: 500;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.user-menu__name {
+  font-weight: 600;
+  color: var(--heading);
+}
+
+.user-menu__mail {
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 
 .user-menu__panel {
@@ -998,12 +1112,6 @@ onBeforeUnmount(() => {
     background: rgb(15 16 19 / 0.45);
   }
 
-  .main {
-    margin: 0;
-    border-radius: 0;
-    box-shadow: none;
-  }
-
   .icon-button.topbar__menu {
     display: inline-grid;
   }
@@ -1025,13 +1133,14 @@ onBeforeUnmount(() => {
   .breadcrumb > a,
   .breadcrumb > :deep(svg),
   .topbar__history,
-  .user-menu__name {
+  .user-menu__who {
     display: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flyout__accent {
+  .flyout__accent,
+  .nav-item__chevron {
     animation: none;
   }
 }
