@@ -337,7 +337,7 @@ onMounted(() => load())
             </tr>
           </thead>
           <tbody>
-            <tr v-for="line in journal.lines" :key="line.id">
+            <tr v-for="(line, index) in journal.lines" :key="line.id ?? index">
               <td>{{ line.account?.code }} · {{ line.account?.name }}</td>
               <td>{{ formatMoney(line.debit) }}</td>
               <td>{{ formatMoney(line.credit) }}</td>
