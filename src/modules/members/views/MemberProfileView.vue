@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { ChevronLeft, Clock, Pencil, RotateCcw, ShieldCheck, ShieldX, Trash2 } from 'lucide-vue-next'
+import { ArrowDownToLine, ArrowUpFromLine, ChevronLeft, Clock, PiggyBank, RotateCcw, ShieldCheck, ShieldX } from 'lucide-vue-next'
 import { ApiError } from '@/core/api/http'
 import { formatDate, formatEnum, formatMoney } from '@/core/utils/format'
 import { membersApi } from '../api'
-import MemberFormDrawer from '../components/MemberFormDrawer.vue'
+import { useAuth } from '@/modules/auth/store'
+import OpenSavingsAccountDrawer from '@/modules/savings/components/OpenSavingsAccountDrawer.vue'
+import SavingsTransactionDrawer from '@/modules/savings/components/SavingsTransactionDrawer.vue'
 import type { Member, MemberTransaction } from '../types'
 import { genderPill, memberInitials, statusPill } from '../utils'
 
 const props = defineProps<{ id: string }>()
-const router = useRouter()
+const { can } = useAuth()
 
 type Tab = 'profile' | 'transactions' | 'savings' | 'shares' | 'loans'
 const TABS: { key: Tab; label: string }[] = [
@@ -29,10 +30,12 @@ const busy = ref(false)
 const uploading = ref(false)
 const tab = ref<Tab>('profile')
 
-const editOpen = ref(false)
+const transactionType = ref<'deposit' | 'withdrawal'>('deposit')
+const transactionOpen = ref(false)
+const openAccountOpen = ref(false)
+const notice = ref('')
 const rejectOpen = ref(false)
 const rejectionReason = ref('')
-const deleteOpen = ref(false)
 const avatarInput = ref<HTMLInputElement | null>(null)
 
 const memberId = computed(() => Number(props.id))
@@ -153,8 +156,18 @@ async function run(action: () => Promise<Member>): Promise<void> {
 
 const approve = () => run(() => membersApi.approve(memberId.value))
 const requeue = () => run(() => membersApi.requeue(memberId.value))
-const toggleDormant = () =>
-  run(() => (member.value?.status === 'active' ? membersApi.markDormant(memberId.value) : membersApi.activate(memberId.value)))
+
+function startTransaction(type: 'deposit' | 'withdrawal'): void {
+  transactionType.value = type
+  notice.value = ''
+  transactionOpen.value = true
+}
+
+async function savingsChanged(message: string): Promise<void> {
+  notice.value = message
+  tab.value = 'savings'
+  await load()
+}
 
 async function reject(): Promise<void> {
   await run(() => membersApi.reject(memberId.value, rejectionReason.value.trim() || null))
@@ -177,21 +190,6 @@ async function uploadAvatar(event: Event): Promise<void> {
   }
 }
 
-async function destroy(): Promise<void> {
-  busy.value = true
-  error.value = ''
-  try {
-    await membersApi.remove(memberId.value)
-    await router.push({ name: 'members.index' })
-  } catch (e) {
-    error.value = e instanceof ApiError && e.status === 409
-      ? 'This member has accounts or loans, so they cannot be deleted. Mark them dormant instead.'
-      : 'Failed to delete the member.'
-    deleteOpen.value = false
-  } finally {
-    busy.value = false
-  }
-}
 
 const card = 'rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900'
 const th = 'px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.09em] text-neutral-400'
@@ -209,32 +207,36 @@ const pill = 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-s
         <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">Member Profile</h1>
         <p class="text-sm text-neutral-500 dark:text-neutral-400">Details, accounts and activity.</p>
       </div>
-      <template v-if="member">
+      <template v-if="member && member.status === 'active' && can('savings.manage')">
         <button
-          v-if="member.status === 'active' || ['dormant', 'suspended', 'inactive'].includes(member.status)"
           type="button"
-          :disabled="busy"
-          class="rounded-full border border-neutral-200 bg-white px-4 py-2 text-[13px] font-bold text-neutral-600 transition-colors hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
-          @click="toggleDormant"
+          :disabled="!member.savings_accounts?.length"
+          :title="member.savings_accounts?.length ? undefined : 'Add a savings account first'"
+          class="flex items-center gap-2 rounded-full bg-navy px-4 py-2 text-[13px] font-bold text-white shadow-sm transition-colors hover:bg-navy/90 disabled:opacity-50"
+          @click="startTransaction('deposit')"
         >
-          {{ member.status === 'active' ? 'Mark Dormant' : 'Activate' }}
+          <ArrowDownToLine class="h-4 w-4" /> Deposit
         </button>
         <button
           type="button"
-          class="flex items-center gap-2 rounded-full bg-navy px-4 py-2 text-[13px] font-bold text-white shadow-sm transition-colors hover:bg-navy/90"
-          @click="editOpen = true"
+          :disabled="!member.savings_accounts?.length"
+          :title="member.savings_accounts?.length ? undefined : 'Add a savings account first'"
+          class="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-[13px] font-bold text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
+          @click="startTransaction('withdrawal')"
         >
-          <Pencil class="h-4 w-4" /> Edit
+          <ArrowUpFromLine class="h-4 w-4" /> Withdraw
         </button>
         <button
           type="button"
-          class="flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-[13px] font-bold text-rose-600 transition-colors hover:bg-rose-100 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300"
-          @click="deleteOpen = true"
+          class="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-[13px] font-bold text-neutral-700 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
+          @click="openAccountOpen = true"
         >
-          <Trash2 class="h-4 w-4" /> Delete
+          <PiggyBank class="h-4 w-4" /> Add savings account
         </button>
       </template>
     </div>
+
+    <p v-if="notice" role="status" class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300">{{ notice }}</p>
 
     <p v-if="error" role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
       {{ error }}
@@ -480,18 +482,20 @@ const pill = 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-s
       </div>
     </div>
 
-    <!-- Delete dialog -->
-    <div v-if="deleteOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="delete-title">
-      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-        <h3 id="delete-title" class="mb-1 text-[15px] font-bold text-neutral-900 dark:text-white">Delete {{ member?.name }}?</h3>
-        <p class="mb-4 text-[12px] text-neutral-500">This permanently removes the member. Members with accounts or loans cannot be deleted.</p>
-        <div class="flex justify-end gap-2">
-          <button type="button" :disabled="busy" class="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200" @click="deleteOpen = false">Cancel</button>
-          <button type="button" :disabled="busy" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50" @click="destroy">Delete</button>
-        </div>
-      </div>
-    </div>
-
-    <MemberFormDrawer v-model:open="editOpen" :member-id="member?.id ?? null" @saved="load" />
+    <template v-if="member">
+      <SavingsTransactionDrawer
+        v-model:open="transactionOpen"
+        :type="transactionType"
+        :accounts="member.savings_accounts ?? []"
+        @saved="(transaction) => savingsChanged(`${transaction.type === 'deposit' ? 'Deposit' : 'Withdrawal'} of ${formatMoney(transaction.amount)} recorded.`)"
+      />
+      <OpenSavingsAccountDrawer
+        v-model:open="openAccountOpen"
+        :member-id="member.id"
+        :member-number="member.member_number"
+        :existing="member.savings_accounts ?? []"
+        @saved="(account) => savingsChanged(`Savings account ${account.account_number} opened.`)"
+      />
+    </template>
   </div>
 </template>

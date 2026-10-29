@@ -117,4 +117,6 @@ export interface StoreSavingsTransactionPayload {
   amount: Money
   transacted_at?: ISODateTime | null
   reference?: string | null
+  /** Cash, bank or mobile money account the money moved through; defaults to the product's. */
+  payment_account_id?: number | null
 }
