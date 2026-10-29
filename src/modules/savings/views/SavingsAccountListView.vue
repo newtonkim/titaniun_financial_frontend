@@ -21,7 +21,7 @@ const fetchPage = (page: number) => savingsAccountsApi.list({ ...filters, page }
 </script>
 
 <template>
-  <ResourceTable title="Savings accounts" :columns="columns" :filters="filters" :fetch="fetchPage">
+  <ResourceTable title="Savings accounts" description="Member savings accounts and their balances." :columns="columns" :filters="filters" :fetch="fetchPage">
     <template #filters>
       <select v-model="filters.status">
         <option value="">All statuses</option>

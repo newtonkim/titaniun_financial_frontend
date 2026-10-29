@@ -45,7 +45,7 @@ const fetchPage = (page: number) => loansApi.list({ ...filters, page })
 
 <template>
   <p v-if="actionError" class="alert alert--error">{{ actionError }}</p>
-  <ResourceTable title="Loans" :columns="columns" :filters="filters" :fetch="fetchPage">
+  <ResourceTable title="Loans" description="Applications, approvals and the active loan book." :columns="columns" :filters="filters" :fetch="fetchPage">
     <template #actions>
       <RouterLink class="btn btn--primary" :to="{ name: 'loans.create' }">New loan</RouterLink>
     </template>

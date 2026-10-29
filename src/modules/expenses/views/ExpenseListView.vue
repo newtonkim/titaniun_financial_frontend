@@ -20,7 +20,7 @@ const fetchPage = (page: number) => expensesApi.list({ ...filters, page })
 </script>
 
 <template>
-  <ResourceTable title="Expenses" :columns="columns" :filters="filters" :fetch="fetchPage">
+  <ResourceTable title="Expenses" description="Operating costs paid by the SACCO." :columns="columns" :filters="filters" :fetch="fetchPage">
     <template #actions>
       <RouterLink class="btn btn--primary" :to="{ name: 'expenses.create' }">Record expense</RouterLink>
     </template>

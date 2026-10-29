@@ -33,7 +33,7 @@ function open(account: ShareAccount) {
 
 <template>
   <div>
-    <ResourceTable ref="table" title="Share accounts" :columns="columns" :filters="filters" :fetch="fetchPage">
+    <ResourceTable ref="table" title="Share accounts" description="Shares held by each member." :columns="columns" :filters="filters" :fetch="fetchPage">
       <template #filters>
         <select v-model="filters.status">
           <option value="">All statuses</option>

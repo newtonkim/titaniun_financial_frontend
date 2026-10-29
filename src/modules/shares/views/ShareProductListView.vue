@@ -32,7 +32,7 @@ function edit(product: ShareProduct | null) {
 
 <template>
   <div>
-    <ResourceTable ref="table" title="Share products" :columns="columns" :fetch="fetchPage">
+    <ResourceTable ref="table" title="Share products" description="Share classes members can buy." :columns="columns" :fetch="fetchPage">
       <template #actions>
         <button v-if="can('shares.products.manage')" type="button" class="btn btn--primary" @click="edit(null)">New product</button>
       </template>

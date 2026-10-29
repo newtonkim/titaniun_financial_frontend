@@ -21,7 +21,7 @@ const fetchPage = (page: number) => journalEntriesApi.list({ ...filters, page })
 </script>
 
 <template>
-  <ResourceTable title="Journal entries" :columns="columns" :filters="filters" :fetch="fetchPage">
+  <ResourceTable title="Journal entries" description="Every posting to the general ledger." :columns="columns" :filters="filters" :fetch="fetchPage">
     <template #filters>
       <label class="inline">From <input v-model="filters.from" type="date" /></label>
       <label class="inline">To <input v-model="filters.to" type="date" /></label>
