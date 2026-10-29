@@ -23,7 +23,9 @@ export function accountsInBlock(parent: ChartOfAccount, accounts: ChartOfAccount
 
 /**
  * The next free code in the five-digit hierarchy: under 10000 children step by 1000, under 11000 by 100,
- * under 11100 by 1. Without a parent, or when the parent's range is full, the next code for the type.
+ * under 11100 by 1. When those slots are all taken the code stays inside the parent's range (11000 →
+ * the next free code below 12000), so a new account never lands under another parent's block. Without
+ * a parent, the next code for the type.
  */
 export function nextGlCode(type: AccountType, parent: ChartOfAccount | null, accounts: ChartOfAccount[]): string {
   if (parent) {
@@ -35,6 +37,13 @@ export function nextGlCode(type: AccountType, parent: ChartOfAccount | null, acc
       const children = accounts.map((account) => Number(account.code)).filter((code) => code > start && code < end)
       const candidate = children.length ? Math.max(...children) + step : start + step
       if (candidate < end) return String(candidate).padStart(5, '0')
+      const taken = new Set(children)
+      for (let code = Math.max(...children) + 1; code < end; code++) {
+        if (!taken.has(code)) return String(code).padStart(5, '0')
+      }
+      for (let code = start + 1; code < end; code++) {
+        if (!taken.has(code)) return String(code).padStart(5, '0')
+      }
     }
   }
 

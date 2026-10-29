@@ -26,8 +26,34 @@ const busy = ref(new Set<number>())
 let debounce: ReturnType<typeof setTimeout> | undefined
 let sequence = 0
 
+/**
+ * Accounts in tree order: each parent followed by its sub-accounts, siblings by sort order then code,
+ * so a new account shows under the parent it was created in whatever its code. Search results stay in
+ * code order because their parents may not match the search.
+ */
+function treeOrder(rows: ChartOfAccount[]): ChartOfAccount[] {
+  if (search.value.trim()) return rows
+  const ids = new Set(rows.map((account) => account.id))
+  const children = new Map<number | null, ChartOfAccount[]>()
+  for (const account of rows) {
+    const parent = account.parent_id !== null && ids.has(account.parent_id) ? account.parent_id : null
+    children.set(parent, [...(children.get(parent) ?? []), account])
+  }
+  const bySortThenCode = (a: ChartOfAccount, b: ChartOfAccount) =>
+    (a.sort_order ?? Number.MAX_SAFE_INTEGER) - (b.sort_order ?? Number.MAX_SAFE_INTEGER) || a.code.localeCompare(b.code)
+  const ordered: ChartOfAccount[] = []
+  const visit = (parent: number | null) => {
+    for (const account of (children.get(parent) ?? []).sort(bySortThenCode)) {
+      ordered.push(account)
+      visit(account.id)
+    }
+  }
+  visit(null)
+  return ordered
+}
+
 const groups = computed(() =>
-  ACCOUNT_TYPES.map((type) => ({ type, rows: accounts.value.filter((account) => account.type === type) })).filter((group) => group.rows.length > 0),
+  ACCOUNT_TYPES.map((type) => ({ type, rows: treeOrder(accounts.value.filter((account) => account.type === type)) })).filter((group) => group.rows.length > 0),
 )
 
 async function load() {
