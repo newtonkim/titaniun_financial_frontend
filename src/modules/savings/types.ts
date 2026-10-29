@@ -110,6 +110,9 @@ export interface SavingsTransaction {
   transacted_at: ISODateTime
   reference: string | null
   created_at: ISODateTime | null
+  narration?: string | null
+  transacted_by?: string | null
+  recorded_by?: string | null
 }
 
 export interface StoreSavingsTransactionPayload {
@@ -119,4 +122,7 @@ export interface StoreSavingsTransactionPayload {
   reference?: string | null
   /** Cash, bank or mobile money account the money moved through; defaults to the product's. */
   payment_account_id?: number | null
+  narration?: string | null
+  /** Who paid the money in or collected it. */
+  transacted_by?: string | null
 }
