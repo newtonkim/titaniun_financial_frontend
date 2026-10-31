@@ -15,8 +15,6 @@ import {
 import DataPanel from '@/core/components/DataPanel.vue'
 import { Button } from '@/core/components/ui/button'
 import type { CashFlowAccount } from '../api'
-import CashFlowWaterfall from '../components/CashFlowWaterfall.vue'
-import CashFlowMonthly from '../components/CashFlowMonthly.vue'
 import CashFlowLedgerDrawer from '../components/CashFlowLedgerDrawer.vue'
 import { useCashFlow } from '../composables/useCashFlow'
 import { useCashFlowExport } from '../composables/useCashFlowExport'
@@ -336,23 +334,6 @@ const inputClass = 'rounded-md border border-border bg-background px-3 py-1.5 te
               </tr>
             </tbody>
           </table>
-        </DataPanel>
-      </div>
-
-      <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <DataPanel label="From opening to closing cash">
-          <div class="p-4">
-            <h2 class="text-sm font-bold normal-case tracking-normal text-navy dark:text-white">From opening to closing cash</h2>
-            <p class="mb-3 mt-0.5 text-xs text-muted-foreground">Net cash each activity added or used. Hover a bar for details.</p>
-            <CashFlowWaterfall :report="result" />
-          </div>
-        </DataPanel>
-        <DataPanel label="Net cash flow by month">
-          <div class="p-4">
-            <h2 class="text-sm font-bold normal-case tracking-normal text-navy dark:text-white">Net cash flow by month</h2>
-            <p class="mb-3 mt-0.5 text-xs text-muted-foreground">Money in less money out each month. Hover a month for the breakdown.</p>
-            <CashFlowMonthly :months="result.monthly" />
-          </div>
         </DataPanel>
       </div>
     </div>
