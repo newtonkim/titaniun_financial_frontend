@@ -11,6 +11,12 @@ export default defineModule({
       component: () => import('./views/LoanCommissionsView.vue'),
     },
     {
+      path: 'loan-collections',
+      name: 'loans.collections',
+      meta: { title: 'Collections' },
+      component: () => import('./views/LoanCollectionsView.vue'),
+    },
+    {
       path: 'loans',
       name: 'loans.index',
       meta: { title: 'Loans' },
@@ -47,6 +53,13 @@ export default defineModule({
       label: 'Loans',
       to: { name: 'loans.index' },
       icon: 'loan',
+      group: 'loans-shares',
+      menu: { label: 'Manage loans', icon: 'loan', heading: 'Loans' },
+    },
+    {
+      label: 'Collections',
+      to: { name: 'loans.collections' },
+      icon: 'clock',
       group: 'loans-shares',
       menu: { label: 'Manage loans', icon: 'loan', heading: 'Loans' },
     },

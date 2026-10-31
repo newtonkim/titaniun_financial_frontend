@@ -11,9 +11,9 @@ defineProps<{ loans: DashboardOverdueLoan[]; total: number }>()
 <template>
   <DashCard title="Most overdue loans" :lede="total > loans.length ? `Oldest ${loans.length} of ${total}` : undefined">
     <template #tools>
-      <Button as-child variant="ghost" size="xs"><RouterLink :to="{ name: 'loans.index' }">All loans</RouterLink></Button>
+      <Button as-child variant="ghost" size="xs"><RouterLink :to="{ name: 'loans.collections' }">Open call list</RouterLink></Button>
     </template>
-    <Table v-if="loans.length" class="text-[0.8125rem] tabular-nums">
+    <Table v-if="loans.length" class="tabular-nums">
       <TableHeader>
         <TableRow class="hover:bg-transparent">
           <TableHead>Loan</TableHead>

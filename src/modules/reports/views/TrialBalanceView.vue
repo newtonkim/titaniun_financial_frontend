@@ -122,56 +122,56 @@ const {
 
       <!-- Table -->
       <div class="overflow-x-auto rounded-lg border border-border bg-background">
-        <table class="w-full text-[0.8125rem] tabular-nums">
+        <table class="w-full text-sm tabular-nums">
           <thead class="bg-muted text-xs font-medium text-muted-foreground">
             <tr>
-              <th class="px-3 py-2 text-left w-24">GL Code</th>
-              <th class="px-3 py-2 text-left">Account Name</th>
-              <th class="px-3 py-2 text-left w-24">Type</th>
+              <th class="px-3 py-3 text-left w-24">GL Code</th>
+              <th class="px-3 py-3 text-left">Account Name</th>
+              <th class="px-3 py-3 text-left w-24">Type</th>
               <template v-if="mode === 'period'">
-                <th class="px-3 py-2 text-right">Opening DR</th>
-                <th class="px-3 py-2 text-right">Opening CR</th>
-                <th class="px-3 py-2 text-right">Period DR</th>
-                <th class="px-3 py-2 text-right">Period CR</th>
+                <th class="px-3 py-3 text-right">Opening DR</th>
+                <th class="px-3 py-3 text-right">Opening CR</th>
+                <th class="px-3 py-3 text-right">Period DR</th>
+                <th class="px-3 py-3 text-right">Period CR</th>
               </template>
-              <th class="px-3 py-2 text-right">Closing DR</th>
-              <th class="px-3 py-2 text-right">Closing CR</th>
+              <th class="px-3 py-3 text-right">Closing DR</th>
+              <th class="px-3 py-3 text-right">Closing CR</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
             <template v-for="account in accounts" :key="account.id">
               <!-- Header accounts — section dividers -->
               <tr v-if="!account.is_postable" class="bg-muted/50">
-                <td class="px-3 py-1.5 font-semibold text-navy dark:text-white">{{ account.code }}</td>
-                <td :colspan="mode === 'period' ? 8 : 4" class="px-3 py-1.5 font-semibold text-navy dark:text-white">
+                <td class="px-3 py-3 font-semibold text-navy dark:text-white">{{ account.code }}</td>
+                <td :colspan="mode === 'period' ? 8 : 4" class="px-3 py-3 font-semibold text-navy dark:text-white">
                   {{ account.name }}
                 </td>
               </tr>
               <!-- Postable accounts -->
               <tr v-else class="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors">
-                <td class="px-3 py-1.5 text-muted-foreground">{{ account.code }}</td>
-                <td class="px-3 py-1.5">{{ account.name }}</td>
-                <td class="px-4 py-2.5">
+                <td class="px-3 py-3 text-muted-foreground">{{ account.code }}</td>
+                <td class="px-3 py-3">{{ account.name }}</td>
+                <td class="px-3 py-3">
                   <span class="text-muted-foreground">{{ account.account_subtype }}</span>
                 </td>
                 <template v-if="mode === 'period'">
-                  <td class="px-3 py-1.5 text-right text-muted-foreground">{{ fmtCell(account.opening_debit) }}</td>
-                  <td class="px-3 py-1.5 text-right text-muted-foreground">{{ fmtCell(account.opening_credit) }}</td>
+                  <td class="px-3 py-3 text-right text-muted-foreground">{{ fmtCell(account.opening_debit) }}</td>
+                  <td class="px-3 py-3 text-right text-muted-foreground">{{ fmtCell(account.opening_credit) }}</td>
                   <td @click="openDrillDown(account, 'debit')"
-                    :class="['px-3 py-1.5 text-right', account.period_debit ? 'cursor-pointer font-medium underline-offset-2 hover:underline' : 'text-muted-foreground']">
+                    :class="['px-3 py-3 text-right', account.period_debit ? 'cursor-pointer font-medium underline-offset-2 hover:underline' : 'text-muted-foreground']">
                     {{ fmtCell(account.period_debit) }}
                   </td>
                   <td @click="openDrillDown(account, 'credit')"
-                    :class="['px-3 py-1.5 text-right', account.period_credit ? 'cursor-pointer font-medium underline-offset-2 hover:underline' : 'text-muted-foreground']">
+                    :class="['px-3 py-3 text-right', account.period_credit ? 'cursor-pointer font-medium underline-offset-2 hover:underline' : 'text-muted-foreground']">
                     {{ fmtCell(account.period_credit) }}
                   </td>
                 </template>
                 <td @click="openDrillDown(account, 'debit')"
-                  :class="['px-3 py-1.5 text-right font-semibold', account.closing_debit ? 'cursor-pointer underline-offset-2 hover:underline' : 'text-muted-foreground']">
+                  :class="['px-3 py-3 text-right font-semibold', account.closing_debit ? 'cursor-pointer underline-offset-2 hover:underline' : 'text-muted-foreground']">
                   {{ fmtCell(account.closing_debit) }}
                 </td>
                 <td @click="openDrillDown(account, 'credit')"
-                  :class="['px-3 py-1.5 text-right font-semibold', account.closing_credit ? 'cursor-pointer underline-offset-2 hover:underline' : 'text-muted-foreground']">
+                  :class="['px-3 py-3 text-right font-semibold', account.closing_credit ? 'cursor-pointer underline-offset-2 hover:underline' : 'text-muted-foreground']">
                   {{ fmtCell(account.closing_credit) }}
                 </td>
               </tr>
@@ -179,15 +179,15 @@ const {
 
             <!-- Totals row -->
             <tr v-if="totals" class="bg-muted font-bold text-navy dark:text-white">
-              <td class="px-3 py-2" colspan="3">Total</td>
+              <td class="px-3 py-3" colspan="3">Total</td>
               <template v-if="mode === 'period'">
-                <td class="px-3 py-2 text-right">{{ fmt(totals.total_opening_debit) }}</td>
-                <td class="px-3 py-2 text-right">{{ fmt(totals.total_opening_credit) }}</td>
-                <td class="px-3 py-2 text-right">{{ fmt(totals.total_period_debit) }}</td>
-                <td class="px-3 py-2 text-right">{{ fmt(totals.total_period_credit) }}</td>
+                <td class="px-3 py-3 text-right">{{ fmt(totals.total_opening_debit) }}</td>
+                <td class="px-3 py-3 text-right">{{ fmt(totals.total_opening_credit) }}</td>
+                <td class="px-3 py-3 text-right">{{ fmt(totals.total_period_debit) }}</td>
+                <td class="px-3 py-3 text-right">{{ fmt(totals.total_period_credit) }}</td>
               </template>
-              <td class="px-3 py-2 text-right">{{ fmt(totals.total_closing_debit) }}</td>
-              <td class="px-3 py-2 text-right">{{ fmt(totals.total_closing_credit) }}</td>
+              <td class="px-3 py-3 text-right">{{ fmt(totals.total_closing_debit) }}</td>
+              <td class="px-3 py-3 text-right">{{ fmt(totals.total_closing_credit) }}</td>
             </tr>
           </tbody>
         </table>

@@ -71,7 +71,7 @@ onMounted(load)
     </p>
 
     <DataPanel label="Share register">
-      <Table class="text-[0.8125rem] tabular-nums" :aria-busy="loading || undefined">
+      <Table class="tabular-nums" :aria-busy="loading || undefined">
         <TableHeader>
           <TableRow class="hover:bg-transparent">
             <TableHead>Member</TableHead>

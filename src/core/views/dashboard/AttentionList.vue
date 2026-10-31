@@ -8,7 +8,7 @@ import DashCard from './DashCard.vue'
 const props = defineProps<{ items: DashboardSummary['attention'] }>()
 
 const LABELS: Record<AttentionKey, { one: string; many: string; to: RouteLocationRaw; urgent?: boolean }> = {
-  overdue_loans: { one: 'loan is overdue', many: 'loans are overdue', to: { name: 'loans.index' }, urgent: true },
+  overdue_loans: { one: 'loan is overdue', many: 'loans are overdue', to: { name: 'loans.collections' }, urgent: true },
   loan_applications: { one: 'loan application waiting for a decision', many: 'loan applications waiting for a decision', to: { name: 'loans.index' } },
   awaiting_disbursement: { one: 'approved loan to disburse', many: 'approved loans to disburse', to: { name: 'loans.index' } },
   pending_members: { one: 'member waiting for approval', many: 'members waiting for approval', to: { name: 'members.index' } },

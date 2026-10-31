@@ -491,3 +491,24 @@ export interface LoanAgreementSnapshot {
   terms_hash: string
   approved_at: string
 }
+
+export type LoanCollectionView = 'past_due' | 'due_today' | 'upcoming'
+
+/** One unpaid instalment on the call list. */
+export interface LoanCollectionRow {
+  id: number
+  loan_id: number
+  loan_number: string
+  member_id: number | null
+  member_name: string | null
+  member_number: string | null
+  phone: string | null
+  period: number
+  due_date: ISODate
+  days_late: number
+  amount_due: Money
+  /** Everything overdue on this instalment's loan. */
+  total_arrears: Money
+}
+
+export type LoanCollectionSummary = Record<LoanCollectionView, { amount: Money; installments: number; loans: number }>

@@ -164,7 +164,7 @@ defineExpose({ reload, load })
             <TableHead
               v-for="column in visibleColumns"
               :key="column.key"
-              :class="{ 'text-right': column.align === 'right' }"
+              :class="{ 'text-right': column.align === 'right', 'h-8': compact }"
               :aria-sort="ariaSort(column)"
             >
               <button
@@ -181,7 +181,7 @@ defineExpose({ reload, load })
               </button>
               <template v-else>{{ column.label }}</template>
             </TableHead>
-            <TableHead v-if="$slots['row-actions']"><span class="sr-only">Actions</span></TableHead>
+            <TableHead v-if="$slots['row-actions']" :class="{ 'h-8': compact }"><span class="sr-only">Actions</span></TableHead>
           </TableRow>
         </TableHeader>
 
@@ -197,7 +197,7 @@ defineExpose({ reload, load })
             <TableCell
               v-for="column in visibleColumns"
               :key="column.key"
-              :class="[compact ? 'py-1.5' : 'py-3', toneClass(column)]"
+              :class="[{ 'py-1.5': compact }, toneClass(column)]"
             >
               <slot :name="`cell-${column.key}`" :row="row">
                 <span v-if="column.truncate" class="block max-w-[26rem] truncate" :title="String(cell(row, column))">{{ cell(row, column) }}</span>

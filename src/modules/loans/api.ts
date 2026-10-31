@@ -6,7 +6,7 @@ import {
 } from '@/generated/routes/api/v1/loans'
 import { index as commissionIndex, pay as commissionPay } from '@/generated/routes/api/v1/loan-commissions'
 import { download, http } from '@/core/api/http'
-import { createResourceApi } from '@/core/api/resource'
+import { createResourceApi, type PageParams } from '@/core/api/resource'
 import type { ISODateTime, Paginated, Wrapped } from '@/core/api/types'
 import type {
   Loan,
@@ -26,6 +26,9 @@ import type {
   StoreLoanPayload,
   StoreLoanRepaymentPayload,
   UpdateLoanPayload,
+  LoanCollectionRow,
+  LoanCollectionSummary,
+  LoanCollectionView,
 } from './types'
 
 export const loanProductsApi = {
@@ -104,6 +107,11 @@ export const loanCommissionsApi = {
     http
       .post<Wrapped<LoanCommission>>(commissionApiPath(commissionPay.url(id)), payload)
       .then((response) => response.data),
+}
+
+export const loanCollectionsApi = {
+  list: (params: Partial<PageParams> & { view: LoanCollectionView; search?: string }) =>
+    http.get<Paginated<LoanCollectionRow> & { summary: LoanCollectionSummary }>('/loan-collections', params),
 }
 
 export const loanApplicationsApi = {
