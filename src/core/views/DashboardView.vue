@@ -1,15 +1,31 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import AppIcon from '@/core/components/AppIcon.vue'
+import type { RouteLocationRaw } from 'vue-router'
+import { CircleAlert, RefreshCw } from 'lucide-vue-next'
+import PageHeader from '@/core/components/PageHeader.vue'
+import SegmentedControl from '@/core/components/SegmentedControl.vue'
+import { Button } from '@/core/components/ui/button'
+import { Skeleton } from '@/core/components/ui/skeleton'
 import { formatDate, formatMoney } from '@/core/utils/format'
 import { reportsApi } from '@/modules/reports/api'
 import type { DashboardSummary } from '@/modules/reports/types'
 import ActivityTable from './dashboard/ActivityTable.vue'
+import AttentionList from './dashboard/AttentionList.vue'
 import CashFlowChart from './dashboard/CashFlowChart.vue'
-import StatCard from './dashboard/StatCard.vue'
+import CollectionsPanel from './dashboard/CollectionsPanel.vue'
+import DashCard from './dashboard/DashCard.vue'
+import MonthPanel from './dashboard/MonthPanel.vue'
+import OverdueLoans from './dashboard/OverdueLoans.vue'
+import PortfolioAging from './dashboard/PortfolioAging.vue'
+import RegulatoryHealth from './dashboard/RegulatoryHealth.vue'
+
+const PERIODS: { label: string; value: '6' | '12' }[] = [
+  { label: '6 months', value: '6' },
+  { label: '12 months', value: '12' },
+]
 
 const summary = ref<DashboardSummary | null>(null)
-const months = ref<6 | 12>(6)
+const months = ref<'6' | '12'>('6')
 const loading = ref(false)
 const error = ref<string | null>(null)
 
@@ -17,7 +33,7 @@ async function load(): Promise<void> {
   loading.value = true
   error.value = null
   try {
-    summary.value = await reportsApi.dashboard(months.value)
+    summary.value = await reportsApi.dashboard(months.value === '6' ? 6 : 12)
   } catch (exception) {
     error.value = exception instanceof Error ? exception.message : 'The dashboard could not be loaded.'
   } finally {
@@ -25,54 +41,48 @@ async function load(): Promise<void> {
   }
 }
 
-function setPeriod(period: 6 | 12): void {
-  if (months.value === period) return
-  months.value = period
-  load()
+const plural = (count: number, word: string) => `${count.toLocaleString()} ${word}${count === 1 ? '' : 's'}`
+/** Headline figures in whole shillings: enough to read at a glance, with room for billions. */
+const whole = (value: string | number) => Math.round(Number(value)).toLocaleString()
+const signed = (value: number) => `${value > 0 ? '+' : value < 0 ? '−' : ''}${whole(Math.abs(value))}`
+
+interface Headline {
+  label: string
+  value: string
+  note: string
+  to: RouteLocationRaw
+  /** A fixed Titaniun colour per card, so each figure keeps its place in the eye. */
+  color: string
+  /** Why this figure needs a look, when it does. */
+  alert?: string
 }
 
-const plural = (count: number, word: string) => `${count.toLocaleString()} ${word}${count === 1 ? '' : 's'}`
-
-const glance = computed(() => {
+const headlines = computed<Headline[]>(() => {
   const data = summary.value
   if (!data) return []
+  const par = data.portfolio.par_30
+  const liquidity = data.prudential.ratios.find((ratio) => ratio.key === 'liquidity')
   return [
+    { label: 'Loan portfolio', value: whole(data.portfolio.portfolio), note: plural(data.loans.active, 'active loan'), to: { name: 'loans.index' }, color: 'bg-brand' },
     {
-      label: 'Active members',
-      value: data.members.active.toLocaleString(),
-      caption: `of ${data.members.total.toLocaleString()} registered`,
-      status: data.members.joined_this_month > 0 ? `${plural(data.members.joined_this_month, 'new member')} this month` : 'No new members this month',
-      tone: data.members.joined_this_month > 0 ? 'good' : 'neutral',
-      icon: 'members' as const,
-      to: { name: 'members.index' },
-    },
-    {
-      label: 'Loan applications',
-      value: data.loans.pending.toLocaleString(),
-      caption: 'Waiting for approval',
-      status: data.loans.pending > 0 ? 'Needs review' : 'All reviewed',
-      tone: data.loans.pending > 0 ? 'attention' : 'good',
-      icon: 'loan' as const,
+      label: 'At risk (30+ days)',
+      value: par === null ? '—' : `${Number(par).toFixed(1)}%`,
+      note: par === null ? 'No active loans' : `${whole(data.portfolio.at_risk_30)} at risk`,
       to: { name: 'loans.index' },
+      color: 'bg-navy',
+      alert: par !== null && Number(par) > 5 ? 'Above 5% target' : undefined,
     },
+    { label: 'Member savings', value: whole(data.savings.balance), note: `${signed(Number(data.this_month.deposits) - Number(data.this_month.withdrawals))} this month`, to: { name: 'savings.accounts' }, color: 'bg-blue' },
+    { label: 'Share capital', value: whole(data.shares.value), note: plural(data.shares.shares_held, 'share'), to: { name: 'shares.register' }, color: 'bg-ink' },
     {
-      label: 'Ready to disburse',
-      value: data.loans.awaiting_disbursement.toLocaleString(),
-      caption: 'Approved, not yet paid out',
-      status: data.loans.awaiting_disbursement > 0 ? 'Awaiting payout' : 'Nothing waiting',
-      tone: data.loans.awaiting_disbursement > 0 ? 'attention' : 'good',
-      icon: 'wallet' as const,
-      to: { name: 'loans.index' },
+      label: 'Cash and bank',
+      value: whole(data.prudential.liquid_assets),
+      note: liquidity?.value == null ? 'Liquidity not available yet' : `${Number(liquidity.value).toFixed(1)}% liquidity`,
+      to: { name: 'reports.balance-sheet' },
+      color: 'bg-brand-dark',
+      alert: liquidity?.within_limit === false ? 'Below 15% minimum' : undefined,
     },
-    {
-      label: 'Expenses this month',
-      value: formatMoney(data.expenses.this_month),
-      caption: `Since ${formatDate(`${data.as_of.slice(0, 8)}01`)}`,
-      status: data.expenses.count_this_month > 0 ? `${plural(data.expenses.count_this_month, 'expense')} recorded` : 'Nothing recorded yet',
-      tone: 'neutral',
-      icon: 'receipt' as const,
-      to: { name: 'expenses.index' },
-    },
+    { label: 'Surplus this year', value: whole(data.this_month.surplus_year_to_date), note: `${signed(Number(data.this_month.surplus))} this month`, to: { name: 'reports.income-statement' }, color: 'bg-navy-mid' },
   ]
 })
 
@@ -80,385 +90,61 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="dashboard">
-    <header class="dashboard__header">
-      <div>
-        <h1 class="dashboard__title">Overview</h1>
-        <p class="dashboard__lede">
-          Your SACCO at a glance<template v-if="summary">, as of {{ formatDate(summary.as_of) }}</template>.
-        </p>
-      </div>
-      <button class="btn dashboard__refresh" type="button" :disabled="loading" @click="load">
-        <span v-if="loading" class="spinner" aria-hidden="true" />
-        <AppIcon v-else name="refresh" :size="18" />
-        Refresh
-      </button>
-    </header>
+  <div class="tw-scope @container flex flex-col gap-4">
+    <PageHeader title="Overview" :description="summary ? `Your SACCO as of ${formatDate(summary.as_of)}. All amounts in UGX.` : 'Your SACCO at a glance.'">
+      <Button variant="outline" size="icon-sm" aria-label="Refresh" :disabled="loading" @click="load"><RefreshCw :class="{ 'animate-spin': loading }" /></Button>
+    </PageHeader>
 
-    <div v-if="error" class="alert alert--error dashboard__error" role="alert">
+    <div v-if="error" role="alert" class="flex items-center justify-between gap-3 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
       <span>{{ error }}</span>
-      <button class="btn btn--small" type="button" @click="load">Try again</button>
+      <Button variant="outline" size="xs" @click="load">Try again</Button>
     </div>
 
-    <div v-if="!summary && loading" class="dashboard__skeleton" aria-busy="true" aria-label="Loading dashboard">
-      <span v-for="block in 3" :key="block" class="skeleton skeleton--stat" />
-      <span class="skeleton skeleton--panel" />
-      <span class="skeleton skeleton--panel skeleton--wide" />
+    <div v-if="!summary && loading" class="flex flex-col gap-4" aria-busy="true" aria-label="Loading dashboard">
+      <Skeleton class="h-24 w-full bg-muted" />
+      <Skeleton class="h-96 w-full bg-muted" />
+      <Skeleton class="h-72 w-full bg-muted" />
     </div>
 
     <template v-if="summary">
-      <section class="dashboard__stats" aria-label="Balances">
-        <StatCard
-          featured
-          title="Loan portfolio"
-          subtitle="Outstanding principal"
-          :amount="formatMoney(summary.loans.outstanding_principal)"
-          :note="plural(summary.loans.active, 'active loan')"
-          icon="loan"
-          :to="{ name: 'loans.index' }"
-          link-label="View loans"
-        />
-        <StatCard
-          title="Member savings"
-          subtitle="Total savings balance"
-          :amount="formatMoney(summary.savings.balance)"
-          :note="plural(summary.savings.active_accounts, 'active account')"
-          icon="wallet"
-          :to="{ name: 'savings.accounts' }"
-          link-label="View savings accounts"
-        />
-        <StatCard
-          title="Share capital"
-          subtitle="Value of member shares"
-          :amount="formatMoney(summary.shares.value)"
-          :note="plural(summary.shares.shares_held, 'share')"
-          icon="shares"
-          :to="{ name: 'shares.accounts' }"
-          link-label="View share accounts"
-        />
+      <section class="grid grid-cols-1 gap-3 @xl:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-6" aria-label="Headline figures">
+        <RouterLink
+          v-for="item in headlines"
+          :key="item.label"
+          :to="item.to"
+          class="flex min-w-0 flex-col rounded-lg px-3.5 py-3 text-white ring-1 ring-white/10 transition-[filter] hover:brightness-110"
+          :class="item.color"
+        >
+          <span class="block truncate text-xs text-white/85">{{ item.label }}</span>
+          <span class="mt-1 block truncate text-xl font-bold tabular-nums">{{ item.value }}</span>
+          <span class="mt-0.5 block truncate text-xs text-white/85">{{ item.note }}</span>
+          <span v-if="item.alert" class="mt-2 inline-flex items-center gap-1 self-start rounded-full bg-white px-2 py-0.5 text-[0.6875rem] font-semibold text-brand-dark">
+            <CircleAlert class="size-3" aria-hidden="true" />{{ item.alert }}
+          </span>
+        </RouterLink>
       </section>
 
-      <section class="dashboard__row">
-        <article class="panel glance">
-          <header class="glance__header">
-            <div>
-              <h2 class="section-title">At a glance</h2>
-              <p class="section-lede">Today, {{ formatDate(summary.as_of) }}</p>
-            </div>
-            <RouterLink class="btn glance__add" :to="{ name: 'members.index', query: { create: '1' } }"><AppIcon name="plus" :size="18" /> Add member</RouterLink>
-          </header>
-          <div class="glance__grid">
-            <RouterLink v-for="tile in glance" :key="tile.label" class="tile" :to="tile.to">
-              <span class="tile__head">
-                <span class="tile__icon"><AppIcon :name="tile.icon" :size="18" /></span>
-                <span class="tile__label">{{ tile.label }}</span>
-              </span>
-              <span class="tile__value">{{ tile.value }}</span>
-              <span class="tile__caption">{{ tile.caption }}</span>
-              <span class="tile__status" :class="`tile__status--${tile.tone}`">{{ tile.status }}</span>
-            </RouterLink>
-          </div>
-        </article>
-
-        <article class="panel cashflow">
-          <header class="cashflow__header">
-            <div>
-              <h2 class="section-title">Cash flow</h2>
-              <p class="cashflow__net">{{ formatMoney(summary.cash_flow.net) }}</p>
-              <p class="cashflow__totals">
-                <span><span class="cashflow__key">Money in</span> {{ formatMoney(summary.cash_flow.total_inflow) }}</span>
-                <span><span class="cashflow__key">Money out</span> {{ formatMoney(summary.cash_flow.total_outflow) }}</span>
-              </p>
-            </div>
-            <div class="segmented" role="group" aria-label="Period">
-              <button type="button" :aria-pressed="months === 6" @click="setPeriod(6)">6 months</button>
-              <button type="button" :aria-pressed="months === 12" @click="setPeriod(12)">12 months</button>
-            </div>
-          </header>
+      <div class="grid grid-cols-1 gap-4 @3xl:grid-cols-2 @5xl:grid-cols-12">
+        <AttentionList class="@5xl:col-span-3" :items="summary.attention" />
+        <DashCard class="@3xl:col-span-2 @3xl:row-start-1 @5xl:col-span-6 @5xl:row-start-auto" title="Cash flow" :lede="`Net ${formatMoney(summary.cash_flow.net)}: ${formatMoney(summary.cash_flow.total_inflow)} in, ${formatMoney(summary.cash_flow.total_outflow)} out`">
+          <template #tools>
+            <SegmentedControl v-model="months" :options="PERIODS" label="Period" @update:model-value="load" />
+          </template>
           <CashFlowChart :months="summary.cash_flow.months" />
-          <p class="cashflow__caption">Bars show money in each month. Hover or tab through a month to compare money in and out.</p>
-        </article>
-      </section>
+        </DashCard>
+        <RegulatoryHealth class="@5xl:col-span-3" :ratios="summary.prudential.ratios" :portfolio="summary.portfolio" />
+      </div>
 
-      <ActivityTable :activities="summary.recent_activity" />
+      <div class="grid grid-cols-1 gap-4 @3xl:grid-cols-2 @5xl:grid-cols-12">
+        <PortfolioAging class="@5xl:col-span-5" :portfolio="summary.portfolio" />
+        <CollectionsPanel class="@5xl:col-span-4" :collections="summary.collections" />
+        <MonthPanel class="@3xl:col-span-2 @5xl:col-span-3" :month="summary.this_month" :joined="summary.members.joined_this_month" />
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 @5xl:grid-cols-12">
+        <OverdueLoans class="@5xl:col-span-5" :loans="summary.portfolio.worst_overdue" :total="summary.portfolio.overdue_loans" />
+        <ActivityTable class="@5xl:col-span-7" :activities="summary.recent_activity" />
+      </div>
     </template>
   </div>
 </template>
-
-<style scoped>
-.dashboard {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  max-width: 96rem;
-  margin: 0 auto;
-}
-
-.dashboard__header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.dashboard__title {
-  margin: 0;
-  font-family: var(--font-serif);
-  font-size: 2.5rem;
-  font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
-}
-
-.dashboard__lede {
-  margin: 0.35rem 0 0;
-  font-size: 1.05rem;
-  color: var(--muted);
-}
-
-.dashboard__refresh {
-  height: 2.75rem;
-  padding-inline: 1rem;
-  border-radius: 10px;
-}
-
-.dashboard__error {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin: 0;
-}
-
-.dashboard__stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
-  gap: 1.5rem;
-}
-
-.dashboard__row {
-  display: grid;
-  grid-template-columns: minmax(0, 6fr) minmax(0, 8fr);
-  gap: 1.5rem;
-}
-
-.section-title {
-  margin: 0;
-  font-size: 1.35rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  text-transform: none;
-  color: var(--heading);
-}
-
-.section-lede {
-  margin: 0.25rem 0 0;
-  color: var(--muted);
-}
-
-/* At a glance */
-.glance__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.glance__add {
-  height: 2.6rem;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-.glance__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.tile {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  padding: 1rem 1.1rem;
-  border-radius: 14px;
-  background: var(--surface-sunken);
-  color: var(--text);
-  transition: background-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
-}
-
-.tile:hover {
-  box-shadow: inset 0 0 0 1px var(--border);
-}
-
-.tile__head {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.6rem;
-}
-
-.tile__icon {
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background: var(--crimson);
-  color: #fff;
-}
-
-.tile__label {
-  font-weight: 500;
-}
-
-.tile__value {
-  font-size: 1.6rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-.tile__caption {
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.tile__status {
-  margin-top: 0.6rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.tile__status--good {
-  color: var(--success);
-}
-
-.tile__status--attention {
-  color: var(--crimson-dark);
-}
-
-.tile__status--neutral {
-  color: var(--muted);
-}
-
-/* Cash flow */
-.cashflow__header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.cashflow__net {
-  margin: 0.4rem 0 0;
-  font-size: 2.25rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-.cashflow__totals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1.25rem;
-  margin: 0.25rem 0 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.cashflow__key {
-  color: var(--muted);
-}
-
-.cashflow__caption {
-  margin: 1rem 0 0;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.segmented {
-  display: inline-flex;
-  gap: 0.35rem;
-}
-
-.segmented button {
-  height: 2.6rem;
-  padding-inline: 1.1rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out);
-}
-
-.segmented button[aria-pressed='true'] {
-  border-color: var(--crimson);
-  background: var(--crimson);
-  color: #fff;
-}
-
-/* Loading */
-.dashboard__skeleton {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.5rem;
-}
-
-.skeleton {
-  border-radius: var(--radius-panel);
-  background: linear-gradient(90deg, var(--surface-sunken), var(--border), var(--surface-sunken)) 0 0 / 200% 100%;
-  animation: shimmer 1.4s linear infinite;
-}
-
-.skeleton--stat {
-  height: 13rem;
-}
-
-.skeleton--panel {
-  grid-column: span 1;
-  height: 24rem;
-}
-
-.skeleton--wide {
-  grid-column: span 2;
-}
-
-@keyframes shimmer {
-  to {
-    background-position: -200% 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    animation: none;
-  }
-}
-
-@media (max-width: 1280px) {
-  .dashboard__row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .dashboard__title {
-    font-size: 2rem;
-  }
-
-  .glance__grid,
-  .dashboard__skeleton {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .skeleton--wide {
-    grid-column: span 1;
-  }
-}
-</style>

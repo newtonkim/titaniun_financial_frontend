@@ -23,6 +23,8 @@
 /* main.css owns `.inline` (a muted inline-flex row); never let the utility of that name override it. */
 @source not inline('inline');
 @source '../core/components/ui';
+@source '../core/views/DashboardView.vue';
+@source '../core/views/dashboard';
 @source '../core/components/ResourceTable.vue';
 @source '../core/components/PageHeader.vue';
 @source '../core/components/DataPanel.vue';
@@ -47,6 +49,9 @@
   --color-brand: #b83236;
   --color-brand-dark: #9e272b;
   --color-navy: #1f2a5c;
+  --color-navy-mid: #2b3a7a;
+  --color-blue: #3f55b5;
+  --color-ink: #141417;
 }
 
 /* The shared UI primitives' palette, read from the Titaniun tokens in main.css so both themes follow. */
@@ -66,6 +71,8 @@
   --color-destructive: var(--danger);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-chart-in: var(--chart-in);
+  --color-chart-out: var(--chart-out);
   --color-border: var(--border);
   --color-input: var(--border);
   --color-ring: var(--primary);
