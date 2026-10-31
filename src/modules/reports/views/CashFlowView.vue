@@ -18,7 +18,7 @@ import type { CashFlowAccount } from '../api'
 import CashFlowLedgerDrawer from '../components/CashFlowLedgerDrawer.vue'
 import { useCashFlow } from '../composables/useCashFlow'
 import { useCashFlowExport } from '../composables/useCashFlowExport'
-import { cashMoney, dayLabel, isNegative, isZero } from '../utils/cashFlowFormat'
+import { cashMoney, dayLabel, isZero } from '../utils/cashFlowFormat'
 import { FINANCING_LIABILITY_ROWS, includesMigration, reconciliationLines, sectionLines } from '../utils/cashFlowStatement'
 import { cashFlowSummary } from '../utils/cashFlowSummary'
 
@@ -67,6 +67,7 @@ const kpis = computed(() => {
       amount: s.opening_cash,
       compare: s.compare_opening_cash,
       note: `on ${dayLabel(result.value!.from)}`,
+      color: 'bg-navy',
     },
     {
       key: 'operating',
@@ -74,6 +75,7 @@ const kpis = computed(() => {
       amount: s.operating,
       compare: s.compare_operating,
       note: 'loans, savings, income and costs',
+      color: 'bg-brand',
     },
     {
       key: 'net',
@@ -81,6 +83,7 @@ const kpis = computed(() => {
       amount: s.net_change,
       compare: s.compare_net_change,
       note: 'all activities',
+      color: 'bg-blue',
     },
     {
       key: 'closing',
@@ -88,6 +91,7 @@ const kpis = computed(() => {
       amount: s.closing_cash,
       compare: s.compare_closing_cash,
       note: `on ${dayLabel(result.value!.to)}`,
+      color: 'bg-ink dark:bg-navy-mid',
     },
   ]
 })
@@ -165,11 +169,11 @@ const inputClass = 'rounded-md border border-border bg-background px-3 py-1.5 te
         <RouterLink :to="{ name: 'accounting.chart-of-accounts' }" class="mt-1 inline-block font-medium underline">Review chart of accounts</RouterLink>
       </div>
 
-      <dl class="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 xl:grid-cols-4">
-        <div v-for="kpi in kpis" :key="kpi.key" class="bg-background px-3 py-2.5">
-          <dt class="text-xs text-muted-foreground">{{ kpi.label }}</dt>
-          <dd class="mt-0.5 text-xl font-bold tabular-nums" :class="isNegative(kpi.amount) ? 'text-destructive' : 'text-navy dark:text-white'">{{ isZero(kpi.amount) ? '0.00' : cashMoney(kpi.amount) }}</dd>
-          <dd class="text-xs text-muted-foreground">{{ kpi.note }}. Comparison {{ isZero(kpi.compare) ? '0.00' : cashMoney(kpi.compare) }}</dd>
+      <dl class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div v-for="kpi in kpis" :key="kpi.key" class="min-w-0 rounded-lg px-3.5 py-3 text-white ring-1 ring-white/10" :class="kpi.color">
+          <dt class="text-xs text-white/85">{{ kpi.label }}</dt>
+          <dd class="mt-1 text-xl font-bold tabular-nums">{{ isZero(kpi.amount) ? '0.00' : cashMoney(kpi.amount) }}</dd>
+          <dd class="mt-0.5 text-xs text-white/85">{{ kpi.note }}. Comparison {{ isZero(kpi.compare) ? '0.00' : cashMoney(kpi.compare) }}</dd>
         </div>
       </dl>
 
