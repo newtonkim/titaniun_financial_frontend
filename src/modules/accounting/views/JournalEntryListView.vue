@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PageParams } from '@/core/api/resource'
 import { computed, reactive, ref } from 'vue'
 import { Download, Plus, Search } from 'lucide-vue-next'
 import DateRangeFilter from '@/core/components/DateRangeFilter.vue'
@@ -31,17 +32,17 @@ const formOpen = ref(false)
 const canManage = computed(() => can('accounting.manage'))
 
 const columns: Column<JournalEntry>[] = [
-  { key: 'entry_date', label: 'Date', value: (entry) => formatDate(entry.entry_date) },
-  { key: 'voucher_number', label: 'Voucher', tone: 'strong' },
-  { key: 'entry_type', label: 'Type', tone: 'muted', value: (entry) => formatEnum(entry.entry_type) },
-  { key: 'description', label: 'Description', truncate: true },
+  { key: 'entry_date', label: 'Date', sortable: true, value: (entry) => formatDate(entry.entry_date) },
+  { key: 'voucher_number', label: 'Voucher', sortable: true, tone: 'strong' },
+  { key: 'entry_type', label: 'Type', sortable: true, tone: 'muted', value: (entry) => formatEnum(entry.entry_type) },
+  { key: 'description', label: 'Description', sortable: true, truncate: true },
   // A reference that only repeats the voucher number adds nothing to the row.
-  { key: 'reference', label: 'Reference', tone: 'muted', value: (entry) => (entry.reference === entry.voucher_number ? null : entry.reference) },
-  { key: 'total_amount', label: 'Amount (UGX)', align: 'right', value: (entry) => formatMoney(entry.total_amount) },
-  { key: 'status', label: 'Status' },
+  { key: 'reference', label: 'Reference', sortable: true, tone: 'muted', value: (entry) => (entry.reference === entry.voucher_number ? null : entry.reference) },
+  { key: 'total_amount', label: 'Amount (UGX)', sortable: true, align: 'right', value: (entry) => formatMoney(entry.total_amount) },
+  { key: 'status', label: 'Status', sortable: true },
 ]
 
-const fetchPage = (page: number, perPage: number) => journalEntriesApi.list({ ...filters, page, per_page: perPage })
+const fetchPage = (params: PageParams) => journalEntriesApi.list({ ...filters, ...params })
 
 async function exportCsv() {
   exporting.value = true

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PageParams } from '@/core/api/resource'
 import { reactive, ref } from 'vue'
 import ResourceTable, { type Column } from '@/core/components/ResourceTable.vue'
 import StatusBadge from '@/core/components/StatusBadge.vue'
@@ -14,17 +15,17 @@ const viewing = ref(false)
 const viewingId = ref<number | null>(null)
 
 const columns: Column<ShareAccount>[] = [
-  { key: 'account_number', label: 'Account #', tone: 'strong' },
-  { key: 'member', label: 'Member', value: (account) => (account.member ? account.member.name : null) },
-  { key: 'product', label: 'Product', value: (account) => account.product?.name },
-  { key: 'shares_held', label: 'Shares', align: 'right' },
+  { key: 'account_number', label: 'Account #', sortable: true, tone: 'strong' },
+  { key: 'member', label: 'Member', sortable: true, value: (account) => (account.member ? account.member.name : null) },
+  { key: 'product', label: 'Product', sortable: true, value: (account) => account.product?.name },
+  { key: 'shares_held', label: 'Shares', sortable: true, align: 'right' },
   { key: 'share_value', label: 'Value', align: 'right', value: (account) => formatMoney(account.share_value) },
-  { key: 'subscription_balance', label: 'Instalments held', align: 'right', value: (account) => formatMoney(account.subscription_balance) },
-  { key: 'status', label: 'Status' },
-  { key: 'opened_at', label: 'Opened', value: (account) => formatDate(account.opened_at) },
+  { key: 'subscription_balance', label: 'Instalments held', sortable: true, align: 'right', value: (account) => formatMoney(account.subscription_balance) },
+  { key: 'status', label: 'Status', sortable: true },
+  { key: 'opened_at', label: 'Opened', sortable: true, value: (account) => formatDate(account.opened_at) },
 ]
 
-const fetchPage = (page: number, perPage: number) => shareAccountsApi.list({ ...filters, page, per_page: perPage })
+const fetchPage = (params: PageParams) => shareAccountsApi.list({ ...filters, ...params })
 
 function open(account: ShareAccount) {
   viewingId.value = account.id

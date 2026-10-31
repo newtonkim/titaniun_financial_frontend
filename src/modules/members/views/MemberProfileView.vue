@@ -336,8 +336,8 @@ async function uploadAvatar(event: Event): Promise<void> {
   }
 }
 
-const card = 'rounded-2xl border border-neutral-100 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900'
-const th = 'px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.09em] text-neutral-400'
+const card = 'rounded-lg border border-border bg-background'
+const th = 'px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground'
 const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
 </script>
 
@@ -348,13 +348,13 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
         <ChevronLeft class="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
       </RouterLink>
       <div class="flex-1">
-        <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">Member Profile</h1>
-        <p class="text-sm text-neutral-500 dark:text-neutral-400">Details, accounts and activity.</p>
+        <h1 class="text-2xl font-bold tracking-tight text-foreground">Member Profile</h1>
+        <p class="text-sm text-muted-foreground">Details, accounts and activity.</p>
       </div>
     </div>
 
-    <p v-if="notice" role="status" class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300">{{ notice }}</p>
-    <p v-if="error" role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">{{ error }}</p>
+    <p v-if="notice" role="status" class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300">{{ notice }}</p>
+    <p v-if="error" role="alert" class="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">{{ error }}</p>
 
     <div v-if="loading" class="flex min-h-[50vh] items-center justify-center">
       <div class="flex flex-col items-center gap-3">
@@ -373,7 +373,7 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
             </span>
           </div>
           <div class="relative z-10 -mt-12 flex justify-center px-4">
-            <button type="button" title="Change photo" class="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-[3px] border-brand bg-white shadow-sm dark:bg-neutral-900" @click="avatarInput?.click()">
+            <button type="button" title="Change photo" class="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-[3px] border-brand bg-background shadow-sm" @click="avatarInput?.click()">
               <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.name" class="h-full w-full object-cover" />
               <span v-else class="text-2xl font-bold text-brand">{{ memberInitials(member.name) }}</span>
               <span v-if="uploading" class="absolute inset-0 flex items-center justify-center bg-black/60">
@@ -383,9 +383,9 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
             <input ref="avatarInput" type="file" accept="image/*" class="sr-only" @change="uploadAvatar" />
           </div>
           <div class="mb-5 px-5 pt-3 text-center">
-            <h2 class="text-[17px] font-black normal-case tracking-tight text-neutral-900 dark:text-white">{{ member.name }}</h2>
-            <p class="mt-1 text-[13px] tracking-tight text-neutral-500">ID · {{ member.member_number }}</p>
-            <p class="mt-0.5 text-[13px] tracking-tight text-neutral-500">{{ member.email || '—' }}</p>
+            <h2 class="text-[17px] font-black normal-case tracking-tight text-foreground">{{ member.name }}</h2>
+            <p class="mt-1 text-[13px] tracking-tight text-muted-foreground">ID · {{ member.member_number }}</p>
+            <p class="mt-0.5 text-[13px] tracking-tight text-muted-foreground">{{ member.email || '—' }}</p>
             <div class="mt-4">
               <span v-if="member.status === 'active'" class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-600">
                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Active Member
@@ -396,48 +396,48 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
               <span v-else-if="member.status === 'rejected'" class="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-red-500">
                 <span class="h-1.5 w-1.5 rounded-full bg-red-500" /> Rejected
               </span>
-              <span v-else class="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+              <span v-else class="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 <span class="h-1.5 w-1.5 rounded-full bg-neutral-400" /> {{ formatEnum(member.status) }}
               </span>
             </div>
           </div>
-          <div class="mx-5 mb-5 grid grid-cols-2 overflow-hidden rounded-2xl border border-neutral-100 dark:border-neutral-800">
-            <div class="border-b border-r border-neutral-100 p-4 dark:border-neutral-800">
-              <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-neutral-500">Shares</span>
-              <span class="text-[17px] font-extrabold text-neutral-900 dark:text-white">{{ sharesHeld }}</span>
+          <div class="mx-5 mb-5 grid grid-cols-2 overflow-hidden rounded-lg border border-border">
+            <div class="border-b border-r border-border p-4">
+              <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Shares</span>
+              <span class="text-[17px] font-extrabold text-foreground">{{ sharesHeld }}</span>
             </div>
-            <div class="border-b border-neutral-100 p-4 dark:border-neutral-800">
-              <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-neutral-500">Gender</span>
+            <div class="border-b border-border p-4">
+              <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Gender</span>
               <span :class="['inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ring-1 ring-inset', genderPill(member.gender)]">{{ member.gender || '—' }}</span>
             </div>
-            <div class="border-r border-neutral-100 p-4 dark:border-neutral-800">
-              <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-neutral-500">Marital</span>
-              <span class="text-[16px] font-bold capitalize text-neutral-900 dark:text-white">{{ member.marital_status || '—' }}</span>
+            <div class="border-r border-border p-4">
+              <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Marital</span>
+              <span class="text-[16px] font-bold capitalize text-foreground">{{ member.marital_status || '—' }}</span>
             </div>
             <div class="p-4">
-              <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-neutral-500">Age</span>
-              <span class="text-[16px] font-bold text-neutral-900 dark:text-white">{{ age }}</span>
+              <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Age</span>
+              <span class="text-[16px] font-bold text-foreground">{{ age }}</span>
             </div>
           </div>
         </div>
 
         <div :class="[card, 'p-6']">
-          <h3 class="mb-5 text-[12px] font-bold uppercase tracking-wider text-neutral-500">Quick Info</h3>
+          <h3 class="mb-5 text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Quick Info</h3>
           <div class="space-y-[18px]">
             <label class="block">
-              <span class="mb-1.5 block text-[13px] text-neutral-500">Status</span>
+              <span class="mb-1.5 block text-[13px] text-muted-foreground">Status</span>
               <select
                 id="member-status"
                 :value="member.status"
                 :disabled="!canChangeStatus || busy || statusOptions.length < 2"
-                class="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold capitalize text-neutral-800 outline-none focus:border-brand disabled:bg-neutral-50 disabled:text-neutral-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                class="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-semibold capitalize text-neutral-800 outline-none focus:border-brand disabled:bg-neutral-50 disabled:text-neutral-500 dark:text-white"
                 @change="chooseStatus"
               >
                 <option v-for="option in statusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
               </select>
             </label>
-            <div v-for="item in quickInfo" :key="item.label" :class="['flex items-center justify-between gap-3', item.border ? 'mt-1 border-t border-neutral-100 pt-1 dark:border-neutral-800' : '']">
-              <span class="text-[13px] text-neutral-500">{{ item.label }}</span>
+            <div v-for="item in quickInfo" :key="item.label" :class="['flex items-center justify-between gap-3', item.border ? 'mt-1 border-t border-border pt-1' : '']">
+              <span class="text-[13px] text-muted-foreground">{{ item.label }}</span>
               <span class="text-right font-mono text-[13px] tracking-tight text-neutral-700 dark:text-neutral-200">{{ item.value }}</span>
             </div>
           </div>
@@ -446,7 +446,7 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
 
       <!-- Right main area -->
       <div class="flex min-w-0 flex-1 flex-col gap-5">
-        <div v-if="member.status === 'pending'" class="flex flex-wrap items-start gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 dark:border-amber-500/30 dark:bg-amber-500/10">
+        <div v-if="member.status === 'pending'" class="flex flex-wrap items-start gap-4 rounded-lg border border-amber-200 bg-amber-50 px-5 py-4 dark:border-amber-500/30 dark:bg-amber-500/10">
           <Clock class="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
           <div class="min-w-0 flex-1">
             <p class="text-[13px] font-bold text-amber-800 dark:text-amber-300">Awaiting Approval</p>
@@ -462,7 +462,7 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
           </div>
         </div>
 
-        <div v-if="member.status === 'rejected'" class="flex flex-wrap items-start gap-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 dark:border-red-500/30 dark:bg-red-500/10">
+        <div v-if="member.status === 'rejected'" class="flex flex-wrap items-start gap-4 rounded-lg border border-red-200 bg-red-50 px-5 py-4 dark:border-red-500/30 dark:bg-red-500/10">
           <ShieldX class="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
           <div class="min-w-0 flex-1">
             <p class="text-[13px] font-bold text-red-800 dark:text-red-300">Registration Rejected</p>
@@ -496,19 +496,19 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
         />
 
         <div :class="[card, 'overflow-hidden']">
-          <div class="flex overflow-x-auto border-b border-neutral-100 px-4 dark:border-neutral-800" role="tablist">
+          <div class="flex overflow-x-auto border-b border-border px-4" role="tablist">
             <button
               v-for="item in tabs"
               :key="item.id"
               type="button"
               role="tab"
               :aria-selected="tab === item.id"
-              :class="['relative flex items-center gap-2 whitespace-nowrap px-4 py-4 text-[13px] font-bold capitalize transition-colors', tab === item.id ? 'text-brand' : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white']"
+              :class="['relative flex items-center gap-2 whitespace-nowrap px-4 py-4 text-[13px] font-bold capitalize transition-colors', tab === item.id ? 'text-brand' : 'text-muted-foreground hover:text-neutral-900 dark:hover:text-white']"
               @click="tab = item.id"
             >
               <component :is="item.icon" :size="16" />
               {{ item.label }}
-              <span v-if="item.count !== null" class="inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-neutral-100 px-1.5 font-mono text-[11px] font-bold text-neutral-500 dark:bg-neutral-800">{{ item.count }}</span>
+              <span v-if="item.count !== null" class="inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-neutral-100 px-1.5 font-mono text-[11px] font-bold text-muted-foreground dark:bg-neutral-800">{{ item.count }}</span>
               <span v-if="tab === item.id" class="absolute bottom-0 left-4 right-4 h-[3px] rounded-t-full bg-brand" />
             </button>
           </div>
@@ -516,14 +516,14 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
           <!-- Profile -->
           <div v-if="tab === 'profile'" class="bg-neutral-50/40 p-4 dark:bg-transparent">
             <div class="columns-1 gap-4 md:columns-2 xl:columns-3">
-              <section v-for="section in profileSections" :key="section.title" class="mb-4 break-inside-avoid overflow-hidden rounded-xl border border-neutral-100 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                <div class="flex items-center gap-2 border-b border-neutral-100 bg-neutral-50/50 px-3.5 py-2.5 dark:border-neutral-800 dark:bg-neutral-800/40">
+              <section v-for="section in profileSections" :key="section.title" class="mb-4 break-inside-avoid overflow-hidden rounded-lg border border-border bg-background">
+                <div class="flex items-center gap-2 border-b border-border bg-neutral-50/50 px-3.5 py-2.5 dark:bg-neutral-800/40">
                   <span class="flex size-6 shrink-0 items-center justify-center rounded-md bg-brand/10"><component :is="section.icon" :size="13" class="text-brand" /></span>
                   <h3 class="text-[14px] font-bold uppercase tracking-wide text-neutral-800 dark:text-neutral-100">{{ section.title }}</h3>
                 </div>
                 <div class="divide-y divide-neutral-50 dark:divide-neutral-800">
                   <div v-for="field in section.fields" :key="field.label" class="flex items-start justify-between gap-3 px-3.5 py-2">
-                    <span class="flex shrink-0 items-center gap-1.5 pt-px text-[14px] font-medium text-neutral-400">
+                    <span class="flex shrink-0 items-center gap-1.5 pt-px text-[14px] font-medium text-muted-foreground">
                       <component :is="field.icon" :size="12" class="shrink-0" /> {{ field.label }}
                     </span>
                     <div class="min-w-0 text-right">
@@ -532,16 +532,16 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
                         <span v-else class="text-[14px] text-neutral-300">—</span>
                       </template>
                       <div v-else-if="field.type === 'copy'" class="flex items-center justify-end gap-1.5">
-                        <span class="truncate font-mono text-[14px] font-bold text-neutral-900 dark:text-white">{{ field.value ?? '—' }}</span>
-                        <button v-if="field.value" type="button" title="Copy" class="shrink-0 text-neutral-400 transition-colors hover:text-brand" @click="copy(field.value)">
+                        <span class="truncate font-mono text-[14px] font-bold text-foreground">{{ field.value ?? '—' }}</span>
+                        <button v-if="field.value" type="button" title="Copy" class="shrink-0 text-muted-foreground transition-colors hover:text-brand" @click="copy(field.value)">
                           <component :is="copied === field.value ? Check : Copy" :size="13" :class="copied === field.value ? 'text-emerald-500' : ''" />
                         </button>
                       </div>
-                      <span v-else-if="field.type === 'currency'" class="text-[14px] font-bold text-neutral-900 dark:text-white">
+                      <span v-else-if="field.type === 'currency'" class="text-[14px] font-bold text-foreground">
                         <template v-if="field.value !== null && field.value !== undefined">{{ CURRENCY }} {{ formatMoney(field.value) }}</template>
                         <span v-else class="text-neutral-300">—</span>
                       </span>
-                      <span v-else class="break-words text-[14px] font-bold text-neutral-900 dark:text-white">
+                      <span v-else class="break-words text-[14px] font-bold text-foreground">
                         <template v-if="field.value">{{ field.value }}</template>
                         <span v-else class="text-neutral-300">—</span>
                       </span>
@@ -560,10 +560,10 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
 
           <!-- Loans -->
           <div v-else class="overflow-x-auto">
-            <p v-if="!member.loans?.length" class="px-6 py-10 text-center text-sm text-neutral-500">No loans.</p>
+            <p v-if="!member.loans?.length" class="px-6 py-10 text-center text-sm text-muted-foreground">No loans.</p>
             <table v-else class="w-full text-left text-sm">
               <thead>
-                <tr class="border-b border-neutral-100 dark:border-neutral-800">
+                <tr class="border-b border-border">
                   <th :class="th">Loan</th><th :class="th">Product</th><th :class="th">Status</th><th :class="[th, 'text-right']">Principal</th><th :class="[th, 'text-right']">Outstanding</th>
                 </tr>
               </thead>
@@ -586,12 +586,12 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
 
     <!-- Reject dialog -->
     <div v-if="rejectOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="reject-title">
-      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-        <h3 id="reject-title" class="mb-1 text-[15px] font-bold text-neutral-900 dark:text-white">Reject Registration</h3>
-        <p class="mb-4 text-[12px] text-neutral-500">Optionally give a reason. It is saved with the member's record.</p>
-        <textarea v-model="rejectionReason" rows="3" aria-label="Rejection reason" class="w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700 dark:text-white" placeholder="e.g. Missing ID copy" />
+      <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
+        <h3 id="reject-title" class="mb-1 text-[15px] font-bold text-foreground">Reject Registration</h3>
+        <p class="mb-4 text-[12px] text-muted-foreground">Optionally give a reason. It is saved with the member's record.</p>
+        <textarea v-model="rejectionReason" rows="3" aria-label="Rejection reason" class="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm dark:text-white" placeholder="e.g. Missing ID copy" />
         <div class="mt-4 flex justify-end gap-2">
-          <button type="button" :disabled="busy" class="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200" @click="rejectOpen = false">Cancel</button>
+          <button type="button" :disabled="busy" class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200" @click="rejectOpen = false">Cancel</button>
           <button type="button" :disabled="busy" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50" @click="reject">Reject</button>
         </div>
       </div>
@@ -599,20 +599,20 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
 
     <!-- Reverse transaction dialog -->
     <div v-if="reversing" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="reverse-title">
-      <form class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900" @submit.prevent="requestReversal">
+      <form class="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl" @submit.prevent="requestReversal">
         <div class="flex items-start gap-4">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30"><RotateCcw :size="20" class="text-amber-600" /></span>
           <div class="min-w-0 flex-1">
-            <h3 id="reverse-title" class="text-[15px] font-bold normal-case tracking-normal text-neutral-900 dark:text-white">Reverse {{ reversing.type }} of {{ CURRENCY }} {{ formatMoney(reversing.amount) }}?</h3>
-            <p class="mt-1 text-sm text-neutral-500">Transaction <strong class="text-neutral-700 dark:text-neutral-200">{{ reversing.reference || `#${reversing.id}` }}</strong> on {{ reversing.account }}.</p>
-            <textarea v-model="reversalReason" required minlength="3" maxlength="1000" rows="3" aria-label="Reason for the reversal" placeholder="Enter a reason for the reversal" class="mt-3 w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700 dark:text-white" />
-            <p class="mt-2 text-[12px] text-neutral-400">
+            <h3 id="reverse-title" class="text-[15px] font-bold normal-case tracking-normal text-foreground">Reverse {{ reversing.type }} of {{ CURRENCY }} {{ formatMoney(reversing.amount) }}?</h3>
+            <p class="mt-1 text-sm text-muted-foreground">Transaction <strong class="text-neutral-700 dark:text-neutral-200">{{ reversing.reference || `#${reversing.id}` }}</strong> on {{ reversing.account }}.</p>
+            <textarea v-model="reversalReason" required minlength="3" maxlength="1000" rows="3" aria-label="Reason for the reversal" placeholder="Enter a reason for the reversal" class="mt-3 w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm dark:text-white" />
+            <p class="mt-2 text-[12px] text-muted-foreground">
               A counter-transaction undoes this entry once someone else with approval rights approves it. The original stays in the audit trail marked as <em>reversed</em>.
             </p>
           </div>
         </div>
         <div class="mt-6 flex justify-end gap-3">
-          <button type="button" class="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300" @click="reversing = null">Cancel</button>
+          <button type="button" class="rounded-lg border border-border px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50 dark:text-neutral-300" @click="reversing = null">Cancel</button>
           <button type="submit" :disabled="busy || reversalReason.trim().length < 3" class="flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700 disabled:opacity-50">
             <RotateCcw :size="14" /> Request reversal
           </button>
@@ -622,12 +622,12 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
 
     <!-- Status change confirmation -->
     <div v-if="statusChange" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="status-title">
-      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-        <h3 id="status-title" class="mb-1 text-[15px] font-bold normal-case tracking-normal text-neutral-900 dark:text-white">Change member status</h3>
-        <p class="mb-4 text-[13px] text-neutral-500">Move {{ member?.name }} from <strong>{{ formatEnum(member?.status) }}</strong> to <strong>{{ formatEnum(statusChange) }}</strong>?</p>
+      <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
+        <h3 id="status-title" class="mb-1 text-[15px] font-bold normal-case tracking-normal text-foreground">Change member status</h3>
+        <p class="mb-4 text-[13px] text-muted-foreground">Move {{ member?.name }} from <strong>{{ formatEnum(member?.status) }}</strong> to <strong>{{ formatEnum(statusChange) }}</strong>?</p>
         <div class="flex justify-end gap-2">
-          <button type="button" class="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200" @click="statusChange = null">Cancel</button>
-          <button type="button" :disabled="busy" class="rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy/90 disabled:opacity-50" @click="confirmStatusChange">Change status</button>
+          <button type="button" class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200" @click="statusChange = null">Cancel</button>
+          <button type="button" :disabled="busy" class="rounded-md bg-brand px-3 py-1.5 text-sm font-semibold text-white hover:bg-brand-dark disabled:opacity-50" @click="confirmStatusChange">Change status</button>
         </div>
       </div>
     </div>

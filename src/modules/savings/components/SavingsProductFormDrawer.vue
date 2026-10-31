@@ -44,10 +44,10 @@ const ACTIVITIES = [
   { field: 'charge_on_transfer', label: 'Evaluate events on Transfer' },
 ] as const
 
-const input = 'w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-neutral-900 dark:text-white'
-const inputClass = (field: string) => [input, fieldError(field) ? 'border-red-400 dark:border-red-500' : 'border-neutral-300 dark:border-neutral-700']
-const cellInput = 'w-full rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-white'
-const card = 'rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900'
+const input = 'w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground'
+const inputClass = (field: string) => [input, fieldError(field) ? 'border-red-400 dark:border-red-500' : 'border-border']
+const cellInput = 'w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm dark:text-white'
+const card = 'rounded-lg border border-border bg-background p-6'
 const label = 'mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300'
 const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white'
 </script>
@@ -64,17 +64,17 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
   >
     <div v-if="loading" class="flex flex-col items-center justify-center gap-3 py-24">
       <span class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand border-r-transparent" aria-hidden="true" />
-      <span class="text-sm font-medium text-neutral-500 dark:text-neutral-400">Loading details...</span>
+      <span class="text-sm font-medium text-muted-foreground">Loading details...</span>
     </div>
 
     <div v-else class="flex flex-col gap-6">
-      <p v-if="message" role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
+      <p v-if="message" role="alert" class="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
         {{ message }}
       </p>
 
       <!-- General information -->
       <div :class="card">
-        <h2 class="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">General Information</h2>
+        <h2 class="mb-4 text-lg font-semibold text-foreground">General Information</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="sm:col-span-2">
             <label :class="label" for="sp-name">Name <span class="text-red-500">*</span></label>
@@ -132,7 +132,7 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
               placeholder="— select account —"
               :error="fieldError('cash_account_id') ?? undefined"
             />
-            <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">With both accounts set, deposits and withdrawals post to the ledger.</p>
+            <p class="mt-1 text-xs text-muted-foreground">With both accounts set, deposits and withdrawals post to the ledger.</p>
           </div>
 
           <div class="sm:col-span-2">
@@ -161,8 +161,8 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
       <div :class="card">
         <div class="mb-4 flex items-center justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">Monthly fees</h2>
-            <p class="text-xs text-neutral-500 dark:text-neutral-400">Configure compulsory monthly or maintenance fees.</p>
+            <h2 class="text-lg font-semibold text-foreground">Monthly fees</h2>
+            <p class="text-xs text-muted-foreground">Configure compulsory monthly or maintenance fees.</p>
           </div>
           <label class="flex cursor-pointer items-center gap-2">
             <span class="text-sm font-medium text-neutral-700 dark:text-neutral-300">Enable</span>
@@ -173,11 +173,11 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
           </label>
         </div>
 
-        <div v-if="form.monthly_fee_enabled" class="mt-4 grid gap-4 border-t border-neutral-100 pt-4 dark:border-neutral-800">
-          <div class="rounded-lg border border-neutral-100 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-800/40">
+        <div v-if="form.monthly_fee_enabled" class="mt-4 grid gap-4 border-t border-border pt-4">
+          <div class="rounded-lg border border-border bg-neutral-50 p-4 dark:bg-neutral-800/40">
             <div class="mb-3 flex items-center gap-2">
               <span :class="step">Step 1</span>
-              <h3 class="text-sm font-semibold text-neutral-900 dark:text-white">Choose fee type</h3>
+              <h3 class="text-sm font-semibold text-foreground">Choose fee type</h3>
             </div>
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
@@ -188,34 +188,34 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
                 </select>
                 <p v-if="fieldError('monthly_fee_type')" class="mt-1 text-xs text-red-500">{{ fieldError('monthly_fee_type') }}</p>
               </div>
-              <div class="text-xs text-neutral-500 dark:text-neutral-400 sm:pt-7">
+              <div class="text-xs text-muted-foreground sm:pt-7">
                 Fixed amount charges a flat fee. Percentage charges a rate on end-of-month balance.
               </div>
             </div>
           </div>
 
-          <div class="rounded-lg border border-neutral-100 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <div class="rounded-lg border border-border bg-background p-4">
             <div class="mb-3 flex items-center gap-2">
               <span :class="step">Step 2</span>
-              <h3 class="text-sm font-semibold text-neutral-900 dark:text-white">Set base fee (all members)</h3>
+              <h3 class="text-sm font-semibold text-foreground">Set base fee (all members)</h3>
             </div>
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
                 <label :class="label" for="sp-fee-amount">Base fee amount</label>
                 <input id="sp-fee-amount" v-model.number="form.monthly_fee_amount" type="number" step="0.01" min="0" :class="inputClass('monthly_fee_amount')" />
                 <p v-if="fieldError('monthly_fee_amount')" class="mt-1 text-xs text-red-500">{{ fieldError('monthly_fee_amount') }}</p>
-                <p v-else-if="form.monthly_fee_type === 'percentage'" class="mt-1 text-xs text-neutral-500">Calculated on end-of-month balance.</p>
+                <p v-else-if="form.monthly_fee_type === 'percentage'" class="mt-1 text-xs text-muted-foreground">Calculated on end-of-month balance.</p>
               </div>
-              <div class="rounded-lg border border-dashed border-neutral-200 p-3 text-xs text-neutral-500 dark:border-neutral-700 dark:text-neutral-400">
+              <div class="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
                 This fee is compulsory for all members using this product.
               </div>
             </div>
           </div>
 
-          <div class="rounded-lg border border-neutral-100 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <div class="rounded-lg border border-border bg-background p-4">
             <div class="mb-3 flex items-center gap-2">
               <span :class="step">Step 3</span>
-              <h3 class="text-sm font-semibold text-neutral-900 dark:text-white">Select deduction timing</h3>
+              <h3 class="text-sm font-semibold text-foreground">Select deduction timing</h3>
             </div>
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
@@ -227,19 +227,19 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
                   <option :value="31">End of month</option>
                 </select>
               </div>
-              <div class="text-xs text-neutral-500 dark:text-neutral-400 sm:pt-7">Fees are deducted once per month on the selected day.</div>
+              <div class="text-xs text-muted-foreground sm:pt-7">Fees are deducted once per month on the selected day.</div>
             </div>
           </div>
 
-          <div class="rounded-lg border border-neutral-100 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <div class="rounded-lg border border-border bg-background p-4">
             <div class="mb-3 flex items-center gap-2">
               <span :class="step">Step 4</span>
-              <h3 class="text-sm font-semibold text-neutral-900 dark:text-white">Adjust fee for loyal members</h3>
+              <h3 class="text-sm font-semibold text-foreground">Adjust fee for loyal members</h3>
             </div>
             <div class="flex items-center justify-between gap-4">
               <div>
                 <p class="text-sm font-medium text-neutral-700 dark:text-neutral-300">Enable loyalty adjustment</p>
-                <p class="text-xs text-neutral-500 dark:text-neutral-400">Offer a reduced or custom fee for loyal members.</p>
+                <p class="text-xs text-muted-foreground">Offer a reduced or custom fee for loyal members.</p>
               </div>
               <label class="flex cursor-pointer items-center gap-2">
                 <span class="text-sm font-medium text-neutral-700 dark:text-neutral-300">Enable</span>
@@ -267,13 +267,13 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
                 </label>
                 <input id="sp-loyalty-value" v-model.number="form.loyalty_adjustment_value" type="number" step="0.01" min="0" :class="inputClass('loyalty_adjustment_value')" />
                 <p v-if="fieldError('loyalty_adjustment_value')" class="mt-1 text-xs text-red-500">{{ fieldError('loyalty_adjustment_value') }}</p>
-                <p v-else-if="form.loyalty_adjustment_type === 'custom_fee' && form.monthly_fee_type === 'percentage'" class="mt-1 text-xs text-neutral-500">Uses the base fee format (percentage).</p>
+                <p v-else-if="form.loyalty_adjustment_type === 'custom_fee' && form.monthly_fee_type === 'percentage'" class="mt-1 text-xs text-muted-foreground">Uses the base fee format (percentage).</p>
               </div>
             </div>
           </div>
 
-          <div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700 dark:border-neutral-800 dark:bg-neutral-800/50 dark:text-neutral-300">
-            <div class="mb-1 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Summary</div>
+          <div class="rounded-lg border border-border bg-neutral-50 p-4 text-sm text-neutral-700 dark:bg-neutral-800/50 dark:text-neutral-300">
+            <div class="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Summary</div>
             <div>{{ monthlyFeeSummary || 'Complete the steps above to see a summary.' }}</div>
           </div>
         </div>
@@ -283,35 +283,35 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
       <div :class="card">
         <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">Attached Charges</h2>
-            <p class="text-xs text-neutral-500 dark:text-neutral-400">Define charge ranges per transaction type.</p>
+            <h2 class="text-lg font-semibold text-foreground">Attached Charges</h2>
+            <p class="text-xs text-muted-foreground">Define charge ranges per transaction type.</p>
           </div>
-          <button type="button" class="flex items-center justify-center gap-1.5 rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-navy/90" @click="addCharge">
+          <button type="button" class="flex items-center justify-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-white transition hover:bg-brand-dark" @click="addCharge">
             <Plus class="h-3.5 w-3.5" />
             Add Charge
           </button>
         </div>
 
-        <div class="mb-4 inline-flex flex-wrap rounded-lg border border-neutral-200 bg-neutral-50 p-1 text-xs font-medium text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+        <div class="mb-4 inline-flex flex-wrap rounded-lg border border-border bg-neutral-50 p-1 text-xs font-medium text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
           <button
             v-for="tab in CHARGE_TABS"
             :key="tab.value"
             type="button"
             class="rounded-md px-3 py-1.5 transition"
-            :class="selectedChargeTab === tab.value ? 'bg-white text-neutral-900 shadow-sm dark:bg-neutral-900 dark:text-white' : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'"
+            :class="selectedChargeTab === tab.value ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-neutral-700 dark:hover:text-neutral-200'"
             @click="selectedChargeTab = tab.value"
           >
             {{ tab.label }}
           </button>
         </div>
 
-        <div v-if="chargeRows.length === 0" class="rounded-xl border-2 border-dashed border-neutral-100 py-6 text-center text-sm text-neutral-500 dark:border-neutral-800">
+        <div v-if="chargeRows.length === 0" class="rounded-lg border-2 border-dashed border-border py-6 text-center text-sm text-muted-foreground">
           No charges added yet.
         </div>
 
-        <div v-else class="overflow-x-auto rounded-xl border border-neutral-100 dark:border-neutral-800">
+        <div v-else class="overflow-x-auto rounded-lg border border-border">
           <table class="min-w-full text-sm">
-            <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400">
+            <thead class="bg-neutral-50 text-xs uppercase tracking-wide text-muted-foreground dark:bg-neutral-900">
               <tr>
                 <th class="px-4 py-3 text-left font-semibold">S/N</th>
                 <th class="px-4 py-3 text-left font-semibold">Minimum</th>
@@ -322,15 +322,15 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
               </tr>
             </thead>
             <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
-              <tr v-for="(row, n) in chargeRows" :key="row.index" class="bg-white dark:bg-neutral-900">
-                <td class="px-4 py-3 text-neutral-500">{{ n + 1 }}</td>
+              <tr v-for="(row, n) in chargeRows" :key="row.index" class="bg-background">
+                <td class="px-4 py-3 text-muted-foreground">{{ n + 1 }}</td>
                 <td class="px-4 py-3">
                   <input
                     :value="formatNumberInput(row.charge.minimum_amount)"
                     type="text"
                     readonly
                     :aria-label="`Charge ${n + 1} minimum`"
-                    class="w-full min-w-24 cursor-not-allowed rounded-md border border-neutral-200 bg-neutral-50 px-2.5 py-1.5 text-sm text-neutral-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                    class="w-full min-w-24 cursor-not-allowed rounded-md border border-border bg-neutral-50 px-2.5 py-1.5 text-sm text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
                   />
                 </td>
                 <td class="px-4 py-3">
@@ -364,7 +364,7 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
                 <td class="px-4 py-3">
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1 rounded-md border border-neutral-200 px-2 py-1 text-xs font-medium text-neutral-600 transition hover:border-red-200 hover:text-red-600 dark:border-neutral-700 dark:text-neutral-300 dark:hover:text-red-400"
+                    class="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-neutral-600 transition hover:border-red-200 hover:text-red-600 dark:text-neutral-300 dark:hover:text-red-400"
                     @click="removeCharge(row.index)"
                   >
                     <X class="h-3 w-3" />
@@ -376,7 +376,7 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
           </table>
         </div>
 
-        <p v-if="chargeRows.length > 0" class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
+        <p v-if="chargeRows.length > 0" class="mt-3 text-xs text-muted-foreground">
           Next minimum auto-fills as previous maximum + 1 for the same transaction type.
         </p>
       </div>
@@ -386,14 +386,14 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
 
       <!-- Applies to activity -->
       <div :class="card">
-        <h3 class="mb-4 text-sm font-semibold text-neutral-900 dark:text-white">Applies To Activity</h3>
+        <h3 class="mb-4 text-sm font-semibold text-foreground">Applies To Activity</h3>
         <div v-if="activityWarnings.length" class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
           <span class="font-semibold">Warning:</span>
           {{ activityWarnings.join(', ') }} {{ activityWarnings.length === 1 ? 'charge is' : 'charges are' }} attached but the activity toggle is off — those fees will never apply.
         </div>
         <div class="space-y-3">
           <label v-for="activity in ACTIVITIES" :key="activity.field" class="flex cursor-pointer items-center gap-3">
-            <input v-model="form[activity.field]" type="checkbox" class="h-4 w-4 cursor-pointer rounded border-neutral-300 accent-brand dark:border-neutral-600" />
+            <input v-model="form[activity.field]" type="checkbox" class="h-4 w-4 cursor-pointer rounded border-border accent-brand dark:border-neutral-600" />
             <span class="text-sm text-neutral-700 dark:text-neutral-300">{{ activity.label }}</span>
           </label>
         </div>

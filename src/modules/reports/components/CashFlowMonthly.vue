@@ -159,30 +159,30 @@ const showTable = ref(false)
 
         <div
           v-if="tip && hovered !== null"
-          class="pointer-events-none absolute top-0 z-10 w-60 rounded-lg border border-neutral-200 bg-white p-3 text-xs shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+          class="pointer-events-none absolute top-0 z-10 w-60 rounded-lg border border-border bg-background p-3 text-xs shadow-lg"
           :style="tipStyle"
         >
-          <p class="font-semibold text-neutral-900 dark:text-white">{{ monthLabel(tip.month) }}</p>
+          <p class="font-semibold text-foreground">{{ monthLabel(tip.month) }}</p>
           <dl class="mt-2 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 tabular-nums">
-            <dt class="text-neutral-500">Operating</dt>
+            <dt class="text-muted-foreground">Operating</dt>
             <dd class="text-right">{{ cashMoney(tip.operating) }}</dd>
-            <dt class="text-neutral-500">Investing</dt>
+            <dt class="text-muted-foreground">Investing</dt>
             <dd class="text-right">{{ cashMoney(tip.investing) }}</dd>
-            <dt class="text-neutral-500">Financing</dt>
+            <dt class="text-muted-foreground">Financing</dt>
             <dd class="text-right">{{ cashMoney(tip.financing) }}</dd>
             <template v-if="Number(tip.other) !== 0">
-              <dt class="text-neutral-500">Brought on</dt>
+              <dt class="text-muted-foreground">Brought on</dt>
               <dd class="text-right">{{ cashMoney(tip.other) }}</dd>
             </template>
-            <dt class="border-t border-neutral-200 pt-1 font-semibold dark:border-neutral-700">
+            <dt class="border-t border-border pt-1 font-semibold">
               Net cash flow
             </dt>
             <dd
-              class="border-t border-neutral-200 pt-1 text-right font-semibold dark:border-neutral-700"
+              class="border-t border-border pt-1 text-right font-semibold"
             >
               {{ cashMoney(tip.net) }}
             </dd>
-            <dt class="text-neutral-500">Cash at month end</dt>
+            <dt class="text-muted-foreground">Cash at month end</dt>
             <dd class="text-right">{{ cashMoney(tip.closing_cash) }}</dd>
           </dl>
         </div>
@@ -215,7 +215,7 @@ const showTable = ref(false)
         <caption class="sr-only">
           Cash flow by month
         </caption>
-        <thead class="bg-neutral-50 text-neutral-500 dark:bg-neutral-800/50">
+        <thead class="bg-neutral-50 text-muted-foreground dark:bg-neutral-800/50">
           <tr>
             <th scope="col" class="px-3 py-2 text-left">Month</th>
             <th scope="col" class="px-3 py-2 text-right">Operating</th>
@@ -229,7 +229,7 @@ const showTable = ref(false)
           <tr
             v-for="m in months"
             :key="m.month"
-            class="border-b border-neutral-100 dark:border-neutral-800"
+            class="border-b border-border"
           >
             <th scope="row" class="px-3 py-2 text-left font-medium">{{ monthLabel(m.month) }}</th>
             <td class="px-3 py-2 text-right tabular-nums">{{ cashMoney(m.operating) }}</td>

@@ -83,16 +83,16 @@ onBeforeUnmount(() => { ++version })
   <DialogRoot v-model:open="open">
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-50 bg-neutral-950/20" />
-      <DialogContent class="tw-scope fixed right-0 top-0 z-50 h-full w-full max-w-xl bg-white dark:bg-neutral-900 shadow-2xl flex flex-col">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800">
+      <DialogContent class="tw-scope fixed right-0 top-0 z-50 h-full w-full max-w-xl bg-background shadow-2xl flex flex-col">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
-            <p class="text-xs font-mono text-neutral-400">{{ account?.code }}</p>
-            <DialogTitle class="font-bold text-neutral-900 dark:text-white">{{ account?.name }}</DialogTitle>
-            <DialogDescription class="text-xs text-neutral-400 mt-0.5">{{ from }} → {{ to }}</DialogDescription>
+            <p class="text-xs font-mono text-muted-foreground">{{ account?.code }}</p>
+            <DialogTitle class="font-bold text-foreground">{{ account?.name }}</DialogTitle>
+            <DialogDescription class="text-xs text-muted-foreground mt-0.5">{{ from }} → {{ to }}</DialogDescription>
           </div>
           <button type="button" aria-label="Close" @click="open = false"
             class="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800">
-            <X class="w-4 h-4 text-neutral-500" />
+            <X class="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
 
@@ -102,7 +102,7 @@ onBeforeUnmount(() => { ++version })
           </div>
           <div v-else-if="error" role="alert" class="px-6 py-12 text-center text-sm text-rose-600 dark:text-rose-400"><p>{{ error }}</p><button type="button" class="mt-3 underline" @click="fetchPage(failedPage)">Retry</button></div>
           <table v-else class="w-full text-xs">
-            <thead class="sticky top-0 bg-neutral-50 dark:bg-neutral-800 font-bold uppercase tracking-wider text-neutral-400">
+            <thead class="sticky top-0 bg-neutral-50 dark:bg-neutral-800 font-bold uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th class="px-4 py-3 text-left">Date</th>
                 <th class="px-4 py-3 text-left">Reference</th>
@@ -113,17 +113,17 @@ onBeforeUnmount(() => { ++version })
             </thead>
             <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
               <tr v-for="(line, i) in lines" :key="i" class="hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition">
-                <td class="px-4 py-2.5 text-neutral-500">{{ line.date }}</td>
+                <td class="px-4 py-2.5 text-muted-foreground">{{ line.date }}</td>
                 <td class="px-4 py-2.5">
                   <div class="font-mono text-neutral-700 dark:text-neutral-300">{{ line.reference }}</div>
-                  <div class="text-neutral-400 truncate max-w-[180px]">{{ line.description }}</div>
+                  <div class="text-muted-foreground truncate max-w-[180px]">{{ line.description }}</div>
                 </td>
                 <td class="px-4 py-2.5 text-right text-blue-600 font-semibold">{{ source === 'income-statement' ? formatStatementMoney(String(line.debit)) : line.debit ? formatMoneyValue(line.debit) : '—' }}</td>
                 <td class="px-4 py-2.5 text-right text-orange-600 font-semibold">{{ source === 'income-statement' ? formatStatementMoney(String(line.credit)) : line.credit ? formatMoneyValue(line.credit) : '—' }}</td>
                 <td v-if="source === 'income-statement'" class="px-4 py-2.5 text-right tabular-nums">{{ formatStatementMoney(line.running_movement ?? '0.00') }}</td>
               </tr>
               <tr v-if="!lines.length && !loading">
-                <td :colspan="source === 'income-statement' ? 5 : 4" class="px-4 py-12 text-center text-neutral-400">No transactions in this period.</td>
+                <td :colspan="source === 'income-statement' ? 5 : 4" class="px-4 py-12 text-center text-muted-foreground">No transactions in this period.</td>
               </tr>
             </tbody>
           </table>
@@ -136,7 +136,7 @@ onBeforeUnmount(() => { ++version })
           </div>
         </div>
 
-        <div class="px-6 py-3 border-t border-neutral-100 dark:border-neutral-800 text-xs text-neutral-500">
+        <div class="px-6 py-3 border-t border-border text-xs text-muted-foreground">
           {{ total }} transaction{{ total !== 1 ? 's' : '' }}
         </div>
       </DialogContent>

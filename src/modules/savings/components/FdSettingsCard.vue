@@ -37,18 +37,18 @@ watch(
 )
 
 const inputClass =
-  'w-full rounded-lg border border-neutral-300 bg-transparent px-3 py-2 text-sm text-neutral-900 dark:border-neutral-700 dark:text-white'
+  'w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm text-foreground'
 </script>
 
 <template>
-  <div class="rounded-xl border border-amber-200 bg-amber-50/40 p-6 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/10">
-    <h2 class="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">Fixed Deposit Settings</h2>
+  <div class="rounded-lg border border-amber-200 bg-amber-50/40 p-6 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/10">
+    <h2 class="mb-4 text-lg font-semibold text-foreground">Fixed Deposit Settings</h2>
 
     <div class="grid gap-4 sm:grid-cols-2">
       <div>
         <label class="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300" for="fd-rate">Annual Interest Rate (%)</label>
         <input id="fd-rate" v-model.number="form.interest_rate" type="number" step="0.01" min="0" max="100" :class="inputClass" placeholder="e.g. 12.00" />
-        <p class="mt-1 text-xs text-neutral-500">Enter as percentage, e.g. 12 for 12% p.a.</p>
+        <p class="mt-1 text-xs text-muted-foreground">Enter as percentage, e.g. 12 for 12% p.a.</p>
       </div>
 
       <div>

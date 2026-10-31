@@ -54,12 +54,12 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick))
       :disabled="disabled"
       :aria-expanded="open"
       aria-haspopup="listbox"
-      class="flex w-full items-center justify-between gap-2 rounded-xl border bg-white px-3 py-2 text-left text-sm disabled:opacity-50 dark:bg-neutral-800"
-      :class="error ? 'border-red-400 dark:border-red-500' : 'border-neutral-200 dark:border-neutral-700'"
+      class="flex w-full items-center justify-between gap-2 rounded-md border bg-background px-3 py-1.5 text-left text-sm disabled:opacity-50"
+      :class="error ? 'border-red-400 dark:border-red-500' : 'border-border'"
       @click="toggle"
       @keydown.escape="open = false"
     >
-      <span :class="selected ? 'text-neutral-900 dark:text-white' : 'text-neutral-400'" class="truncate">
+      <span :class="selected ? 'text-foreground' : 'text-muted-foreground'" class="truncate">
         {{ selected?.name ?? placeholder ?? 'Select…' }}
       </span>
       <span class="flex shrink-0 items-center gap-1 text-neutral-400">
@@ -69,9 +69,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick))
     </button>
     <div
       v-if="open"
-      class="absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+      class="absolute z-30 mt-1 w-full overflow-hidden rounded-md border border-border bg-popover shadow-md"
     >
-      <div class="flex items-center gap-2 border-b border-neutral-100 px-3 py-2 dark:border-neutral-800">
+      <div class="flex items-center gap-2 border-b border-border px-3 py-2">
         <Search class="h-3.5 w-3.5 text-neutral-400" />
         <input
           ref="searchInput"
@@ -88,7 +88,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick))
           :key="option.id"
           role="option"
           :aria-selected="option.id === model"
-          class="cursor-pointer px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800"
+          class="cursor-pointer px-3 py-2 text-sm hover:bg-accent"
           :class="option.id === model ? 'font-semibold text-brand' : 'text-neutral-700 dark:text-neutral-200'"
           @click="choose(option.id)"
         >

@@ -108,7 +108,7 @@ const input = 'h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 te
             <input id="statement-to" v-model="to" type="date" :min="from" :max="today()" :class="input" />
           </label>
         </div>
-        <button type="button" :disabled="!statement" class="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-navy px-5 text-sm font-bold text-white transition hover:bg-navy/90 disabled:cursor-not-allowed disabled:opacity-40" @click="print">
+        <button type="button" :disabled="!statement" class="inline-flex h-9 shrink-0 items-center gap-2 rounded-md bg-brand px-4 text-sm font-medium text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-40" @click="print">
           <Printer :size="15" /> Print statement
         </button>
       </div>

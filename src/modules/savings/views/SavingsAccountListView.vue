@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PageParams } from '@/core/api/resource'
 import { reactive } from 'vue'
 import ResourceTable, { type Column } from '@/core/components/ResourceTable.vue'
 import StatusBadge from '@/core/components/StatusBadge.vue'
@@ -9,15 +10,15 @@ import { SAVINGS_ACCOUNT_STATUSES, type SavingsAccount, type SavingsAccountFilte
 const filters = reactive<SavingsAccountFilters>({ status: '' })
 
 const columns: Column<SavingsAccount>[] = [
-  { key: 'account_number', label: 'Account #', tone: 'strong' },
-  { key: 'member', label: 'Member', value: (account) => (account.member ? account.member.name : null) },
-  { key: 'product', label: 'Product', value: (account) => account.product?.name },
-  { key: 'balance', label: 'Balance', align: 'right', value: (account) => formatMoney(account.balance) },
-  { key: 'status', label: 'Status' },
-  { key: 'opened_at', label: 'Opened', value: (account) => formatDate(account.opened_at) },
+  { key: 'account_number', label: 'Account #', sortable: true, tone: 'strong' },
+  { key: 'member', label: 'Member', sortable: true, value: (account) => (account.member ? account.member.name : null) },
+  { key: 'product', label: 'Product', sortable: true, value: (account) => account.product?.name },
+  { key: 'balance', label: 'Balance', sortable: true, align: 'right', value: (account) => formatMoney(account.balance) },
+  { key: 'status', label: 'Status', sortable: true },
+  { key: 'opened_at', label: 'Opened', sortable: true, value: (account) => formatDate(account.opened_at) },
 ]
 
-const fetchPage = (page: number, perPage: number) => savingsAccountsApi.list({ ...filters, page, per_page: perPage })
+const fetchPage = (params: PageParams) => savingsAccountsApi.list({ ...filters, ...params })
 </script>
 
 <template>

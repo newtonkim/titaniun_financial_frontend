@@ -48,7 +48,7 @@ async function save() {
   }
 }
 
-const input = 'w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand dark:border-neutral-700 dark:bg-neutral-800 dark:text-white'
+const input = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand dark:text-white'
 const label = 'mb-1.5 block text-[13px] font-semibold text-neutral-700 dark:text-neutral-300'
 </script>
 
@@ -62,7 +62,7 @@ const label = 'mb-1.5 block text-[13px] font-semibold text-neutral-700 dark:text
     @save="save"
   >
     <div class="tw-scope flex flex-col gap-5">
-      <p v-if="form.message" class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">{{ form.message }}</p>
+      <p v-if="form.message" class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">{{ form.message }}</p>
 
       <div>
         <label :class="label" for="staff-name">Full name</label>
@@ -78,7 +78,7 @@ const label = 'mb-1.5 block text-[13px] font-semibold text-neutral-700 dark:text
         <label :class="label" for="staff-password">{{ editing ? 'New password' : 'Password' }}</label>
         <input id="staff-password" v-model="form.password" type="password" autocomplete="new-password" :required="!editing" :class="input" />
         <p v-if="error('password')" class="mt-1 text-xs text-red-500">{{ error('password') }}</p>
-        <p v-else class="mt-1 text-xs text-neutral-500">
+        <p v-else class="mt-1 text-xs text-muted-foreground">
           {{ editing ? 'Leave blank to keep the current password. Setting one signs them out of other devices.' : 'Share it with them securely; they can change it under Settings › Security.' }}
         </p>
       </div>
@@ -89,7 +89,7 @@ const label = 'mb-1.5 block text-[13px] font-semibold text-neutral-700 dark:text
           <label
             v-for="role in roles"
             :key="role.id"
-            class="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 p-3 dark:border-neutral-700"
+            class="flex cursor-pointer items-start gap-3 rounded-lg border border-border p-3"
             :class="{ 'border-brand bg-brand/5': form.roles.includes(role.name) }"
           >
             <input
@@ -100,17 +100,17 @@ const label = 'mb-1.5 block text-[13px] font-semibold text-neutral-700 dark:text
             />
             <span>
               <span class="block text-sm font-semibold text-neutral-800 dark:text-neutral-100">{{ role.label }}</span>
-              <span v-if="role.description" class="text-xs text-neutral-500">{{ role.description }}</span>
+              <span v-if="role.description" class="text-xs text-muted-foreground">{{ role.description }}</span>
             </span>
           </label>
         </div>
         <p v-if="error('roles')" class="mt-1 text-xs text-red-500">{{ error('roles') }}</p>
       </fieldset>
 
-      <label class="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-neutral-200 p-4 dark:border-neutral-700" :class="{ 'cursor-not-allowed opacity-60': isSelf }">
+      <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border p-4" :class="{ 'cursor-not-allowed opacity-60': isSelf }">
         <span>
           <span class="block text-sm font-semibold text-neutral-800 dark:text-neutral-100">Active</span>
-          <span class="text-xs text-neutral-500">{{ isSelf ? 'You cannot deactivate your own account.' : 'Inactive staff cannot sign in, and deactivating signs them out everywhere.' }}</span>
+          <span class="text-xs text-muted-foreground">{{ isSelf ? 'You cannot deactivate your own account.' : 'Inactive staff cannot sign in, and deactivating signs them out everywhere.' }}</span>
         </span>
         <input id="staff-active" v-model="form.is_active" type="checkbox" :disabled="isSelf" class="h-5 w-5 accent-[var(--color-brand)]" />
       </label>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PageParams } from '@/core/api/resource'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { Plus, Search } from 'lucide-vue-next'
 import ResourceTable, { type Column } from '@/core/components/ResourceTable.vue'
@@ -28,14 +29,14 @@ const busy = ref(false)
 
 const roleLabels = computed(() => new Map(roles.value.map((role) => [role.name, role.label])))
 const columns: Column<StaffUser>[] = [
-  { key: 'name', label: 'Name', tone: 'strong' },
-  { key: 'email', label: 'Email address', tone: 'muted' },
+  { key: 'name', label: 'Name', sortable: true, tone: 'strong' },
+  { key: 'email', label: 'Email address', sortable: true, tone: 'muted' },
   { key: 'roles', label: 'Roles', value: (staff) => staff.roles.map((role) => roleLabels.value.get(role) ?? role).join(', ') },
   { key: 'status', label: 'Status' },
-  { key: 'created_at', label: 'Added', value: (staff) => formatDate(staff.created_at) },
+  { key: 'created_at', label: 'Added', sortable: true, value: (staff) => formatDate(staff.created_at) },
 ]
 
-const fetchPage = (page: number, perPage: number) => staffApi.list({ ...filters, page, per_page: perPage })
+const fetchPage = (params: PageParams) => staffApi.list({ ...filters, ...params })
 
 onMounted(async () => {
   try {
@@ -109,13 +110,13 @@ async function confirmDelete() {
     <StaffFormDrawer v-model:open="formOpen" :staff="editing" :roles="roles" :current-user-id="auth.user.value?.id" @saved="saved" />
 
     <div v-if="deleting" class="tw-scope fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="delete-staff-title">
-      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-        <h3 id="delete-staff-title" class="mb-1 text-[15px] font-bold normal-case tracking-normal text-neutral-900 dark:text-white">Delete {{ deleting.name }}?</h3>
-        <p class="mb-4 text-[13px] text-neutral-500">
+      <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
+        <h3 id="delete-staff-title" class="mb-1 text-[15px] font-bold normal-case tracking-normal text-foreground">Delete {{ deleting.name }}?</h3>
+        <p class="mb-4 text-[13px] text-muted-foreground">
           Their account is removed permanently and records they made no longer show who made them. To keep that history, edit them and switch off <strong>Active</strong> instead.
         </p>
         <div class="flex justify-end gap-2">
-          <button type="button" class="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200" @click="deleting = null">Cancel</button>
+          <button type="button" class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200" @click="deleting = null">Cancel</button>
           <button type="button" :disabled="busy" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50" @click="confirmDelete">Delete staff member</button>
         </div>
       </div>

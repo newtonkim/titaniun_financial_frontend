@@ -24,6 +24,8 @@
 @source not inline('inline');
 @source '../core/components/ui';
 @source '../core/components/ResourceTable.vue';
+@source '../core/components/PageHeader.vue';
+@source '../core/components/DataPanel.vue';
 @source '../core/components/SegmentedControl.vue';
 @source '../core/components/DateRangeFilter.vue';
 @source '../core/components/SearchableSelect.vue';

@@ -1,7 +1,10 @@
 <script setup lang="ts" generic="T">
-import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Columns3, X } from 'lucide-vue-next'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ChevronsUpDown, Columns3, X } from 'lucide-vue-next'
+import type { PageParams } from '@/core/api/resource'
 import type { Collection } from '@/core/api/types'
+import DataPanel from '@/core/components/DataPanel.vue'
+import PageHeader from '@/core/components/PageHeader.vue'
 import SegmentedControl from '@/core/components/SegmentedControl.vue'
 import { Button } from '@/core/components/ui/button'
 import {
@@ -26,13 +29,15 @@ export interface Column<Row> {
   tone?: 'strong' | 'muted'
   /** Keep long text to one line; the full text shows on hover. */
   truncate?: boolean
+  /** The API can order by this column, under the column's key. */
+  sortable?: boolean
 }
 
 const props = defineProps<{
   title: string
   description?: string
   columns: Column<T>[]
-  fetch: (page: number, perPage: number) => Promise<Collection<T>>
+  fetch: (params: PageParams) => Promise<Collection<T>>
   /** Reloads from page 1 whenever these change. Clear resets every value to ''. */
   filters?: Record<string, unknown>
   rowKey?: string
@@ -46,7 +51,10 @@ const DENSITIES: { label: string; value: TableDensity }[] = [
 ]
 
 const preferences = useTablePreferences(props.title)
-const { rows, meta, page, loading, error, load, reload } = useCollection<T>((target) => props.fetch(target, preferences.perPage))
+const sort = ref<{ key: string; direction: 'asc' | 'desc' } | null>(null)
+const { rows, meta, page, loading, error, load, reload } = useCollection<T>((target) =>
+  props.fetch({ page: target, per_page: preferences.perPage, sort: sort.value?.key, direction: sort.value?.direction }),
+)
 
 const visibleColumns = computed(() => props.columns.filter((column) => !preferences.hidden.includes(column.key)))
 const filtered = computed(() => Object.values(props.filters ?? {}).some(Boolean))
@@ -67,6 +75,19 @@ function toneClass(column: Column<T>) {
     'font-semibold text-navy dark:text-white': column.tone === 'strong',
     'text-muted-foreground': column.tone === 'muted',
   }
+}
+
+/** Each click moves on: ascending, descending, then back to the list's own order. */
+function toggleSort(column: Column<T>) {
+  const current = sort.value?.key === column.key ? sort.value.direction : null
+  sort.value = current === 'desc' ? null : { key: column.key, direction: current === 'asc' ? 'desc' : 'asc' }
+  void load(1)
+}
+
+function ariaSort(column: Column<T>): 'ascending' | 'descending' | 'none' | undefined {
+  if (!column.sortable) return undefined
+  if (sort.value?.key !== column.key) return 'none'
+  return sort.value.direction === 'asc' ? 'ascending' : 'descending'
 }
 
 function setColumn(columnKey: string, visible: boolean) {
@@ -93,19 +114,15 @@ defineExpose({ reload, load })
 
 <template>
   <div class="tw-scope flex flex-col gap-4">
-    <header class="page-head !mb-0">
-      <div>
-        <h1 class="page-head__title">{{ title }}</h1>
-        <p v-if="description" class="page-head__lede">{{ description }}</p>
-      </div>
-      <div v-if="$slots.actions" class="page-head__actions"><slot name="actions" :rows="rows" /></div>
-    </header>
+    <PageHeader :title="title" :description="description">
+      <template v-if="$slots.actions"><slot name="actions" :rows="rows" /></template>
+    </PageHeader>
 
     <slot name="messages" />
     <p v-if="error" role="alert" class="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{{ error }}</p>
 
-    <section class="overflow-hidden rounded-lg border border-border bg-background" :aria-label="title">
-      <div class="flex flex-wrap items-center gap-2 border-b border-border p-2 [&_select]:h-8 [&_select]:rounded-md [&_select]:py-0 [&_select]:text-sm">
+    <DataPanel :label="title">
+      <template #toolbar>
         <slot name="filters" />
 
         <Button v-if="filtered" variant="ghost" size="sm" @click="clearFilters">
@@ -139,7 +156,7 @@ defineExpose({ reload, load })
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </div>
+      </template>
 
       <Table class="tabular-nums" :class="compact ? 'text-[0.8125rem]' : 'text-sm'" :aria-busy="loading || undefined">
         <TableHeader>
@@ -147,19 +164,31 @@ defineExpose({ reload, load })
             <TableHead
               v-for="column in visibleColumns"
               :key="column.key"
-              class="h-8 bg-muted px-3 text-xs text-muted-foreground"
               :class="{ 'text-right': column.align === 'right' }"
+              :aria-sort="ariaSort(column)"
             >
-              {{ column.label }}
+              <button
+                v-if="column.sortable"
+                type="button"
+                class="group inline-flex cursor-pointer items-center gap-1 font-medium hover:text-foreground"
+                :class="{ 'text-foreground': sort?.key === column.key }"
+                @click="toggleSort(column)"
+              >
+                {{ column.label }}
+                <ArrowUp v-if="sort?.key === column.key && sort.direction === 'asc'" class="size-3" aria-hidden="true" />
+                <ArrowDown v-else-if="sort?.key === column.key" class="size-3" aria-hidden="true" />
+                <ChevronsUpDown v-else class="size-3 opacity-40 group-hover:opacity-100" aria-hidden="true" />
+              </button>
+              <template v-else>{{ column.label }}</template>
             </TableHead>
-            <TableHead v-if="$slots['row-actions']" class="h-8 bg-muted px-3"><span class="sr-only">Actions</span></TableHead>
+            <TableHead v-if="$slots['row-actions']"><span class="sr-only">Actions</span></TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody v-if="loading && !rows.length">
           <TableRow v-for="row in 8" :key="row" class="hover:bg-transparent">
-            <TableCell v-for="column in visibleColumns" :key="column.key" class="px-3 py-2.5"><Skeleton class="h-4 w-full max-w-32 bg-muted" /></TableCell>
-            <TableCell v-if="$slots['row-actions']" class="px-3 py-2.5" />
+            <TableCell v-for="column in visibleColumns" :key="column.key" class="py-2.5"><Skeleton class="h-4 w-full max-w-32 bg-muted" /></TableCell>
+            <TableCell v-if="$slots['row-actions']" class="py-2.5" />
           </TableRow>
         </TableBody>
 
@@ -168,7 +197,6 @@ defineExpose({ reload, load })
             <TableCell
               v-for="column in visibleColumns"
               :key="column.key"
-              class="px-3"
               :class="[compact ? 'py-1.5' : 'py-3', toneClass(column)]"
             >
               <slot :name="`cell-${column.key}`" :row="row">
@@ -176,7 +204,7 @@ defineExpose({ reload, load })
                 <template v-else>{{ cell(row, column) }}</template>
               </slot>
             </TableCell>
-            <TableCell v-if="$slots['row-actions']" class="px-3" :class="compact ? 'py-1' : 'py-2.5'">
+            <TableCell v-if="$slots['row-actions']" :class="compact ? 'py-1' : 'py-2.5'">
               <div class="flex justify-end gap-1.5"><slot name="row-actions" :row="row" :reload="reload" /></div>
             </TableCell>
           </TableRow>
@@ -184,7 +212,7 @@ defineExpose({ reload, load })
 
         <TableBody v-else>
           <TableRow class="hover:bg-transparent">
-            <TableCell :colspan="visibleColumns.length + ($slots['row-actions'] ? 1 : 0)" class="px-3 py-14 text-center">
+            <TableCell :colspan="visibleColumns.length + ($slots['row-actions'] ? 1 : 0)" class="py-14 text-center">
               <template v-if="filtered">
                 <p class="font-medium">No records match these filters</p>
                 <p class="mt-1 text-muted-foreground">Change or clear the filters to see more.</p>
@@ -214,6 +242,6 @@ defineExpose({ reload, load })
           </div>
         </div>
       </footer>
-    </section>
+    </DataPanel>
   </div>
 </template>

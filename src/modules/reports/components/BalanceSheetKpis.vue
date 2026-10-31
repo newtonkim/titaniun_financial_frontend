@@ -9,10 +9,10 @@ defineProps<{ kpis: BalanceSheetKpi[]; isBalanced: boolean; difference: number; 
 <template>
   <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
     <div v-for="kpi in kpis" :key="kpi.key"
-      class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-      <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-neutral-400">{{ kpi.label }}</p>
-      <p class="mt-2 text-xl font-bold tabular-nums text-neutral-900 dark:text-white">{{ formatAccounting(kpi.amount) }}</p>
-      <p v-if="compareTo" class="mt-1 flex items-center gap-1 text-xs text-neutral-500">
+      class="rounded-lg border border-border bg-background p-4">
+      <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{{ kpi.label }}</p>
+      <p class="mt-2 text-xl font-bold tabular-nums text-foreground">{{ formatAccounting(kpi.amount) }}</p>
+      <p v-if="compareTo" class="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
         <template v-if="kpi.change !== null">
           <TrendingUp v-if="kpi.change >= 0" class="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
           <TrendingDown v-else class="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
@@ -25,7 +25,7 @@ defineProps<{ kpis: BalanceSheetKpi[]; isBalanced: boolean; difference: number; 
       </p>
     </div>
 
-    <div :class="['rounded-2xl border p-4 shadow-sm',
+    <div :class="['rounded-lg border p-4 shadow-sm',
       isBalanced
         ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/20'
         : 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/20']">
@@ -37,7 +37,7 @@ defineProps<{ kpis: BalanceSheetKpi[]; isBalanced: boolean; difference: number; 
         <AlertTriangle v-else class="h-5 w-5" />
         {{ isBalanced ? 'Balanced' : `Out by ${formatAccounting(Math.abs(difference))}` }}
       </p>
-      <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">Assets = Liabilities + Equity</p>
+      <p class="mt-1 text-xs text-muted-foreground">Assets = Liabilities + Equity</p>
     </div>
   </div>
 </template>

@@ -237,13 +237,13 @@ async function save(): Promise<void> {
   }
 }
 
-const input = 'w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-neutral-900 dark:text-white'
+const input = 'w-full rounded-lg border bg-transparent px-3 py-2 text-sm text-foreground'
 const inputClass = (field: string) => [
   input,
-  fieldError(field) ? 'border-red-400 dark:border-red-500' : 'border-neutral-300 dark:border-neutral-700',
+  fieldError(field) ? 'border-red-400 dark:border-red-500' : 'border-border',
 ]
-const card = 'rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900'
-const heading = 'mb-4 text-lg font-semibold text-neutral-900 dark:text-white'
+const card = 'rounded-lg border border-border bg-background p-6'
+const heading = 'mb-4 text-lg font-semibold text-foreground'
 const label = 'mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300'
 const errorText = 'mt-1 text-xs text-red-500'
 </script>
@@ -251,7 +251,7 @@ const errorText = 'mt-1 text-xs text-red-500'
 <template>
   <AppDrawer
     v-model:open="open"
-    :title="isEditing ? 'Edit member' : 'Create a sacco member'"
+    :title="isEditing ? 'Edit member' : 'Add a member'"
     width="w-full lg:w-2/3"
     :loading="saving"
     :save-disabled="loading"
@@ -263,14 +263,14 @@ const errorText = 'mt-1 text-xs text-red-500'
         class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-brand border-r-transparent"
         aria-hidden="true"
       />
-      <span class="text-sm font-medium text-neutral-500 dark:text-neutral-400">Loading details...</span>
+      <span class="text-sm font-medium text-muted-foreground">Loading details...</span>
     </div>
 
     <div v-else class="flex flex-col gap-6">
       <p
         v-if="message"
         role="alert"
-        class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300"
+        class="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300"
       >
         {{ message }}
       </p>
@@ -288,17 +288,17 @@ const errorText = 'mt-1 text-xs text-red-500'
                 type="button"
                 :disabled="isEditing"
                 :class="[
-                  'flex items-center gap-3 rounded-xl border p-3 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60',
+                  'flex items-center gap-3 rounded-lg border p-3 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60',
                   form.member_type === type
                     ? 'border-brand bg-brand/5 font-semibold text-brand'
-                    : 'border-neutral-200 text-neutral-600 hover:border-neutral-300 dark:border-neutral-700 dark:text-neutral-300',
+                    : 'border-border text-neutral-600 hover:border-neutral-300 dark:text-neutral-300',
                 ]"
                 @click="form.member_type = type"
               >
                 <component :is="type === 'new_member' ? UserPlus : UserRound" class="h-5 w-5 shrink-0" />
                 <span>
                   {{ type === 'new_member' ? 'New Member' : 'Existing Member' }}
-                  <span class="block text-xs font-normal text-neutral-500">
+                  <span class="block text-xs font-normal text-muted-foreground">
                     {{ type === 'new_member' ? 'Joining the sacco today' : 'Migrating with a savings balance' }}
                   </span>
                 </span>
@@ -335,7 +335,7 @@ const errorText = 'mt-1 text-xs text-red-500'
               placeholder="— select savings product —"
               :error="fieldError('savings_product_id')"
             />
-            <p class="mt-1 text-xs text-neutral-500">
+            <p class="mt-1 text-xs text-muted-foreground">
               A savings account is opened on this product when the member is saved.
             </p>
           </div>
@@ -376,7 +376,7 @@ const errorText = 'mt-1 text-xs text-red-500'
               <input
                 v-model="form.is_shareholder"
                 type="checkbox"
-                class="h-4 w-4 rounded border-neutral-300 accent-brand"
+                class="h-4 w-4 rounded border-border accent-brand"
               />
               Already a shareholder
             </label>
@@ -418,7 +418,7 @@ const errorText = 'mt-1 text-xs text-red-500'
           </div>
           <div
             v-if="shareProduct"
-            class="flex items-center justify-between rounded-xl bg-navy/5 px-4 py-3 sm:col-span-3 dark:bg-white/5"
+            class="flex items-center justify-between rounded-lg bg-navy/5 px-4 py-3 sm:col-span-3 dark:bg-white/5"
           >
             <span class="text-sm text-neutral-600 dark:text-neutral-300">Total investment</span>
             <span class="text-lg font-bold text-navy dark:text-white">{{ formatMoney(shareTotal) }}</span>
@@ -599,7 +599,7 @@ const errorText = 'mt-1 text-xs text-red-500'
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="flex items-center gap-4 sm:col-span-2">
             <div
-              class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-navy/10 text-navy dark:text-white"
+              class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-navy/10 text-navy dark:text-white"
             >
               <img
                 v-if="avatarPreview"

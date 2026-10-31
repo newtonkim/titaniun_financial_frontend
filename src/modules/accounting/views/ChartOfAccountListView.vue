@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { ChevronDown, ChevronRight, Plus, Search } from 'lucide-vue-next'
+import DataPanel from '@/core/components/DataPanel.vue'
+import PageHeader from '@/core/components/PageHeader.vue'
+import SegmentedControl from '@/core/components/SegmentedControl.vue'
+import { Button } from '@/core/components/ui/button'
+import { Input } from '@/core/components/ui/input'
+import { Skeleton } from '@/core/components/ui/skeleton'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/core/components/ui/table'
 import { formatEnum } from '@/core/utils/format'
 import { useAuth } from '@/modules/auth/store'
 import { chartOfAccountsApi } from '../api'
@@ -18,6 +25,7 @@ const error = ref('')
 const notice = ref('')
 const search = ref('')
 const typeFilter = ref<AccountType | ''>('')
+const TYPE_OPTIONS: { label: string; value: AccountType | '' }[] = [{ label: 'All', value: '' }, ...ACCOUNT_TYPES.map((value) => ({ label: formatEnum(value), value }))]
 const collapsed = ref(new Set<AccountType>())
 const editing = ref(false)
 const selected = ref<ChartOfAccount | null>(null)
@@ -50,6 +58,9 @@ function treeOrder(rows: ChartOfAccount[]): ChartOfAccount[] {
   visit(null)
   return ordered
 }
+
+const hasStatementLines = computed(() => groups.value.some((group) => group.type === 'income' || group.type === 'expense'))
+const columnCount = computed(() => 6 + (hasStatementLines.value ? 1 : 0) + (manage.value ? 1 : 0))
 
 const groups = computed(() =>
   ACCOUNT_TYPES.map((type) => ({ type, rows: treeOrder(accounts.value.filter((account) => account.type === type)) })).filter((group) => group.rows.length > 0),
@@ -123,123 +134,101 @@ onMounted(load)
 </script>
 
 <template>
-  <section class="coa">
-    <header class="coa__header">
-      <div>
-        <h1>Chart of accounts</h1>
-        <p class="muted">General ledger account structure for the SACCO.</p>
-      </div>
-      <button v-if="manage" type="button" class="btn btn--primary" @click="edit(null)"><Plus :size="16" aria-hidden="true" /> Add account</button>
-    </header>
+  <div class="tw-scope flex flex-col gap-4">
+    <PageHeader title="Chart of accounts" description="General ledger account structure for the SACCO.">
+      <Button v-if="manage" size="sm" @click="edit(null)"><Plus /> Add account</Button>
+    </PageHeader>
 
-    <div class="coa__tools">
-      <label class="coa__search">
-        <Search :size="16" aria-hidden="true" />
-        <input id="coa-search" v-model="search" type="search" placeholder="Search by code or name…" aria-label="Search accounts" />
-      </label>
-      <div class="coa__chips" role="group" aria-label="Account type">
-        <button type="button" class="chip" :class="{ 'chip--on': typeFilter === '' }" @click="typeFilter = ''">All</button>
-        <button v-for="type in ACCOUNT_TYPES" :key="type" type="button" class="chip" :class="{ 'chip--on': typeFilter === type }" @click="typeFilter = type">
-          {{ formatEnum(type) }}
-        </button>
-      </div>
-    </div>
+    <p v-if="error" role="alert" class="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{{ error }}</p>
+    <p v-if="notice" role="status" class="rounded-md bg-success/10 px-3 py-2 text-sm text-success">{{ notice }}</p>
 
-    <p v-if="error" class="alert alert--error" role="alert">{{ error }}</p>
-    <p v-if="notice" class="muted" role="status">{{ notice }}</p>
-    <p v-if="loading && !accounts.length" class="muted" role="status">Loading the chart of accounts…</p>
-    <p v-else-if="!loading && !accounts.length" class="panel empty">No accounts match. Clear the search or choose another type.</p>
+    <DataPanel label="Chart of accounts">
+      <template #toolbar>
+        <div class="relative min-w-52 flex-1 lg:max-w-72">
+          <Search class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input v-model="search" type="search" placeholder="Code or name" aria-label="Search accounts" class="h-8 pl-8 text-sm" />
+        </div>
+        <SegmentedControl v-model="typeFilter" :options="TYPE_OPTIONS" label="Account type" />
+      </template>
 
-    <div v-for="group in groups" :key="group.type" class="panel coa__group" :aria-busy="loading">
-      <button type="button" class="coa__group-head" :aria-expanded="!collapsed.has(group.type)" @click="toggle(group.type)">
-        <span class="type-pill" :class="`type-pill--${group.type}`">{{ formatEnum(group.type) }}</span>
-        <span class="muted">{{ group.rows.length }} accounts</span>
-        <component :is="collapsed.has(group.type) ? ChevronRight : ChevronDown" :size="16" class="coa__chevron" aria-hidden="true" />
-      </button>
-      <div v-show="!collapsed.has(group.type)" class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>GL code</th>
-              <th>Account name</th>
-              <th>Subtype</th>
-              <th>Balance</th>
-              <th>Postable</th>
-              <th>Status</th>
-              <th v-if="group.type === 'income' || group.type === 'expense'">Income statement line</th>
-              <th v-if="manage" class="num">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="account in group.rows" :key="account.id">
-              <td class="coa__code">{{ account.code }}</td>
-              <td>
-                <span class="coa__name" :style="{ paddingLeft: `${(account.level - 1) * 1.1}rem` }" :class="{ 'coa__name--header': account.is_control }">
-                  {{ account.name }}
-                  <span v-if="account.is_control" class="badge">Header</span>
-                </span>
-              </td>
-              <td class="muted">{{ account.subtype ?? '—' }}</td>
-              <td><span class="balance" :class="`balance--${account.normal_balance}`">{{ account.normal_balance === 'debit' ? 'DR' : 'CR' }}</span></td>
-              <td><span class="dot" :class="{ 'dot--on': account.is_postable }" :aria-label="account.is_postable ? 'Postable' : 'Not postable'" /></td>
-              <td><span class="badge" :class="{ 'badge--active': account.is_active }">{{ account.is_active ? 'Active' : 'Inactive' }}</span></td>
-              <td v-if="group.type === 'income' || group.type === 'expense'">
-                <select
-                  :id="`coa-line-${account.id}`"
-                  :value="account.income_statement_line ?? ''"
-                  :aria-label="`Income statement line for ${account.name}`"
-                  :disabled="!manage || busy.has(account.id)"
-                  class="coa__line"
-                  @change="saveLine(account, $event)"
-                >
-                  <option value="">Inherit from parent / unclassified</option>
-                  <option v-for="line in INCOME_STATEMENT_LINES.filter((item) => item.type === account.type)" :key="line.key" :value="line.key">{{ line.label }}</option>
-                </select>
-              </td>
-              <td v-if="manage" class="num">
-                <div class="row-actions">
-                  <button v-if="account.is_postable" type="button" class="btn btn--small" @click="edit(account)">Edit</button>
-                  <span v-else class="muted" title="Headers are the chart's fixed structure and cannot be edited.">—</span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <Table class="text-[0.8125rem] tabular-nums" :aria-busy="loading || undefined">
+        <TableHeader>
+          <TableRow class="hover:bg-transparent">
+            <TableHead>GL code</TableHead>
+            <TableHead>Account name</TableHead>
+            <TableHead>Subtype</TableHead>
+            <TableHead>Balance</TableHead>
+            <TableHead>Postable</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead v-if="hasStatementLines">Income statement line</TableHead>
+            <TableHead v-if="manage"><span class="sr-only">Actions</span></TableHead>
+          </TableRow>
+        </TableHeader>
+
+        <TableBody v-if="loading && !accounts.length">
+          <TableRow v-for="row in 10" :key="row" class="hover:bg-transparent">
+            <TableCell v-for="column in columnCount" :key="column" class="py-2.5"><Skeleton class="h-4 w-full max-w-32 bg-muted" /></TableCell>
+          </TableRow>
+        </TableBody>
+
+        <TableBody v-else-if="!accounts.length">
+          <TableRow class="hover:bg-transparent">
+            <TableCell :colspan="columnCount" class="py-14 text-center">
+              <p class="font-medium">No accounts match</p>
+              <p class="mt-1 text-muted-foreground">Clear the search or choose another type.</p>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+
+        <template v-else>
+          <TableBody v-for="group in groups" :key="group.type">
+            <TableRow class="bg-muted/50 hover:bg-muted">
+              <TableCell :colspan="columnCount" class="p-0">
+                <button type="button" class="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-left font-semibold text-navy dark:text-white" :aria-expanded="!collapsed.has(group.type)" @click="toggle(group.type)">
+                  <component :is="collapsed.has(group.type) ? ChevronRight : ChevronDown" class="size-4 text-muted-foreground" aria-hidden="true" />
+                  {{ formatEnum(group.type) }}
+                  <span class="font-normal text-muted-foreground">{{ group.rows.length }} accounts</span>
+                </button>
+              </TableCell>
+            </TableRow>
+            <template v-if="!collapsed.has(group.type)">
+              <TableRow v-for="account in group.rows" :key="account.id">
+                <TableCell class="font-medium text-muted-foreground">{{ account.code }}</TableCell>
+                <TableCell>
+                  <span class="inline-flex items-center gap-1.5" :style="{ paddingLeft: `${(account.level - 1) * 1.1}rem` }" :class="{ 'font-semibold text-navy dark:text-white': account.is_control }">
+                    {{ account.name }}
+                    <span v-if="account.is_control" class="badge">Header</span>
+                  </span>
+                </TableCell>
+                <TableCell class="text-muted-foreground">{{ account.subtype ?? '—' }}</TableCell>
+                <TableCell class="text-muted-foreground">{{ account.normal_balance === 'debit' ? 'DR' : 'CR' }}</TableCell>
+                <TableCell class="text-muted-foreground">{{ account.is_postable ? 'Yes' : 'No' }}</TableCell>
+                <TableCell><span class="badge" :class="{ 'badge--active': account.is_active }">{{ account.is_active ? 'Active' : 'Inactive' }}</span></TableCell>
+                <TableCell v-if="hasStatementLines" class="py-1">
+                  <select
+                    v-if="group.type === 'income' || group.type === 'expense'"
+                    :id="`coa-line-${account.id}`"
+                    :value="account.income_statement_line ?? ''"
+                    :aria-label="`Income statement line for ${account.name}`"
+                    :disabled="!manage || busy.has(account.id)"
+                    class="h-7 max-w-60 rounded-md py-0 text-[0.8125rem]"
+                    @change="saveLine(account, $event)"
+                  >
+                    <option value="">Inherit from parent / unclassified</option>
+                    <option v-for="line in INCOME_STATEMENT_LINES.filter((item) => item.type === account.type)" :key="line.key" :value="line.key">{{ line.label }}</option>
+                  </select>
+                </TableCell>
+                <TableCell v-if="manage" class="py-1 text-right">
+                  <Button v-if="account.is_postable" variant="outline" size="xs" @click="edit(account)">Edit</Button>
+                  <span v-else class="text-muted-foreground" title="Headers are the chart's fixed structure and cannot be edited.">—</span>
+                </TableCell>
+              </TableRow>
+            </template>
+          </TableBody>
+        </template>
+      </Table>
+    </DataPanel>
 
     <ChartOfAccountFormDrawer v-model:open="editing" :account="selected" :accounts="all" @saved="saved" />
-  </section>
+  </div>
 </template>
-
-<style scoped>
-.coa { display: flex; flex-direction: column; gap: 1rem; }
-.coa__header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
-.coa__header p { margin: 0.25rem 0 0; }
-.coa__tools { display: flex; flex-direction: column; gap: 0.75rem; }
-.coa__search { position: relative; display: flex; align-items: center; max-width: 24rem; color: var(--muted); }
-.coa__search svg { position: absolute; left: 0.75rem; }
-.coa__search input { width: 100%; padding-left: 2.25rem; border-radius: 999px; }
-.coa__chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.chip { border: 1px solid var(--border); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 0.25rem 0.75rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-.chip--on { background: var(--primary); border-color: var(--primary); color: var(--primary-text); }
-.coa__group { padding: 0; overflow: hidden; }
-.coa__group-head { display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 1.25rem; background: none; border: 0; border-bottom: 1px solid var(--border); cursor: pointer; color: inherit; text-align: left; }
-.coa__chevron { margin-left: auto; color: var(--muted); }
-.coa__group .table-wrap { padding: 0 0.75rem 0.5rem; }
-.type-pill { border-radius: 999px; padding: 0.1rem 0.65rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
-.type-pill--asset { background: oklch(from var(--primary) l c 250 / 0.14); color: oklch(from var(--primary) 0.5 0.15 250); }
-.type-pill--liability { background: oklch(0.75 0.15 60 / 0.18); color: oklch(0.55 0.15 55); }
-.type-pill--equity { background: oklch(0.7 0.15 300 / 0.16); color: oklch(0.5 0.17 300); }
-.type-pill--income { background: oklch(0.75 0.15 150 / 0.16); color: oklch(0.5 0.14 150); }
-.type-pill--expense { background: oklch(0.7 0.17 25 / 0.15); color: oklch(0.52 0.17 25); }
-.coa__code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.8rem; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
-.coa__name { display: inline-flex; align-items: center; gap: 0.4rem; }
-.coa__name--header { font-weight: 600; color: var(--heading); }
-.balance { border-radius: 999px; padding: 0.05rem 0.5rem; font-size: 0.75rem; font-weight: 700; }
-.balance--debit { color: oklch(0.5 0.15 250); background: oklch(0.6 0.15 250 / 0.1); }
-.balance--credit { color: oklch(0.55 0.15 55); background: oklch(0.7 0.15 60 / 0.12); }
-.dot { display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--border); }
-.dot--on { background: var(--success); }
-.coa__line { max-width: 15rem; font-size: 0.8rem; padding: 0.3rem 0.4rem; }
-</style>

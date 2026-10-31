@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PageParams } from '@/core/api/resource'
 import { reactive, ref } from 'vue'
 import { Plus } from 'lucide-vue-next'
 import ResourceTable, { type Column } from '@/core/components/ResourceTable.vue'
@@ -13,19 +14,20 @@ const actionError = ref<string | null>(null)
 const busyLoanId = ref<number | null>(null)
 
 const columns: Column<Loan>[] = [
-  { key: 'loan_number', label: 'Loan #' },
-  { key: 'borrower', label: 'Borrower', value: (loan) => (loan.borrower ? loan.borrower.name : null) },
-  { key: 'product', label: 'Product', value: (loan) => loan.product?.name },
-  { key: 'principal', label: 'Principal', align: 'right', value: (loan) => formatMoney(loan.principal) },
+  { key: 'loan_number', label: 'Loan #', sortable: true },
+  { key: 'borrower', label: 'Borrower', sortable: true, value: (loan) => (loan.borrower ? loan.borrower.name : null) },
+  { key: 'product', label: 'Product', sortable: true, value: (loan) => loan.product?.name },
+  { key: 'principal', label: 'Principal', sortable: true, align: 'right', value: (loan) => formatMoney(loan.principal) },
   {
     key: 'outstanding_principal',
     label: 'Outstanding',
+    sortable: true,
     align: 'right',
     value: (loan) => formatMoney(loan.outstanding_principal),
   },
-  { key: 'term', label: 'Term' },
-  { key: 'status', label: 'Status' },
-  { key: 'maturity_date', label: 'Matures', value: (loan) => formatDate(loan.maturity_date) },
+  { key: 'term', label: 'Term', sortable: true },
+  { key: 'status', label: 'Status', sortable: true },
+  { key: 'maturity_date', label: 'Matures', sortable: true, value: (loan) => formatDate(loan.maturity_date) },
 ]
 
 async function run(loan: Loan, action: (id: number) => Promise<Loan>, reload: () => Promise<void>): Promise<void> {
@@ -42,7 +44,7 @@ async function run(loan: Loan, action: (id: number) => Promise<Loan>, reload: ()
 }
 
 const disburse = (id: number) => loansApi.disburse(id)
-const fetchPage = (page: number, perPage: number) => loansApi.list({ ...filters, page, per_page: perPage })
+const fetchPage = (params: PageParams) => loansApi.list({ ...filters, ...params })
 </script>
 
 <template>

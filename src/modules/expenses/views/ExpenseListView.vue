@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PageParams } from '@/core/api/resource'
 import { reactive } from 'vue'
 import { Plus } from 'lucide-vue-next'
 import DateRangeFilter from '@/core/components/DateRangeFilter.vue'
@@ -11,15 +12,15 @@ import type { Expense, ExpenseFilters } from '../types'
 const filters = reactive<ExpenseFilters>({ from: '', to: '' })
 
 const columns: Column<Expense>[] = [
-  { key: 'expense_date', label: 'Date', value: (expense) => formatDate(expense.expense_date) },
-  { key: 'category', label: 'Category', value: (expense) => expense.category?.name },
-  { key: 'description', label: 'Description', truncate: true },
-  { key: 'reference', label: 'Reference', tone: 'muted' },
+  { key: 'expense_date', label: 'Date', sortable: true, value: (expense) => formatDate(expense.expense_date) },
+  { key: 'category', label: 'Category', sortable: true, value: (expense) => expense.category?.name },
+  { key: 'description', label: 'Description', sortable: true, truncate: true },
+  { key: 'reference', label: 'Reference', sortable: true, tone: 'muted' },
   { key: 'recorder', label: 'Recorded by', tone: 'muted', value: (expense) => expense.recorder?.name },
-  { key: 'amount', label: 'Amount', align: 'right', value: (expense) => formatMoney(expense.amount) },
+  { key: 'amount', label: 'Amount', sortable: true, align: 'right', value: (expense) => formatMoney(expense.amount) },
 ]
 
-const fetchPage = (page: number, perPage: number) => expensesApi.list({ ...filters, page, per_page: perPage })
+const fetchPage = (params: PageParams) => expensesApi.list({ ...filters, ...params })
 </script>
 
 <template>
