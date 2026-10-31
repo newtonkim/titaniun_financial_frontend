@@ -40,10 +40,10 @@ const bars = computed<Bar[]>(() => {
     ['investing', 'Investing', 'Property, equipment and investments'],
     ['financing', 'Financing', 'Share capital, borrowings and dividends'],
   ]
-  if (Number(s.other) !== 0)
-    steps.push(['other', 'Brought on', 'Opening balances set up on the system'])
+  if (Number(s.migrated) !== 0)
+    steps.push(['migrated', 'Migrated', 'Balances loaded at go-live, not a cash flow'])
   for (const [key, label, note] of steps) {
-    const amount = s[key as 'operating' | 'investing' | 'financing' | 'other']
+    const amount = s[key as 'operating' | 'investing' | 'financing' | 'migrated']
     const value = Number(amount)
     out.push({
       key,

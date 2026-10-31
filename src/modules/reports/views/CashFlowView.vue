@@ -4,13 +4,16 @@ import { computed, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import {
   AlertTriangle,
-  CheckCircle2,
+  CircleCheck,
+  CircleX,
   ChevronDown,
   ChevronRight,
   Download,
   Info,
   RefreshCw,
 } from 'lucide-vue-next'
+import DataPanel from '@/core/components/DataPanel.vue'
+import { Button } from '@/core/components/ui/button'
 import type { CashFlowAccount } from '../api'
 import CashFlowWaterfall from '../components/CashFlowWaterfall.vue'
 import CashFlowMonthly from '../components/CashFlowMonthly.vue'
@@ -18,6 +21,7 @@ import CashFlowLedgerDrawer from '../components/CashFlowLedgerDrawer.vue'
 import { useCashFlow } from '../composables/useCashFlow'
 import { useCashFlowExport } from '../composables/useCashFlowExport'
 import { cashMoney, dayLabel, isNegative, isZero } from '../utils/cashFlowFormat'
+import { FINANCING_LIABILITY_ROWS, includesMigration, reconciliationLines, sectionLines } from '../utils/cashFlowStatement'
 import { cashFlowSummary } from '../utils/cashFlowSummary'
 
 const {
@@ -39,6 +43,15 @@ const exportKind = ref<'csv' | 'excel' | 'pdf'>('pdf')
 
 const summary = computed(() => (result.value ? cashFlowSummary(result.value) : ''))
 const reconciled = computed(() => !!result.value && isZero(result.value.diagnostics.difference))
+const migrated = computed(() => !!result.value && includesMigration(result.value))
+const failedChecks = computed(() => result.value?.checks.filter((check) => !check.passed).length ?? 0)
+const reconciliation = computed(() => (result.value ? reconciliationLines(result.value) : []))
+const hasNonCash = computed(() => result.value?.non_cash.some((item) => !isZero(item.amount) || !isZero(item.compare_amount)) ?? false)
+const hasBorrowings = computed(() => {
+  const liabilities = result.value?.financing_liabilities
+  if (!liabilities) return false
+  return [liabilities.current, liabilities.compare].some((period) => Object.values(period).some((amount) => !isZero(amount)))
+})
 const expandable = computed(
   () =>
     result.value?.sections.flatMap((s) =>
@@ -97,495 +110,252 @@ watch(result, () => {
   drawerOpen.value = false
 })
 
-const sectionTotalLabel: Record<string, string> = {
-  operating: 'Net cash from operating activities',
-  investing: 'Net cash from investing activities',
-  financing: 'Net cash from financing activities',
-  other: 'Net balances brought onto the system',
-}
-
-const inputClass =
-  'rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground'
-const buttonClass =
-  'inline-flex items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50 dark:hover:bg-neutral-800'
-const cardClass =
-  'rounded-lg border border-border bg-background'
+const inputClass = 'rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground'
 </script>
 
 <template>
-  <div class="tw-scope flex flex-col gap-4 text-neutral-900 dark:text-neutral-100">
-    <PageHeader title="Cash flow statement" description="Where the SACCO's cash came from and where it went, for a selected period.">
-        <select v-model="exportKind" aria-label="Export format" :class="inputClass">
-          <option value="pdf">PDF</option>
-          <option value="excel">Excel</option>
-          <option value="csv">CSV</option>
-        </select>
-        <button
-          :class="buttonClass"
-          :disabled="!result || loading || exporting"
-          @click="exportReport(exportKind)"
-        >
-          <Download class="h-4 w-4" />Export
-        </button>
+  <div class="tw-scope flex flex-col gap-4">
+    <PageHeader title="Cash flow statement" description="Where the SACCO's cash came from and where it went, in the format used for audited accounts.">
+      <select v-model="exportKind" aria-label="Export format" :class="inputClass">
+        <option value="pdf">PDF</option>
+        <option value="excel">Excel</option>
+        <option value="csv">CSV</option>
+      </select>
+      <Button variant="outline" size="sm" :disabled="!result || loading || exporting" @click="exportReport(exportKind)"><Download /> Export</Button>
     </PageHeader>
 
-    <form :class="[cardClass, 'p-4']" @submit.prevent="generate()">
-      <div class="mb-4 flex flex-wrap gap-2">
-        <button type="button" :class="buttonClass" :disabled="loading" @click="generate(true)">
-          Financial year to date
-        </button>
-        <button type="button" :class="buttonClass" :disabled="loading" @click="setPreset('month')">
-          Month to date
-        </button>
-        <button
-          type="button"
-          :class="buttonClass"
-          :disabled="loading"
-          @click="setPreset('quarter')"
-        >
-          Quarter to date
-        </button>
+    <form class="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-background p-3" @submit.prevent="generate()">
+      <div class="flex w-full flex-wrap gap-2">
+        <Button type="button" variant="outline" size="sm" :disabled="loading" @click="generate(true)">Financial year to date</Button>
+        <Button type="button" variant="outline" size="sm" :disabled="loading" @click="setPreset('quarter')">Quarter to date</Button>
+        <Button type="button" variant="outline" size="sm" :disabled="loading" @click="setPreset('month')">Month to date</Button>
       </div>
-      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <label class="flex flex-col gap-1 text-xs font-medium"
-          >Period from<input v-model="from" type="date" required :class="inputClass"
-        /></label>
-        <label class="flex flex-col gap-1 text-xs font-medium"
-          >Period to<input v-model="to" type="date" required :class="inputClass"
-        /></label>
-        <label class="flex flex-col gap-1 text-xs font-medium"
-          >Compare from<input v-model="compareFrom" type="date" required :class="inputClass"
-        /></label>
-        <label class="flex flex-col gap-1 text-xs font-medium"
-          >Compare to<input v-model="compareTo" type="date" required :class="inputClass"
-        /></label>
-      </div>
-      <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <label class="flex items-center gap-2 text-sm text-muted-foreground">
-          <input v-model="hideZero" type="checkbox" />Hide lines with no cash in either period
-        </label>
-        <button
-          type="submit"
-          :disabled="loading"
-          class="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-1.5 text-sm font-semibold text-white disabled:opacity-50"
-        >
-          <RefreshCw class="h-4 w-4" :class="{ 'animate-spin': loading }" />{{
-            loading ? 'Generating…' : 'Generate statement'
-          }}
-        </button>
-      </div>
+      <label class="flex flex-col gap-1 text-xs font-medium">Period from<input v-model="from" type="date" required :class="inputClass" /></label>
+      <label class="flex flex-col gap-1 text-xs font-medium">Period to<input v-model="to" type="date" required :class="inputClass" /></label>
+      <label class="flex flex-col gap-1 text-xs font-medium">Compare from<input v-model="compareFrom" type="date" required :class="inputClass" /></label>
+      <label class="flex flex-col gap-1 text-xs font-medium">Compare to<input v-model="compareTo" type="date" required :class="inputClass" /></label>
+      <Button type="submit" size="sm" :disabled="loading"><RefreshCw :class="{ 'animate-spin': loading }" />{{ loading ? 'Generating…' : 'Generate' }}</Button>
+      <label class="ml-auto flex items-center gap-2 text-sm text-muted-foreground"><input v-model="hideZero" type="checkbox" />Hide lines with no cash</label>
     </form>
 
-    <p
-      v-if="error"
-      role="alert"
-      class="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800"
-    >
-      {{ error }}
-    </p>
-    <p v-if="exportError" role="alert" class="text-sm text-rose-700">{{ exportError }}</p>
-    <div
-      v-if="loading && !result"
-      role="status"
-      aria-live="polite"
-      class="rounded-lg border border-border p-12 text-center text-sm text-muted-foreground"
-    >
+    <p v-if="error" role="alert" class="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{{ error }}</p>
+    <p v-if="exportError" role="alert" class="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{{ exportError }}</p>
+    <p v-if="loading && !result" role="status" aria-live="polite" class="rounded-lg border border-border bg-background p-12 text-center text-sm text-muted-foreground">
       Reading cash movements from the ledger…
-    </div>
+    </p>
 
-    <template v-if="result">
-      <div :class="{ 'opacity-60 transition-opacity': loading }" class="flex flex-col gap-6">
-        <!-- Warnings -->
-        <div
-          v-if="!reconciled"
-          role="alert"
-          class="flex gap-3 rounded-lg border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100"
-        >
-          <AlertTriangle class="mt-0.5 h-5 w-5 shrink-0" />
-          <div>
-            <p class="font-semibold">
-              The statement is out by {{ cashMoney(result.diagnostics.difference) }}
-            </p>
-            <p class="mt-1">
-              The change in the cash accounts does not match the cash flows found. This happens when
-              a journal entry that moved cash does not balance. Check the journal entries for this
-              period.
-            </p>
-          </div>
-        </div>
-        <p
-          v-if="result.diagnostics.cash_account_count === 0"
-          class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-950 dark:text-amber-100"
-        >
-          No cash or bank accounts were found. Cash accounts are those under Cash &amp; Cash
-          Equivalents (11100) in the chart of accounts, or with the Cash or Bank subtype.
-        </p>
-        <div
-          v-if="!result.diagnostics.classification_complete"
-          class="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:bg-amber-950 dark:text-amber-100"
-        >
-          <p class="font-semibold">Some accounts are not classified for the cash flow statement</p>
-          <p class="mt-1">
-            Their cash is included under “Other operating cash flows”, so the totals are still
-            complete.
-          </p>
-          <details class="mt-2">
-            <summary class="cursor-pointer">
-              View {{ result.diagnostics.issues.length }} accounts
-            </summary>
-            <ul class="mt-2 space-y-1">
-              <li v-for="issue in result.diagnostics.issues" :key="issue.account_id">
-                {{ issue.code }} · {{ issue.name }} — {{ issue.message }}
-              </li>
-            </ul>
-          </details>
-          <RouterLink :to="{ name: 'accounting.chart-of-accounts' }" class="mt-2 inline-block font-medium underline"
-            >Review chart of accounts</RouterLink
-          >
-        </div>
-
-        <!-- Headline -->
-        <section :class="[cardClass, 'p-5']">
-          <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">In short</p>
-          <p class="mt-2 text-base leading-relaxed text-neutral-800 dark:text-neutral-100">
-            {{ summary }}
-          </p>
-        </section>
-
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div v-for="kpi in kpis" :key="kpi.key" :class="[cardClass, 'p-4 shadow-sm']">
-            <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              {{ kpi.label }}
-            </p>
-            <p
-              class="mt-2 text-xl font-bold tabular-nums"
-              :class="
-                isNegative(kpi.amount)
-                  ? 'text-rose-700 dark:text-rose-400'
-                  : 'text-foreground'
-              "
-            >
-              {{ isZero(kpi.amount) ? '0.00' : cashMoney(kpi.amount) }}
-            </p>
-            <p class="mt-1 text-xs text-muted-foreground">{{ kpi.note }}</p>
-            <p class="mt-2 text-xs text-muted-foreground">
-              Comparison:
-              <span class="font-medium tabular-nums text-neutral-700 dark:text-neutral-300">{{
-                isZero(kpi.compare) ? '0.00' : cashMoney(kpi.compare)
-              }}</span>
-            </p>
-          </div>
-        </div>
-
-        <!-- Charts -->
-        <div class="grid gap-6 xl:grid-cols-2">
-          <section :class="[cardClass, 'min-w-0 p-5']">
-            <h2 class="font-semibold">From opening to closing cash</h2>
-            <p class="mb-3 mt-1 text-xs text-muted-foreground">
-              Net cash each activity added or used. Hover a bar for details.
-            </p>
-            <CashFlowWaterfall :report="result" />
-          </section>
-          <section :class="[cardClass, 'min-w-0 p-5']">
-            <h2 class="font-semibold">Net cash flow by month</h2>
-            <p class="mb-3 mt-1 text-xs text-muted-foreground">
-              Money in less money out each month. Hover a month for the breakdown.
-            </p>
-            <CashFlowMonthly :months="result.monthly" />
-          </section>
-        </div>
-
-        <!-- The statement -->
-        <section :class="[cardClass, 'overflow-hidden']">
-          <header
-            class="flex flex-wrap items-start justify-between gap-4 border-b border-border px-6 py-6"
-          >
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                {{ result.entity }}
-              </p>
-              <h2 class="mt-1 text-xl font-semibold">Statement of Cash Flows</h2>
-              <p class="mt-2 text-sm text-muted-foreground">
-                {{ dayLabel(result.from) }} to {{ dayLabel(result.to) }} · {{ result.currency }} ·
-                Direct method
-              </p>
-              <p
-                v-if="result.period_default === 'calendar_year' && !result.financial_year"
-                class="mt-1 text-xs text-muted-foreground"
-              >
-                No financial year is set up for this date, so “year to date” uses the calendar year.
-              </p>
-            </div>
-            <span
-              class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
-              :class="
-                reconciled
-                  ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                  : 'bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
-              "
-            >
-              <CheckCircle2 v-if="reconciled" class="h-3.5 w-3.5" /><AlertTriangle
-                v-else
-                class="h-3.5 w-3.5"
-              />
-              {{ reconciled ? 'Reconciles to the cash accounts' : 'Does not reconcile' }}
-            </span>
-          </header>
-          <div class="flex gap-4 px-6 pt-4 text-xs font-medium">
-            <button
-              type="button"
-              class="underline underline-offset-4"
-              @click="expanded = new Set(expandable)"
-            >
-              Show accounts
-            </button>
-            <button
-              type="button"
-              class="underline underline-offset-4"
-              @click="expanded = new Set()"
-            >
-              Hide accounts
-            </button>
-          </div>
-          <p class="px-6 pt-3 text-xs text-muted-foreground sm:hidden">
-            Scroll the table sideways to see both periods.
-          </p>
-          <div class="overflow-x-auto">
-            <table class="mt-2 w-full min-w-[680px] text-sm">
-              <caption class="sr-only">
-                Cash flows by activity for the period and the comparison period. Amounts in
-                parentheses are cash paid out.
-              </caption>
-              <thead class="bg-neutral-50 text-xs text-muted-foreground dark:bg-neutral-800/50">
-                <tr>
-                  <th scope="col" class="px-6 py-3 text-left">Description</th>
-                  <th scope="col" class="px-6 py-3 text-right">
-                    {{ dayLabel(result.from) }}<br />to {{ dayLabel(result.to) }}
-                  </th>
-                  <th scope="col" class="px-6 py-3 text-right">
-                    {{ dayLabel(result.compare_from) }}<br />to {{ dayLabel(result.compare_to) }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  class="border-b border-border bg-neutral-50/60 font-semibold dark:bg-neutral-800/30"
-                >
-                  <th scope="row" class="px-6 py-3 text-left [font-weight:inherit]">
-                    Cash and cash equivalents at the start of the period
-                  </th>
-                  <td class="px-6 py-3 text-right tabular-nums">
-                    {{ cashMoney(result.summary.opening_cash) }}
-                  </td>
-                  <td class="px-6 py-3 text-right tabular-nums">
-                    {{ cashMoney(result.summary.compare_opening_cash) }}
-                  </td>
-                </tr>
-                <template v-for="section in result.sections" :key="section.key">
-                  <tr>
-                    <th
-                      scope="rowgroup"
-                      colspan="3"
-                      class="px-6 pb-2 pt-5 text-left text-xs font-bold uppercase tracking-wider text-navy dark:text-blue-300"
-                    >
-                      {{ section.label }}
-                    </th>
-                  </tr>
-                  <tr v-if="!section.rows.length">
-                    <td colspan="3" class="px-6 py-2 text-sm italic text-muted-foreground">
-                      No cash moved in this activity.
-                    </td>
-                  </tr>
-                  <template v-for="row in section.rows" :key="row.key">
-                    <tr class="border-b border-border">
-                      <th scope="row" class="px-6 py-2.5 text-left font-normal">
-                        <button
-                          v-if="row.accounts.length"
-                          type="button"
-                          class="flex items-center gap-2 text-left"
-                          :aria-expanded="expanded.has(row.key)"
-                          @click="toggle(row.key)"
-                        >
-                          <component
-                            :is="expanded.has(row.key) ? ChevronDown : ChevronRight"
-                            class="h-4 w-4 shrink-0 text-muted-foreground"
-                          />
-                          <span>{{ row.label }}</span>
-                        </button>
-                        <span v-else class="pl-6">{{ row.label }}</span>
-                        <span class="sr-only">. {{ row.hint }}</span>
-                      </th>
-                      <td class="px-6 py-2.5 text-right tabular-nums" :title="row.hint">
-                        {{ cashMoney(row.amount) }}
-                      </td>
-                      <td
-                        class="px-6 py-2.5 text-right tabular-nums text-neutral-600 dark:text-neutral-400"
-                      >
-                        {{ cashMoney(row.compare_amount) }}
-                      </td>
-                    </tr>
-                    <template v-if="expanded.has(row.key)">
-                      <tr>
-                        <td
-                          colspan="3"
-                          class="bg-neutral-50/50 py-1.5 pl-14 pr-6 text-xs text-muted-foreground dark:bg-neutral-800/20"
-                        >
-                          <Info class="mr-1 inline-block h-3.5 w-3.5 align-[-2px]" />{{ row.hint }}
-                        </td>
-                      </tr>
-                      <tr
-                        v-for="account in row.accounts"
-                        :key="`${row.key}-${account.id}`"
-                        class="border-b border-border bg-neutral-50/50 text-neutral-600 dark:bg-neutral-800/20 dark:text-neutral-400"
-                      >
-                        <th scope="row" class="py-2 pl-14 pr-6 text-left font-normal">
-                          <span class="mr-2 font-mono text-xs text-muted-foreground">{{
-                            account.code
-                          }}</span
-                          >{{ account.name }}
-                        </th>
-                        <td class="px-6 py-2 text-right tabular-nums">
-                          <button
-                            type="button"
-                            class="underline decoration-dotted underline-offset-4"
-                            :aria-label="`${account.name}: cash entries in the period`"
-                            @click="drill(account)"
-                          >
-                            {{ cashMoney(account.amount) }}
-                          </button>
-                        </td>
-                        <td class="px-6 py-2 text-right tabular-nums">
-                          <button
-                            type="button"
-                            class="underline decoration-dotted underline-offset-4"
-                            :aria-label="`${account.name}: cash entries in the comparison period`"
-                            @click="drill(account, true)"
-                          >
-                            {{ cashMoney(account.compare_amount) }}
-                          </button>
-                        </td>
-                      </tr>
-                    </template>
-                  </template>
-                  <tr
-                    class="border-y border-border bg-neutral-50 font-semibold dark:bg-neutral-800/50"
-                  >
-                    <th scope="row" class="px-6 py-3 text-left [font-weight:inherit]">
-                      {{ sectionTotalLabel[section.key] }}
-                    </th>
-                    <td class="px-6 py-3 text-right tabular-nums">
-                      {{ cashMoney(section.total) }}
-                    </td>
-                    <td class="px-6 py-3 text-right tabular-nums">
-                      {{ cashMoney(section.compare_total) }}
-                    </td>
-                  </tr>
-                </template>
-                <tr class="border-y-2 border-navy bg-blue-50 font-bold dark:bg-blue-950">
-                  <th scope="row" class="px-6 py-3 text-left [font-weight:inherit]">
-                    Net increase / (decrease) in cash
-                  </th>
-                  <td class="px-6 py-3 text-right tabular-nums">
-                    {{ cashMoney(result.summary.net_change) }}
-                  </td>
-                  <td class="px-6 py-3 text-right tabular-nums">
-                    {{ cashMoney(result.summary.compare_net_change) }}
-                  </td>
-                </tr>
-                <tr class="font-bold">
-                  <th scope="row" class="px-6 py-3 text-left [font-weight:inherit]">
-                    Cash and cash equivalents at the end of the period
-                  </th>
-                  <td class="px-6 py-3 text-right tabular-nums">
-                    {{ cashMoney(result.summary.closing_cash) }}
-                  </td>
-                  <td class="px-6 py-3 text-right tabular-nums">
-                    {{ cashMoney(result.summary.compare_closing_cash) }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- Cash accounts -->
-        <section :class="[cardClass, 'overflow-hidden']">
-          <header class="border-b border-border px-6 py-4">
-            <h2 class="font-semibold">Cash and bank accounts</h2>
-            <p class="mt-1 text-xs text-muted-foreground">
-              What makes up cash and cash equivalents, at the start and end of the period.
-            </p>
-          </header>
-          <div class="overflow-x-auto">
-            <table class="w-full min-w-[560px] text-sm">
-              <thead class="bg-neutral-50 text-xs text-muted-foreground dark:bg-neutral-800/50">
-                <tr>
-                  <th scope="col" class="px-6 py-3 text-left">Account</th>
-                  <th scope="col" class="px-6 py-3 text-right">At {{ dayLabel(result.from) }}</th>
-                  <th scope="col" class="px-6 py-3 text-right">At {{ dayLabel(result.to) }}</th>
-                  <th scope="col" class="px-6 py-3 text-right">Change</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="a in result.cash_accounts"
-                  :key="a.id"
-                  class="border-b border-border"
-                >
-                  <th scope="row" class="px-6 py-2.5 text-left font-normal">
-                    <span class="mr-2 font-mono text-xs text-muted-foreground">{{ a.code }}</span
-                    >{{ a.name }}
-                  </th>
-                  <td class="px-6 py-2.5 text-right tabular-nums">{{ cashMoney(a.opening) }}</td>
-                  <td class="px-6 py-2.5 text-right tabular-nums">{{ cashMoney(a.closing) }}</td>
-                  <td class="px-6 py-2.5 text-right tabular-nums">{{ cashMoney(a.change) }}</td>
-                </tr>
-                <tr v-if="!result.cash_accounts.length">
-                  <td colspan="4" class="px-6 py-6 text-center text-muted-foreground">
-                    No cash accounts with a balance.
-                  </td>
-                </tr>
-                <tr class="bg-neutral-50 font-semibold dark:bg-neutral-800/50">
-                  <th scope="row" class="px-6 py-3 text-left [font-weight:inherit]">Total</th>
-                  <td class="px-6 py-3 text-right tabular-nums">
-                    {{ cashMoney(result.summary.opening_cash) }}
-                  </td>
-                  <td class="px-6 py-3 text-right tabular-nums">
-                    {{ cashMoney(result.summary.closing_cash) }}
-                  </td>
-                  <td class="px-6 py-3 text-right tabular-nums">
-                    {{ cashMoney(result.summary.net_change) }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <footer class="space-y-2 text-xs leading-relaxed text-muted-foreground">
-          <p>
-            Amounts in parentheses are cash paid out. Account amounts open the cash entries behind
-            them.
-          </p>
-          <p>{{ result.basis }}</p>
-          <p>
-            Reconciliation: opening cash + net cash flow − closing cash =
-            {{
-              isZero(result.diagnostics.difference)
-                ? '0.00'
-                : cashMoney(result.diagnostics.difference)
-            }}
-            · comparison
-            {{
-              isZero(result.diagnostics.compare_difference)
-                ? '0.00'
-                : cashMoney(result.diagnostics.compare_difference)
-            }}.
-          </p>
-          <p>Generated {{ new Date(result.generated_at).toLocaleString() }}</p>
-        </footer>
+    <div v-if="result" class="flex flex-col gap-4" :class="{ 'opacity-60 transition-opacity': loading }">
+      <div v-if="!reconciled" role="alert" class="flex gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <AlertTriangle class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <p><strong>The statement is out by {{ cashMoney(result.diagnostics.difference) }}.</strong> The change in the cash accounts does not match the cash flows found, which happens when a journal entry that moved cash does not balance. Check the journal entries for this period.</p>
       </div>
-    </template>
+      <p v-if="result.diagnostics.cash_account_count === 0" class="rounded-md bg-warning/10 px-3 py-2 text-sm text-warning">
+        No cash or bank accounts were found. Cash accounts are those under Cash &amp; Cash Equivalents (11100) in the chart of accounts, or with the Cash or Bank subtype.
+      </p>
+      <div v-if="migrated" class="flex gap-2 rounded-md bg-warning/10 px-3 py-2 text-sm text-warning">
+        <AlertTriangle class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <p><strong>Draft: this period includes balances migrated at go-live.</strong> Migrated cash is shown as a reconciling line, not a cash flow, so this does not show a full period of cash flows. Use a period that starts after go-live for audited accounts. Exports are marked as draft.</p>
+      </div>
+      <div v-if="!result.diagnostics.classification_complete" class="rounded-md bg-warning/10 px-3 py-2 text-sm text-warning">
+        <p><strong>Some accounts are not classified for the cash flow statement.</strong> Their cash is included under "Other operating assets and liabilities", so the totals are still complete.</p>
+        <details class="mt-1">
+          <summary class="cursor-pointer">View {{ result.diagnostics.issues.length }} accounts</summary>
+          <ul class="mt-1">
+            <li v-for="issue in result.diagnostics.issues" :key="issue.account_id">{{ issue.code }} {{ issue.name }}: {{ issue.message }}</li>
+          </ul>
+        </details>
+        <RouterLink :to="{ name: 'accounting.chart-of-accounts' }" class="mt-1 inline-block font-medium underline">Review chart of accounts</RouterLink>
+      </div>
+
+      <dl class="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 xl:grid-cols-4">
+        <div v-for="kpi in kpis" :key="kpi.key" class="bg-background px-3 py-2.5">
+          <dt class="text-xs text-muted-foreground">{{ kpi.label }}</dt>
+          <dd class="mt-0.5 text-xl font-bold tabular-nums" :class="isNegative(kpi.amount) ? 'text-destructive' : 'text-navy dark:text-white'">{{ isZero(kpi.amount) ? '0.00' : cashMoney(kpi.amount) }}</dd>
+          <dd class="text-xs text-muted-foreground">{{ kpi.note }}. Comparison {{ isZero(kpi.compare) ? '0.00' : cashMoney(kpi.compare) }}</dd>
+        </div>
+      </dl>
+
+      <p class="max-w-[85ch] text-sm text-muted-foreground">{{ summary }}</p>
+
+      <DataPanel label="Statement of cash flows">
+        <header class="flex flex-wrap items-start justify-between gap-3 border-b border-border px-4 py-3">
+          <div>
+            <p class="text-xs text-muted-foreground">{{ result.entity }}</p>
+            <h2 class="text-lg font-bold normal-case tracking-normal text-navy dark:text-white">Statement of cash flows</h2>
+            <p class="text-sm text-muted-foreground">For {{ dayLabel(result.from) }} to {{ dayLabel(result.to) }}. Direct method, in {{ result.currency }}.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="badge" :class="reconciled ? 'badge--active' : 'badge--rejected'">{{ reconciled ? 'Reconciles to the ledger' : 'Does not reconcile' }}</span>
+            <Button type="button" variant="ghost" size="xs" @click="expanded = expanded.size ? new Set() : new Set(expandable)">{{ expanded.size ? 'Hide accounts' : 'Show accounts' }}</Button>
+          </div>
+        </header>
+
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[42rem] text-sm tabular-nums">
+            <caption class="sr-only">Cash flows by activity for the period and the comparison period. Amounts in parentheses are cash paid out.</caption>
+            <thead class="bg-muted text-xs font-medium text-muted-foreground">
+              <tr>
+                <th scope="col" class="px-4 py-2.5 text-left font-medium">Description</th>
+                <th scope="col" class="px-4 py-2.5 text-right font-medium">{{ dayLabel(result.from) }}<br />to {{ dayLabel(result.to) }}</th>
+                <th scope="col" class="px-4 py-2.5 text-right font-medium">{{ dayLabel(result.compare_from) }}<br />to {{ dayLabel(result.compare_to) }}</th>
+              </tr>
+            </thead>
+            <tbody v-for="section in result.sections" :key="section.key">
+              <tr>
+                <th scope="rowgroup" colspan="3" class="px-4 pb-1.5 pt-5 text-left font-bold text-navy dark:text-white">{{ section.label }}</th>
+              </tr>
+              <tr v-if="section.rows.length === 0">
+                <td colspan="3" class="px-4 py-2 text-muted-foreground">No cash moved in this activity.</td>
+              </tr>
+              <template v-for="line in sectionLines(section)" :key="line.key">
+                <tr v-if="line.kind === 'heading'">
+                  <th scope="rowgroup" colspan="3" class="px-4 pb-1 pt-3 text-left font-medium text-muted-foreground">{{ line.label }}</th>
+                </tr>
+                <template v-else-if="line.kind === 'row'">
+                  <tr class="border-b border-border">
+                    <th scope="row" class="px-4 py-2.5 text-left font-normal">
+                      <button v-if="line.row.accounts.length" type="button" class="flex cursor-pointer items-center gap-2 text-left" :aria-expanded="expanded.has(line.row.key)" @click="toggle(line.row.key)">
+                        <component :is="expanded.has(line.row.key) ? ChevronDown : ChevronRight" class="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                        <span>{{ line.row.label }}</span>
+                      </button>
+                      <span v-else class="pl-6">{{ line.row.label }}</span>
+                      <span class="sr-only">. {{ line.row.hint }}</span>
+                    </th>
+                    <td class="px-4 py-2.5 text-right" :title="line.row.hint">{{ cashMoney(line.row.amount) }}</td>
+                    <td class="px-4 py-2.5 text-right text-muted-foreground">{{ cashMoney(line.row.compare_amount) }}</td>
+                  </tr>
+                  <template v-if="expanded.has(line.row.key)">
+                    <tr class="bg-muted/40">
+                      <td colspan="3" class="py-1.5 pl-10 pr-4 text-xs text-muted-foreground"><Info class="mr-1 inline-block size-3.5 align-[-2px]" aria-hidden="true" />{{ line.row.hint }}</td>
+                    </tr>
+                    <tr v-for="account in line.row.accounts" :key="`${line.row.key}-${account.id}`" class="border-b border-border bg-muted/40 text-muted-foreground">
+                      <th scope="row" class="py-2 pl-10 pr-4 text-left font-normal"><span class="mr-2 text-xs">{{ account.code }}</span>{{ account.name }}</th>
+                      <td class="px-4 py-2 text-right"><button type="button" class="cursor-pointer underline decoration-dotted underline-offset-4" :aria-label="`${account.name}: cash entries in the period`" @click="drill(account)">{{ cashMoney(account.amount) }}</button></td>
+                      <td class="px-4 py-2 text-right"><button type="button" class="cursor-pointer underline decoration-dotted underline-offset-4" :aria-label="`${account.name}: cash entries in the comparison period`" @click="drill(account, true)">{{ cashMoney(account.compare_amount) }}</button></td>
+                    </tr>
+                  </template>
+                </template>
+                <tr v-else :class="line.kind === 'total' ? 'bg-muted font-bold text-navy dark:text-white' : 'border-b border-border font-medium'">
+                  <th scope="row" class="px-4 py-3 text-left [font-weight:inherit]">{{ line.label }}</th>
+                  <td class="px-4 py-3 text-right">{{ cashMoney(line.amount) }}</td>
+                  <td class="px-4 py-3 text-right">{{ cashMoney(line.compare_amount) }}</td>
+                </tr>
+              </template>
+            </tbody>
+            <tbody>
+              <tr><td colspan="3" class="h-3"></td></tr>
+              <tr v-for="line in reconciliation" :key="line.key" class="border-t border-border" :class="{ 'font-bold text-navy dark:text-white': line.strong, 'text-warning': line.key === 'migrated' }">
+                <th scope="row" class="px-4 py-3 text-left [font-weight:inherit]">{{ line.label }}</th>
+                <td class="px-4 py-3 text-right">{{ cashMoney(line.amount) }}</td>
+                <td class="px-4 py-3 text-right">{{ cashMoney(line.compare_amount) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="border-t border-border px-4 py-2 text-xs text-muted-foreground">Amounts in parentheses are cash paid out. {{ result.basis }}</p>
+      </DataPanel>
+
+      <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <DataPanel label="Note 1: cash and cash equivalents">
+          <h2 class="border-b border-border px-4 py-2.5 text-sm font-bold normal-case tracking-normal text-navy dark:text-white">Note 1: Cash and cash equivalents</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm tabular-nums">
+              <thead class="bg-muted text-xs text-muted-foreground">
+                <tr>
+                  <th scope="col" class="px-4 py-2.5 text-left font-medium">Account</th>
+                  <th scope="col" class="px-4 py-2.5 text-right font-medium">At {{ dayLabel(result.to) }}</th>
+                  <th scope="col" class="px-4 py-2.5 text-right font-medium">At {{ dayLabel(result.from) }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="account in result.cash_accounts" :key="account.id" class="border-b border-border">
+                  <th scope="row" class="px-4 py-3 text-left font-normal"><span class="mr-2 text-xs text-muted-foreground">{{ account.code }}</span>{{ account.name }}</th>
+                  <td class="px-4 py-3 text-right">{{ cashMoney(account.closing) }}</td>
+                  <td class="px-4 py-3 text-right text-muted-foreground">{{ cashMoney(account.opening) }}</td>
+                </tr>
+                <tr v-if="!result.cash_accounts.length"><td colspan="3" class="px-4 py-6 text-center text-muted-foreground">No cash accounts with a balance.</td></tr>
+                <tr class="bg-muted font-bold text-navy dark:text-white">
+                  <th scope="row" class="px-4 py-3 text-left [font-weight:inherit]">Total</th>
+                  <td class="px-4 py-3 text-right">{{ cashMoney(result.summary.closing_cash) }}</td>
+                  <td class="px-4 py-3 text-right">{{ cashMoney(result.summary.opening_cash) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </DataPanel>
+
+        <DataPanel label="Statement checks">
+          <h2 class="border-b border-border px-4 py-2.5 text-sm font-bold normal-case tracking-normal text-navy dark:text-white">Statement checks <span class="font-normal text-muted-foreground">{{ failedChecks ? `${failedChecks} ${failedChecks === 1 ? 'needs' : 'need'} attention` : 'all passed' }}</span></h2>
+          <ul class="divide-y divide-border text-sm">
+            <li v-for="check in result.checks" :key="check.key" class="flex items-start gap-2 px-4 py-3">
+              <CircleCheck v-if="check.passed" class="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />
+              <CircleX v-else class="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
+              <span><span class="sr-only">{{ check.passed ? 'Passed: ' : 'Failed: ' }}</span>{{ check.label }}</span>
+            </li>
+          </ul>
+        </DataPanel>
+
+        <DataPanel label="Note 2: non-cash transactions">
+          <h2 class="border-b border-border px-4 py-2.5 text-sm font-bold normal-case tracking-normal text-navy dark:text-white">Note 2: Non-cash transactions</h2>
+          <p v-if="!hasNonCash" class="px-4 py-3 text-sm text-muted-foreground">No shares were bought from savings and no dividends were credited to savings in these periods.</p>
+          <table v-else class="w-full text-sm tabular-nums">
+            <thead class="bg-muted text-xs text-muted-foreground">
+              <tr>
+                <th scope="col" class="px-4 py-2.5 text-left font-medium">Description</th>
+                <th scope="col" class="whitespace-nowrap px-4 py-2.5 text-right font-medium">To {{ dayLabel(result.to) }}</th>
+                <th scope="col" class="whitespace-nowrap px-4 py-2.5 text-right font-medium">To {{ dayLabel(result.compare_to) }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in result.non_cash" :key="item.key" class="border-b border-border">
+                <th scope="row" class="px-4 py-3 text-left font-normal">{{ item.label }}</th>
+                <td class="px-4 py-3 text-right">{{ cashMoney(item.amount) }}</td>
+                <td class="px-4 py-3 text-right text-muted-foreground">{{ cashMoney(item.compare_amount) }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="px-4 py-2 text-xs text-muted-foreground">These moved no cash, so they are left out of the statement and disclosed here.</p>
+        </DataPanel>
+
+        <DataPanel label="Note 3: liabilities from financing activities">
+          <h2 class="border-b border-border px-4 py-2.5 text-sm font-bold normal-case tracking-normal text-navy dark:text-white">Note 3: Liabilities from financing activities</h2>
+          <p v-if="!hasBorrowings" class="px-4 py-3 text-sm text-muted-foreground">The SACCO has no external borrowings in these periods.</p>
+          <table v-else class="w-full text-sm tabular-nums">
+            <thead class="bg-muted text-xs text-muted-foreground">
+              <tr>
+                <th scope="col" class="px-4 py-2.5 text-left font-medium">Description</th>
+                <th scope="col" class="whitespace-nowrap px-4 py-2.5 text-right font-medium">To {{ dayLabel(result.to) }}</th>
+                <th scope="col" class="whitespace-nowrap px-4 py-2.5 text-right font-medium">To {{ dayLabel(result.compare_to) }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="row in FINANCING_LIABILITY_ROWS" :key="row.key" class="border-b border-border" :class="{ 'font-semibold': row.strong }">
+                <th scope="row" class="px-4 py-3 text-left [font-weight:inherit]">{{ row.label }}</th>
+                <td class="px-4 py-3 text-right">{{ cashMoney(result.financing_liabilities.current[row.key]) }}</td>
+                <td class="px-4 py-3 text-right text-muted-foreground">{{ cashMoney(result.financing_liabilities.compare[row.key]) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </DataPanel>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <DataPanel label="From opening to closing cash">
+          <div class="p-4">
+            <h2 class="text-sm font-bold normal-case tracking-normal text-navy dark:text-white">From opening to closing cash</h2>
+            <p class="mb-3 mt-0.5 text-xs text-muted-foreground">Net cash each activity added or used. Hover a bar for details.</p>
+            <CashFlowWaterfall :report="result" />
+          </div>
+        </DataPanel>
+        <DataPanel label="Net cash flow by month">
+          <div class="p-4">
+            <h2 class="text-sm font-bold normal-case tracking-normal text-navy dark:text-white">Net cash flow by month</h2>
+            <p class="mb-3 mt-0.5 text-xs text-muted-foreground">Money in less money out each month. Hover a month for the breakdown.</p>
+            <CashFlowMonthly :months="result.monthly" />
+          </div>
+        </DataPanel>
+      </div>
+    </div>
 
     <CashFlowLedgerDrawer
       v-model:open="drawerOpen"

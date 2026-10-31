@@ -170,9 +170,9 @@ const showTable = ref(false)
             <dd class="text-right">{{ cashMoney(tip.investing) }}</dd>
             <dt class="text-muted-foreground">Financing</dt>
             <dd class="text-right">{{ cashMoney(tip.financing) }}</dd>
-            <template v-if="Number(tip.other) !== 0">
-              <dt class="text-muted-foreground">Brought on</dt>
-              <dd class="text-right">{{ cashMoney(tip.other) }}</dd>
+            <template v-if="Number(tip.migrated) !== 0">
+              <dt class="text-muted-foreground">Migrated (not a cash flow)</dt>
+              <dd class="text-right">{{ cashMoney(tip.migrated) }}</dd>
             </template>
             <dt class="border-t border-border pt-1 font-semibold">
               Net cash flow
