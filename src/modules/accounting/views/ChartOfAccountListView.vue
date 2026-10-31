@@ -151,7 +151,7 @@ onMounted(load)
         <SegmentedControl v-model="typeFilter" :options="TYPE_OPTIONS" label="Account type" />
       </template>
 
-      <Table class="text-[0.8125rem] tabular-nums" :aria-busy="loading || undefined">
+      <Table class="tabular-nums" :aria-busy="loading || undefined">
         <TableHeader>
           <TableRow class="hover:bg-transparent">
             <TableHead>GL code</TableHead>
@@ -184,7 +184,7 @@ onMounted(load)
           <TableBody v-for="group in groups" :key="group.type">
             <TableRow class="bg-muted/50 hover:bg-muted">
               <TableCell :colspan="columnCount" class="p-0">
-                <button type="button" class="flex w-full cursor-pointer items-center gap-2 px-3 py-1.5 text-left font-semibold text-navy dark:text-white" :aria-expanded="!collapsed.has(group.type)" @click="toggle(group.type)">
+                <button type="button" class="flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-left font-semibold text-navy dark:text-white" :aria-expanded="!collapsed.has(group.type)" @click="toggle(group.type)">
                   <component :is="collapsed.has(group.type) ? ChevronRight : ChevronDown" class="size-4 text-muted-foreground" aria-hidden="true" />
                   {{ formatEnum(group.type) }}
                   <span class="font-normal text-muted-foreground">{{ group.rows.length }} accounts</span>
@@ -204,7 +204,7 @@ onMounted(load)
                 <TableCell class="text-muted-foreground">{{ account.normal_balance === 'debit' ? 'DR' : 'CR' }}</TableCell>
                 <TableCell class="text-muted-foreground">{{ account.is_postable ? 'Yes' : 'No' }}</TableCell>
                 <TableCell><span class="badge" :class="{ 'badge--active': account.is_active }">{{ account.is_active ? 'Active' : 'Inactive' }}</span></TableCell>
-                <TableCell v-if="hasStatementLines" class="py-1">
+                <TableCell v-if="hasStatementLines" class="py-2">
                   <select
                     v-if="group.type === 'income' || group.type === 'expense'"
                     :id="`coa-line-${account.id}`"
@@ -218,7 +218,7 @@ onMounted(load)
                     <option v-for="line in INCOME_STATEMENT_LINES.filter((item) => item.type === account.type)" :key="line.key" :value="line.key">{{ line.label }}</option>
                   </select>
                 </TableCell>
-                <TableCell v-if="manage" class="py-1 text-right">
+                <TableCell v-if="manage" class="py-2.5 text-right">
                   <Button v-if="account.is_postable" variant="outline" size="xs" @click="edit(account)">Edit</Button>
                   <span v-else class="text-muted-foreground" title="Headers are the chart's fixed structure and cannot be edited.">—</span>
                 </TableCell>

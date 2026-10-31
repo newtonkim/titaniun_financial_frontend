@@ -108,7 +108,7 @@ onMounted(load)
     <p v-if="policy?.minimum_holding_months" class="text-sm text-muted-foreground">Members must hold shares for {{ policy.minimum_holding_months }} months to qualify.</p>
 
     <DataPanel label="Dividends">
-      <Table class="text-[0.8125rem] tabular-nums" :aria-busy="loading || undefined">
+      <Table class="tabular-nums" :aria-busy="loading || undefined">
         <TableHeader>
           <TableRow class="hover:bg-transparent">
             <TableHead>Year</TableHead>
@@ -130,7 +130,7 @@ onMounted(load)
             <TableCell class="text-right font-medium">{{ item.eligible_members }}</TableCell>
             <TableCell><StatusBadge :status="item.status" /></TableCell>
             <TableCell class="text-muted-foreground">{{ item.agm_reference ?? '—' }}</TableCell>
-            <TableCell class="py-1 text-right"><Button variant="outline" size="xs" @click="show(item.id)">Open</Button></TableCell>
+            <TableCell class="py-2.5 text-right"><Button variant="outline" size="xs" @click="show(item.id)">Open</Button></TableCell>
           </TableRow>
           <TableRow v-if="!loading && dividends && dividends.data.length === 0" class="hover:bg-transparent">
             <TableCell :colspan="8" class="py-14 text-center font-medium">No dividends yet</TableCell>
@@ -164,7 +164,7 @@ onMounted(load)
           <Button type="submit" size="sm" class="justify-self-start" :disabled="appropriation.processing.value">Appropriate surplus</Button>
         </form>
 
-        <Table class="text-[0.8125rem] tabular-nums">
+        <Table class="tabular-nums">
           <TableHeader>
             <TableRow class="hover:bg-transparent">
               <TableHead>Year</TableHead>

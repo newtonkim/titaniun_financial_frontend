@@ -24,8 +24,8 @@ const loans = (count: number) => `${count} ${count === 1 ? 'loan' : 'loans'}`
     <dl class="divide-y divide-border border-t border-border text-[0.8125rem] tabular-nums">
       <div class="flex justify-between gap-3 px-3 py-1.5"><dt class="text-muted-foreground">Fell due</dt><dd class="font-medium">{{ formatMoney(collections.month.due) }}</dd></div>
       <div class="flex justify-between gap-3 px-3 py-1.5"><dt class="text-muted-foreground">Collected</dt><dd class="font-medium">{{ formatMoney(collections.month.collected) }}</dd></div>
-      <div class="flex justify-between gap-3 px-3 py-1.5"><dt class="text-muted-foreground">Still due today ({{ loans(collections.today.loans) }})</dt><dd class="font-medium">{{ formatMoney(collections.today.due) }}</dd></div>
-      <div class="flex justify-between gap-3 px-3 py-1.5"><dt class="text-muted-foreground">Due in next 7 days ({{ loans(collections.next_7_days.loans) }})</dt><dd class="font-medium">{{ formatMoney(collections.next_7_days.due) }}</dd></div>
+      <RouterLink :to="{ name: 'loans.collections', query: { view: 'due_today' } }" class="flex justify-between gap-3 px-3 py-1.5 text-foreground transition-colors hover:bg-muted/50"><dt class="text-muted-foreground underline underline-offset-2">Still due today ({{ loans(collections.today.loans) }})</dt><dd class="font-medium">{{ formatMoney(collections.today.due) }}</dd></RouterLink>
+      <RouterLink :to="{ name: 'loans.collections', query: { view: 'upcoming' } }" class="flex justify-between gap-3 px-3 py-1.5 text-foreground transition-colors hover:bg-muted/50"><dt class="text-muted-foreground underline underline-offset-2">Due in next 7 days ({{ loans(collections.next_7_days.loans) }})</dt><dd class="font-medium">{{ formatMoney(collections.next_7_days.due) }}</dd></RouterLink>
     </dl>
   </DashCard>
 </template>

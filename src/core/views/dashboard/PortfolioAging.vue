@@ -27,23 +27,23 @@ const empty = computed(() => Number(props.portfolio.portfolio) === 0)
           <span v-if="Number(band.share) > 0" class="min-w-1 rounded-sm first:rounded-l last:rounded-r" :style="{ width: `${band.share}%`, background: SHADES[band.key] }" :title="`${band.label}: ${band.share}%`" />
         </template>
       </div>
-      <table class="mt-2 w-full text-[0.8125rem] tabular-nums">
+      <table class="mt-2 w-full text-sm tabular-nums">
         <thead>
           <tr class="text-xs text-muted-foreground">
-            <th class="px-3 py-1 text-left font-medium">Days overdue</th>
-            <th class="px-3 py-1 text-right font-medium">Loans</th>
-            <th class="px-3 py-1 text-right font-medium">Balance</th>
-            <th class="px-3 py-1 text-right font-medium">Share</th>
+            <th class="px-3 py-2 text-left font-medium">Days overdue</th>
+            <th class="px-3 py-2 text-right font-medium">Loans</th>
+            <th class="px-3 py-2 text-right font-medium">Balance</th>
+            <th class="px-3 py-2 text-right font-medium">Share</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="band in portfolio.aging" :key="band.key" class="border-t border-border">
-            <td class="px-3 py-1.5">
+            <td class="px-3 py-3">
               <span class="inline-flex items-center gap-2"><span class="size-2.5 rounded-sm" :style="{ background: SHADES[band.key] }" aria-hidden="true" />{{ band.label }}</span>
             </td>
-            <td class="px-3 py-1.5 text-right">{{ band.loans }}</td>
-            <td class="px-3 py-1.5 text-right font-medium">{{ formatMoney(band.balance) }}</td>
-            <td class="px-3 py-1.5 text-right text-muted-foreground">{{ band.share === null ? '—' : `${Number(band.share).toFixed(1)}%` }}</td>
+            <td class="px-3 py-3 text-right">{{ band.loans }}</td>
+            <td class="px-3 py-3 text-right font-medium">{{ formatMoney(band.balance) }}</td>
+            <td class="px-3 py-3 text-right text-muted-foreground">{{ band.share === null ? '—' : `${Number(band.share).toFixed(1)}%` }}</td>
           </tr>
         </tbody>
       </table>

@@ -8,11 +8,11 @@ export interface TablePreferences {
   perPage: number
 }
 
-const DEFAULTS: TablePreferences = { density: 'compact', hidden: [], perPage: 15 }
+const DEFAULTS: TablePreferences = { density: 'comfortable', hidden: [], perPage: 15 }
 
 /** One table's density, hidden columns and page size, remembered in this browser. */
 export function useTablePreferences(name: string): TablePreferences {
-  const key = `titaniun.table.${name}`
+  const key = `titaniun.table.v2.${name}`
   const preferences = reactive<TablePreferences>({ ...DEFAULTS, ...read(key) })
 
   watch(preferences, (value) => {

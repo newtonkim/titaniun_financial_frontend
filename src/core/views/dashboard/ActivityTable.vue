@@ -25,7 +25,7 @@ const rows = computed(() => {
         <Input v-model="search" type="search" placeholder="Search activity" aria-label="Search activity" class="h-7 pl-7 text-xs" />
       </div>
     </template>
-    <Table class="text-[0.8125rem] tabular-nums">
+    <Table class="tabular-nums">
       <TableHeader>
         <TableRow class="hover:bg-transparent">
           <TableHead>Activity</TableHead>
