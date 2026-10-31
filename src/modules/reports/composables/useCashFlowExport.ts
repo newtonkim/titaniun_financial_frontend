@@ -6,42 +6,34 @@ import type { CashFlowResponse } from '../api'
 import { safeSpreadsheetText } from '../utils/incomeStatementFormat'
 import type { ExportRow } from './useIncomeStatementExport'
 import { cashMoney } from '../utils/cashFlowFormat'
+import { FINANCING_LIABILITY_ROWS, includesMigration, reconciliationLines, sectionLines } from '../utils/cashFlowStatement'
 
-/** The statement as rows: [GL code, description, current, comparison]. */
+/** The statement and its notes as rows: [GL code, description, current, comparison]. */
 export function cashFlowExportRows(r: CashFlowResponse): ExportRow[] {
-  const s = r.summary
+  const statement = r.sections.flatMap((section): ExportRow[] => [
+    ['', section.label.toUpperCase(), '', ''],
+    ...sectionLines(section).flatMap((line): ExportRow[] => {
+      if (line.kind === 'heading') return [['', line.label, '', '']]
+      if (line.kind !== 'row') return [['', line.label, line.amount, line.compare_amount]]
+      return [
+        ['', `  ${line.row.label}`, line.row.amount, line.row.compare_amount],
+        ...line.row.accounts.map((a): ExportRow => [a.code ?? '', `      ${a.name ?? ''}`, a.amount, a.compare_amount]),
+      ]
+    }),
+  ])
+
+  const liabilities = r.financing_liabilities
+
   return [
-    [
-      '',
-      'Cash and cash equivalents at the start of the period',
-      s.opening_cash,
-      s.compare_opening_cash,
-    ],
-    ...r.sections.flatMap((section): ExportRow[] => [
-      ['', section.label.toUpperCase(), '', ''],
-      ...section.rows.flatMap((row): ExportRow[] => [
-        ['', `  ${row.label}`, row.amount, row.compare_amount],
-        ...row.accounts.map((a): ExportRow => [
-          a.code ?? '',
-          `      ${a.name ?? ''}`,
-          a.amount,
-          a.compare_amount,
-        ]),
-      ]),
-      [
-        '',
-        `Net cash from ${section.key === 'other' ? 'balances brought on' : `${section.key} activities`}`,
-        section.total,
-        section.compare_total,
-      ],
-    ]),
-    ['', 'Net increase / (decrease) in cash', s.net_change, s.compare_net_change],
-    [
-      '',
-      'Cash and cash equivalents at the end of the period',
-      s.closing_cash,
-      s.compare_closing_cash,
-    ],
+    ...statement,
+    ...reconciliationLines(r).map((line): ExportRow => ['', line.label, line.amount, line.compare_amount]),
+    ['', '', '', ''],
+    ['', 'NOTE 1: CASH AND CASH EQUIVALENTS (end of period, then start of period)', '', ''],
+    ...r.cash_accounts.map((a): ExportRow => [a.code ?? '', `  ${a.name ?? ''}`, a.closing, a.opening]),
+    ['', 'NOTE 2: NON-CASH TRANSACTIONS', '', ''],
+    ...r.non_cash.map((item): ExportRow => ['', `  ${item.label}`, item.amount, item.compare_amount]),
+    ['', 'NOTE 3: LIABILITIES FROM FINANCING ACTIVITIES', '', ''],
+    ...FINANCING_LIABILITY_ROWS.map((row): ExportRow => ['', `  ${row.label}`, liabilities.current[row.key], liabilities.compare[row.key]]),
   ]
 }
 
@@ -53,6 +45,10 @@ export function cashFlowExportMetadata(r: CashFlowResponse): string[] {
     r.currency,
     r.basis,
     `Generated ${r.generated_at}`,
+    ...(includesMigration(r)
+      ? ['DRAFT: this period includes balances migrated at go-live, so it does not show a full period of cash flows.']
+      : []),
+    ...r.checks.filter((check) => !check.passed).map((check) => `Check failed: ${check.label}`),
     `Reconciliation difference: ${r.diagnostics.difference}; comparison ${r.diagnostics.compare_difference}`,
     ...r.diagnostics.issues.map((i) => `${i.code ?? ''} ${i.name}: ${i.message}`),
   ]

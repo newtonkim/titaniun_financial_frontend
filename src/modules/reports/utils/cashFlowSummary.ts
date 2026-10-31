@@ -29,7 +29,6 @@ export function cashFlowSummary(r: CashFlowResponse): string {
     activity('Operating activities', s.operating),
     activity('investing', s.investing),
     activity('financing', s.financing),
-    activity('balances brought onto the system', s.other),
   ].filter((p): p is string => p !== null)
 
   const drivers = parts.length
@@ -48,5 +47,9 @@ export function cashFlowSummary(r: CashFlowResponse): string {
     ? ` The largest single flow was ${largest.label.charAt(0).toLowerCase()}${largest.label.slice(1)} (${plain(largest.amount)} ${isNegative(largest.amount) ? 'out' : 'in'}).`
     : ''
 
-  return `${overall}${drivers}${biggest}`
+  const migrated = isZero(s.migrated)
+    ? ''
+    : ` Closing cash also includes ${c} ${plain(s.migrated)} of balances migrated at go-live, which is not a cash flow.`
+
+  return `${overall}${drivers}${biggest}${migrated}`
 }

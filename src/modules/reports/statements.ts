@@ -210,6 +210,8 @@ export interface CashFlowAccount {
 
 export interface CashFlowRow {
   key: string
+  /** Where an operating row sits on the statement; null outside operating activities. */
+  group: 'receipts_and_payments' | 'operating_assets' | 'operating_liabilities' | 'income_tax' | null
   label: string
   hint: string
   direction: 'in' | 'out' | 'net'
@@ -218,7 +220,12 @@ export interface CashFlowRow {
   accounts: CashFlowAccount[]
 }
 
-export type CashFlowSectionKey = 'operating' | 'investing' | 'financing' | 'other'
+export type CashFlowSectionKey = 'operating' | 'investing' | 'financing'
+
+export interface CashFlowSubtotal {
+  amount: string
+  compare_amount: string
+}
 
 export interface CashFlowSection {
   key: CashFlowSectionKey
@@ -226,6 +233,27 @@ export interface CashFlowSection {
   total: string
   compare_total: string
   rows: CashFlowRow[]
+  /** Operating activities only. */
+  subtotals?: { before_changes: CashFlowSubtotal; before_tax: CashFlowSubtotal }
+}
+
+export interface CashFlowNonCashItem extends CashFlowSubtotal {
+  key: string
+  label: string
+}
+
+export interface CashFlowFinancingLiabilities {
+  opening: string
+  proceeds: string
+  repayments: string
+  non_cash: string
+  closing: string
+}
+
+export interface CashFlowCheck {
+  key: string
+  label: string
+  passed: boolean
 }
 
 export interface CashFlowStatementMonth {
@@ -233,7 +261,8 @@ export interface CashFlowStatementMonth {
   operating: string
   investing: string
   financing: string
-  other: string
+  /** Balances loaded at go-live: they move the cash figure but are not a cash flow. */
+  migrated: string
   net: string
   closing_cash: string
 }
@@ -259,7 +288,8 @@ export interface CashFlowResponse {
     operating: string
     investing: string
     financing: string
-    other: string
+    /** Balances loaded at go-live: they move the cash figure but are not a cash flow. */
+    migrated: string
     cash_in: string
     cash_out: string
     compare_opening_cash: string
@@ -268,10 +298,13 @@ export interface CashFlowResponse {
     compare_operating: string
     compare_investing: string
     compare_financing: string
-    compare_other: string
+    compare_migrated: string
   }
   cash_accounts: { id: number; code: string; name: string; opening: string; closing: string; change: string }[]
   monthly: CashFlowStatementMonth[]
+  non_cash: CashFlowNonCashItem[]
+  financing_liabilities: { current: CashFlowFinancingLiabilities; compare: CashFlowFinancingLiabilities }
+  checks: CashFlowCheck[]
   diagnostics: {
     issues: { account_id: number; code: string | null; name: string; message: string }[]
     classification_complete: boolean
