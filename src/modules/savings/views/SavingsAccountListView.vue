@@ -9,7 +9,7 @@ import { SAVINGS_ACCOUNT_STATUSES, type SavingsAccount, type SavingsAccountFilte
 const filters = reactive<SavingsAccountFilters>({ status: '' })
 
 const columns: Column<SavingsAccount>[] = [
-  { key: 'account_number', label: 'Account #' },
+  { key: 'account_number', label: 'Account #', tone: 'strong' },
   { key: 'member', label: 'Member', value: (account) => (account.member ? account.member.name : null) },
   { key: 'product', label: 'Product', value: (account) => account.product?.name },
   { key: 'balance', label: 'Balance', align: 'right', value: (account) => formatMoney(account.balance) },
@@ -17,7 +17,7 @@ const columns: Column<SavingsAccount>[] = [
   { key: 'opened_at', label: 'Opened', value: (account) => formatDate(account.opened_at) },
 ]
 
-const fetchPage = (page: number) => savingsAccountsApi.list({ ...filters, page })
+const fetchPage = (page: number, perPage: number) => savingsAccountsApi.list({ ...filters, page, per_page: perPage })
 </script>
 
 <template>

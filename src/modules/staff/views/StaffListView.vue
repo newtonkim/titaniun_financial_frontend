@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
+import { Plus, Search } from 'lucide-vue-next'
 import ResourceTable, { type Column } from '@/core/components/ResourceTable.vue'
 import StatusBadge from '@/core/components/StatusBadge.vue'
+import { Button } from '@/core/components/ui/button'
+import { Input } from '@/core/components/ui/input'
 import { ApiError } from '@/core/api/http'
 import { formatDate } from '@/core/utils/format'
 import { useAuth } from '@/modules/auth/store'
@@ -25,14 +28,14 @@ const busy = ref(false)
 
 const roleLabels = computed(() => new Map(roles.value.map((role) => [role.name, role.label])))
 const columns: Column<StaffUser>[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'email', label: 'Email address' },
+  { key: 'name', label: 'Name', tone: 'strong' },
+  { key: 'email', label: 'Email address', tone: 'muted' },
   { key: 'roles', label: 'Roles', value: (staff) => staff.roles.map((role) => roleLabels.value.get(role) ?? role).join(', ') },
   { key: 'status', label: 'Status' },
   { key: 'created_at', label: 'Added', value: (staff) => formatDate(staff.created_at) },
 ]
 
-const fetchPage = (page: number) => staffApi.list({ ...filters, page })
+const fetchPage = (page: number, perPage: number) => staffApi.list({ ...filters, page, per_page: perPage })
 
 onMounted(async () => {
   try {
@@ -73,15 +76,19 @@ async function confirmDelete() {
 
 <template>
   <div>
-    <p v-if="notice" class="muted" role="status">{{ notice }}</p>
-    <p v-if="failure" class="alert alert--error" role="alert">{{ failure }}</p>
-
     <ResourceTable ref="table" title="Staff" description="The people who sign in, their roles and whether they can access the system." :columns="columns" :filters="filters" :fetch="fetchPage">
       <template #actions>
-        <button class="btn btn--primary" type="button" @click="openForm(null)">Add staff member</button>
+        <Button size="sm" @click="openForm(null)"><Plus /> Add staff member</Button>
+      </template>
+      <template #messages>
+        <p v-if="failure" role="alert" class="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{{ failure }}</p>
+        <p v-if="notice" role="status" class="rounded-md bg-success/10 px-3 py-2 text-sm text-success">{{ notice }}</p>
       </template>
       <template #filters>
-        <input v-model="filters.search" type="search" placeholder="Search name or email" aria-label="Search staff" />
+        <div class="relative min-w-52 flex-1 lg:max-w-72">
+          <Search class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input v-model="filters.search" type="search" placeholder="Search name or email" aria-label="Search staff" class="h-8 pl-8 text-sm" />
+        </div>
         <select v-model="filters.status" aria-label="Status">
           <option value="">All statuses</option>
           <option value="active">Active</option>
@@ -94,8 +101,8 @@ async function confirmDelete() {
       </template>
       <template #cell-status="{ row }"><StatusBadge :status="row.approved_at !== null" /></template>
       <template #row-actions="{ row }">
-        <button class="btn btn--small" type="button" @click="openForm(row)">Edit</button>
-        <button v-if="row.id !== auth.user.value?.id" class="btn btn--small btn--danger" type="button" @click="deleting = row">Delete</button>
+        <Button variant="outline" size="xs" @click="openForm(row)">Edit</Button>
+        <Button v-if="row.id !== auth.user.value?.id" variant="outline" size="xs" class="text-destructive hover:text-destructive" @click="deleting = row">Delete</Button>
       </template>
     </ResourceTable>
 

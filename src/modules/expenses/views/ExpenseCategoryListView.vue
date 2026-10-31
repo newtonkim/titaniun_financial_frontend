@@ -4,12 +4,12 @@ import { expenseCategoriesApi } from '../api'
 import type { ExpenseCategory } from '../types'
 
 const columns: Column<ExpenseCategory>[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'description', label: 'Description' },
+  { key: 'name', label: 'Name', tone: 'strong' },
+  { key: 'description', label: 'Description', truncate: true },
   { key: 'chart_of_account_id', label: 'GL account' },
 ]
 
-const fetchPage = (page: number) => expenseCategoriesApi.list({ page })
+const fetchPage = (page: number, perPage: number) => expenseCategoriesApi.list({ page, per_page: perPage })
 </script>
 
 <template>

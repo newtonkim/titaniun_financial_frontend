@@ -1,7 +1,7 @@
 import { http } from './http'
 import type { Paginated, Query, Wrapped } from './types'
 
-export type ListParams<TFilters extends Query> = Partial<TFilters> & { page?: number }
+export type ListParams<TFilters extends Query> = Partial<TFilters> & { page?: number; per_page?: number }
 
 /**
  * Typed client for a Laravel `Route::apiResource()` endpoint.

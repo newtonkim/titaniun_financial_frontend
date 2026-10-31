@@ -2,6 +2,7 @@
 import { reactive, ref } from 'vue'
 import ResourceTable, { type Column } from '@/core/components/ResourceTable.vue'
 import StatusBadge from '@/core/components/StatusBadge.vue'
+import { Button } from '@/core/components/ui/button'
 import { formatDate, formatEnum, formatMoney } from '@/core/utils/format'
 import { shareAccountsApi } from '../api'
 import ShareAccountDrawer from '../components/ShareAccountDrawer.vue'
@@ -13,7 +14,7 @@ const viewing = ref(false)
 const viewingId = ref<number | null>(null)
 
 const columns: Column<ShareAccount>[] = [
-  { key: 'account_number', label: 'Account #' },
+  { key: 'account_number', label: 'Account #', tone: 'strong' },
   { key: 'member', label: 'Member', value: (account) => (account.member ? account.member.name : null) },
   { key: 'product', label: 'Product', value: (account) => account.product?.name },
   { key: 'shares_held', label: 'Shares', align: 'right' },
@@ -23,7 +24,7 @@ const columns: Column<ShareAccount>[] = [
   { key: 'opened_at', label: 'Opened', value: (account) => formatDate(account.opened_at) },
 ]
 
-const fetchPage = (page: number) => shareAccountsApi.list({ ...filters, page })
+const fetchPage = (page: number, perPage: number) => shareAccountsApi.list({ ...filters, page, per_page: perPage })
 
 function open(account: ShareAccount) {
   viewingId.value = account.id
@@ -41,7 +42,7 @@ function open(account: ShareAccount) {
         </select>
       </template>
       <template #cell-status="{ row }"><StatusBadge :status="row.status" /></template>
-      <template #row-actions="{ row }"><button type="button" class="btn btn--small" @click="open(row)">Open</button></template>
+      <template #row-actions="{ row }"><Button variant="outline" size="xs" @click="open(row)">Open</Button></template>
     </ResourceTable>
     <ShareAccountDrawer v-model:open="viewing" :account-id="viewingId" @changed="table?.reload()" />
   </div>
