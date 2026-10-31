@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import type { PageParams } from '@/core/api/resource'
 import { computed, onMounted, reactive, ref } from 'vue'
+import { Plus, Search } from 'lucide-vue-next'
 import ResourceTable, { type Column } from '@/core/components/ResourceTable.vue'
 import StatusBadge from '@/core/components/StatusBadge.vue'
+import { Button } from '@/core/components/ui/button'
+import { Input } from '@/core/components/ui/input'
 import { ApiError } from '@/core/api/http'
 import { formatDate } from '@/core/utils/format'
 import { useAuth } from '@/modules/auth/store'
@@ -25,14 +29,14 @@ const busy = ref(false)
 
 const roleLabels = computed(() => new Map(roles.value.map((role) => [role.name, role.label])))
 const columns: Column<StaffUser>[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'email', label: 'Email address' },
+  { key: 'name', label: 'Name', sortable: true, tone: 'strong' },
+  { key: 'email', label: 'Email address', sortable: true, tone: 'muted' },
   { key: 'roles', label: 'Roles', value: (staff) => staff.roles.map((role) => roleLabels.value.get(role) ?? role).join(', ') },
   { key: 'status', label: 'Status' },
-  { key: 'created_at', label: 'Added', value: (staff) => formatDate(staff.created_at) },
+  { key: 'created_at', label: 'Added', sortable: true, value: (staff) => formatDate(staff.created_at) },
 ]
 
-const fetchPage = (page: number) => staffApi.list({ ...filters, page })
+const fetchPage = (params: PageParams) => staffApi.list({ ...filters, ...params })
 
 onMounted(async () => {
   try {
@@ -73,15 +77,19 @@ async function confirmDelete() {
 
 <template>
   <div>
-    <p v-if="notice" class="muted" role="status">{{ notice }}</p>
-    <p v-if="failure" class="alert alert--error" role="alert">{{ failure }}</p>
-
     <ResourceTable ref="table" title="Staff" description="The people who sign in, their roles and whether they can access the system." :columns="columns" :filters="filters" :fetch="fetchPage">
       <template #actions>
-        <button class="btn btn--primary" type="button" @click="openForm(null)">Add staff member</button>
+        <Button size="sm" @click="openForm(null)"><Plus /> Add staff member</Button>
+      </template>
+      <template #messages>
+        <p v-if="failure" role="alert" class="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{{ failure }}</p>
+        <p v-if="notice" role="status" class="rounded-md bg-success/10 px-3 py-2 text-sm text-success">{{ notice }}</p>
       </template>
       <template #filters>
-        <input v-model="filters.search" type="search" placeholder="Search name or email" aria-label="Search staff" />
+        <div class="relative min-w-52 flex-1 lg:max-w-72">
+          <Search class="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input v-model="filters.search" type="search" placeholder="Search name or email" aria-label="Search staff" class="h-8 pl-8 text-sm" />
+        </div>
         <select v-model="filters.status" aria-label="Status">
           <option value="">All statuses</option>
           <option value="active">Active</option>
@@ -94,21 +102,21 @@ async function confirmDelete() {
       </template>
       <template #cell-status="{ row }"><StatusBadge :status="row.approved_at !== null" /></template>
       <template #row-actions="{ row }">
-        <button class="btn btn--small" type="button" @click="openForm(row)">Edit</button>
-        <button v-if="row.id !== auth.user.value?.id" class="btn btn--small btn--danger" type="button" @click="deleting = row">Delete</button>
+        <Button variant="outline" size="xs" @click="openForm(row)">Edit</Button>
+        <Button v-if="row.id !== auth.user.value?.id" variant="outline" size="xs" class="text-destructive hover:text-destructive" @click="deleting = row">Delete</Button>
       </template>
     </ResourceTable>
 
     <StaffFormDrawer v-model:open="formOpen" :staff="editing" :roles="roles" :current-user-id="auth.user.value?.id" @saved="saved" />
 
     <div v-if="deleting" class="tw-scope fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="delete-staff-title">
-      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-        <h3 id="delete-staff-title" class="mb-1 text-[15px] font-bold normal-case tracking-normal text-neutral-900 dark:text-white">Delete {{ deleting.name }}?</h3>
-        <p class="mb-4 text-[13px] text-neutral-500">
+      <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
+        <h3 id="delete-staff-title" class="mb-1 text-[15px] font-bold normal-case tracking-normal text-foreground">Delete {{ deleting.name }}?</h3>
+        <p class="mb-4 text-[13px] text-muted-foreground">
           Their account is removed permanently and records they made no longer show who made them. To keep that history, edit them and switch off <strong>Active</strong> instead.
         </p>
         <div class="flex justify-end gap-2">
-          <button type="button" class="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200" @click="deleting = null">Cancel</button>
+          <button type="button" class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200" @click="deleting = null">Cancel</button>
           <button type="button" :disabled="busy" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50" @click="confirmDelete">Delete staff member</button>
         </div>
       </div>

@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import type { PageParams } from '@/core/api/resource'
 import { ref } from 'vue'
+import { Plus } from 'lucide-vue-next'
 import ResourceTable, { type Column } from '@/core/components/ResourceTable.vue'
 import StatusBadge from '@/core/components/StatusBadge.vue'
+import { Button } from '@/core/components/ui/button'
 import { formatMoney } from '@/core/utils/format'
 import { useAuth } from '@/modules/auth/store'
 import { shareProductsApi } from '../api'
@@ -14,15 +17,15 @@ const editing = ref(false)
 const selected = ref<ShareProduct | null>(null)
 
 const columns: Column<ShareProduct>[] = [
-  { key: 'code', label: 'Code' },
-  { key: 'name', label: 'Name' },
-  { key: 'nominal_price', label: 'Nominal price', align: 'right', value: (product) => formatMoney(product.nominal_price) },
-  { key: 'minimum_shares', label: 'Minimum shares', align: 'right' },
+  { key: 'code', label: 'Code', sortable: true, tone: 'strong' },
+  { key: 'name', label: 'Name', sortable: true },
+  { key: 'nominal_price', label: 'Nominal price', sortable: true, align: 'right', value: (product) => formatMoney(product.nominal_price) },
+  { key: 'minimum_shares', label: 'Minimum shares', sortable: true, align: 'right' },
   { key: 'ledger', label: 'Ledger', value: (product) => (product.equity_account_id ? 'Posted' : 'Not posted') },
-  { key: 'is_active', label: 'Status' },
+  { key: 'is_active', label: 'Status', sortable: true },
 ]
 
-const fetchPage = (page: number) => shareProductsApi.list({ page })
+const fetchPage = (params: PageParams) => shareProductsApi.list({ ...params })
 
 function edit(product: ShareProduct | null) {
   selected.value = product
@@ -34,11 +37,11 @@ function edit(product: ShareProduct | null) {
   <div>
     <ResourceTable ref="table" title="Share products" description="Share classes members can buy." :columns="columns" :fetch="fetchPage">
       <template #actions>
-        <button v-if="can('shares.products.manage')" type="button" class="btn btn--primary" @click="edit(null)">New product</button>
+        <Button v-if="can('shares.products.manage')" size="sm" @click="edit(null)"><Plus /> New product</Button>
       </template>
       <template #cell-is_active="{ row }"><StatusBadge :status="row.is_active" /></template>
       <template v-if="can('shares.products.manage')" #row-actions="{ row }">
-        <button type="button" class="btn btn--small" @click="edit(row)">Edit</button>
+        <Button variant="outline" size="xs" @click="edit(row)">Edit</Button>
       </template>
     </ResourceTable>
     <ShareProductFormDrawer v-model:open="editing" :product="selected" @saved="table?.reload()" />

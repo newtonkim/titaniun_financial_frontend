@@ -130,21 +130,21 @@ function clearFilters() {
 
 const money = (value: number) => `${CURRENCY} ${formatMoney(value)}`
 const filterInput =
-  'w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800 outline-none focus:border-brand dark:border-neutral-700 dark:bg-neutral-800 dark:text-white'
-const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide text-neutral-500'
+  'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-neutral-800 outline-none focus:border-brand dark:text-white'
+const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide text-muted-foreground'
 </script>
 
 <template>
   <div>
-    <div class="border-b border-neutral-200 bg-white px-4 py-5 md:px-6 dark:border-neutral-800 dark:bg-neutral-900">
+    <div class="border-b border-border bg-background px-4 py-5 md:px-6">
       <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <h3 class="text-base font-bold text-neutral-950 dark:text-white">{{ title }}</h3>
-          <p class="mt-0.5 text-xs font-medium text-neutral-500">{{ subtitle }}</p>
+          <p class="mt-0.5 text-xs font-medium text-muted-foreground">{{ subtitle }}</p>
         </div>
         <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <div class="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-800">
-            <p class="text-[10px] font-bold uppercase tracking-wide text-neutral-500">Entries</p>
+          <div class="rounded-lg border border-border bg-neutral-50 px-3 py-2 dark:bg-neutral-800">
+            <p class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Entries</p>
             <p class="mt-1 font-mono text-sm font-bold text-neutral-950 dark:text-white">{{ totals.count }}</p>
           </div>
           <div v-if="showCredit" class="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2">
@@ -155,8 +155,8 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
             <p class="text-[10px] font-bold uppercase tracking-wide text-rose-700">Debits</p>
             <p class="mt-1 font-mono text-sm font-bold text-rose-800">{{ formatMoney(totals.debits) }}</p>
           </div>
-          <div class="rounded-lg border border-neutral-200 bg-white px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900">
-            <p class="text-[10px] font-bold uppercase tracking-wide text-neutral-500">Net</p>
+          <div class="rounded-lg border border-border bg-background px-3 py-2">
+            <p class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Net</p>
             <p class="mt-1 font-mono text-sm font-bold" :class="totals.net >= 0 ? 'text-emerald-700' : 'text-rose-700'">{{ formatMoney(totals.net) }}</p>
           </div>
         </div>
@@ -185,12 +185,12 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
         <label class="block sm:col-span-2" :class="mode === 'all' ? 'xl:col-span-1' : 'xl:col-span-2'">
           <span :class="filterLabel">Search</span>
           <span class="relative block">
-            <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <Search :size="14" class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input v-model="search" type="search" placeholder="Reference, narration, account…" :class="[filterInput, 'pl-9']" @input="page = 1" />
           </span>
         </label>
         <div class="flex items-end">
-          <button type="button" class="flex w-full items-center justify-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-600 hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300" @click="clearFilters">
+          <button type="button" class="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm font-semibold text-neutral-600 hover:bg-neutral-50 dark:text-neutral-300" @click="clearFilters">
             <RotateCcw :size="14" /> Reset
           </button>
         </div>
@@ -199,7 +199,7 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
 
     <div class="overflow-x-auto">
       <table class="w-full text-left text-sm">
-        <thead class="border-b border-neutral-200 bg-neutral-50 text-[11px] font-bold uppercase tracking-wide text-neutral-500 dark:border-neutral-800 dark:bg-neutral-800/40">
+        <thead class="border-b border-border bg-neutral-50 text-[11px] font-bold uppercase tracking-wide text-muted-foreground dark:bg-neutral-800/40">
           <tr>
             <th class="px-5 py-3">Value date</th>
             <th class="px-5 py-3">Transaction</th>
@@ -218,18 +218,18 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
           <tr v-if="!rows.length">
             <td :colspan="columns" class="px-5 py-12 text-center">
               <p class="text-sm font-bold text-neutral-700 dark:text-neutral-200">No ledger entries found</p>
-              <p class="mt-1 text-xs font-medium text-neutral-500">Adjust the date range, type, or search terms.</p>
+              <p class="mt-1 text-xs font-medium text-muted-foreground">Adjust the date range, type, or search terms.</p>
             </td>
           </tr>
           <tr v-for="txn in rows" :key="key(txn)" class="align-top hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40">
             <td class="whitespace-nowrap px-5 py-3.5 font-mono text-xs font-semibold text-neutral-600 dark:text-neutral-300">{{ formatDate(txn.date) }}</td>
             <td class="px-5 py-3.5">
-              <span class="block text-sm font-bold text-neutral-900 dark:text-white">{{ typeLabel(txn) }}</span>
-              <span v-if="txn.transacted_by" class="text-[11px] font-semibold text-neutral-500">By {{ txn.transacted_by }}</span>
+              <span class="block text-sm font-bold text-foreground">{{ typeLabel(txn) }}</span>
+              <span v-if="txn.transacted_by" class="text-[11px] font-semibold text-muted-foreground">By {{ txn.transacted_by }}</span>
             </td>
             <td class="whitespace-nowrap px-5 py-3.5">
               <span class="block font-mono text-xs font-bold text-neutral-800 dark:text-neutral-200">{{ txn.account }}</span>
-              <span class="text-[11px] text-neutral-400">{{ txn.account_type ?? 'Member account' }}</span>
+              <span class="text-[11px] text-muted-foreground">{{ txn.account_type ?? 'Member account' }}</span>
             </td>
             <td v-if="showDebit" class="whitespace-nowrap px-5 py-3.5 text-right">
               <span v-if="debit(txn)" class="font-mono text-sm font-bold text-rose-700">{{ money(debit(txn)) }}</span>
@@ -239,7 +239,7 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
               <span v-if="credit(txn)" class="font-mono text-sm font-bold text-emerald-700">{{ money(credit(txn)) }}</span>
               <span v-else class="text-neutral-300">—</span>
             </td>
-            <td class="whitespace-nowrap px-5 py-3.5 text-right font-mono text-sm font-bold text-neutral-900 dark:text-white">
+            <td class="whitespace-nowrap px-5 py-3.5 text-right font-mono text-sm font-bold text-foreground">
               {{ running.byTransaction.has(key(txn)) ? money(running.byTransaction.get(key(txn)) ?? 0) : '—' }}
             </td>
             <td class="max-w-[260px] px-5 py-3.5 text-xs text-neutral-600 dark:text-neutral-300">{{ txn.narration || '—' }}</td>
@@ -254,7 +254,7 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
             </td>
             <td class="whitespace-nowrap px-5 py-3.5 text-center">
               <div v-if="txn.source === 'savings'" class="flex items-center justify-center gap-1.5">
-                <button type="button" :disabled="printing === txn.id" title="Print receipt" class="rounded-lg border border-neutral-200 p-1.5 text-neutral-500 transition-colors hover:border-brand hover:text-brand disabled:opacity-40 dark:border-neutral-700" @click="emit('print', txn)">
+                <button type="button" :disabled="printing === txn.id" title="Print receipt" class="rounded-lg border border-border p-1.5 text-muted-foreground transition-colors hover:border-brand hover:text-brand disabled:opacity-40" @click="emit('print', txn)">
                   <Printer :size="14" />
                 </button>
                 <button
@@ -262,7 +262,7 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
                   type="button"
                   :disabled="!txn.is_reversible"
                   :title="txn.reversed_at ? 'Already reversed' : txn.reversal_of_id ? 'Reversal entry' : txn.is_reversible ? 'Reverse transaction' : 'Only deposits and withdrawals can be reversed'"
-                  class="rounded-lg border border-neutral-200 p-1.5 text-neutral-500 transition-colors hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-30 dark:border-neutral-700"
+                  class="rounded-lg border border-border p-1.5 text-muted-foreground transition-colors hover:border-amber-400 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-30"
                   @click="emit('reverse', txn)"
                 >
                   <Undo2 :size="14" />
@@ -272,43 +272,43 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
             </td>
           </tr>
         </tbody>
-        <tfoot v-if="filtered.length" class="border-t-2 border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800/40">
+        <tfoot v-if="filtered.length" class="border-t-2 border-border bg-neutral-50 dark:bg-neutral-800/40">
           <tr>
             <td colspan="3" class="px-5 py-4">
-              <div class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Filtered totals</div>
-              <div class="mt-1 text-xs font-medium text-neutral-500">{{ totals.count }} {{ totals.count === 1 ? 'entry' : 'entries' }}</div>
+              <div class="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Filtered totals</div>
+              <div class="mt-1 text-xs font-medium text-muted-foreground">{{ totals.count }} {{ totals.count === 1 ? 'entry' : 'entries' }}</div>
             </td>
             <td v-if="showDebit" class="px-5 py-4 text-right">
-              <div class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Debit</div>
+              <div class="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Debit</div>
               <div class="mt-1 font-mono text-sm font-bold text-rose-800">{{ money(totals.debits) }}</div>
             </td>
             <td v-if="showCredit" class="px-5 py-4 text-right">
-              <div class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">Credit</div>
+              <div class="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Credit</div>
               <div class="mt-1 font-mono text-sm font-bold text-emerald-800">{{ money(totals.credits) }}</div>
             </td>
             <td class="px-5 py-4 text-right">
-              <div class="text-[11px] font-bold uppercase tracking-wide text-neutral-500">{{ balanceLabel }}</div>
+              <div class="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{{ balanceLabel }}</div>
               <div v-if="totals.latest !== null" class="mt-1 font-mono text-sm font-bold text-neutral-950 dark:text-white">{{ money(totals.latest) }}</div>
             </td>
-            <td :colspan="mode === 'all' ? 5 : 4" class="px-5 py-4 text-xs font-medium text-neutral-500">{{ balanceHelp }}</td>
+            <td :colspan="mode === 'all' ? 5 : 4" class="px-5 py-4 text-xs font-medium text-muted-foreground">{{ balanceHelp }}</td>
           </tr>
         </tfoot>
       </table>
     </div>
 
-    <div class="flex flex-col gap-3 bg-white px-4 py-4 text-sm font-semibold text-neutral-500 sm:flex-row sm:items-center sm:justify-between md:px-6 dark:bg-neutral-900">
+    <div class="flex flex-col gap-3 bg-background px-4 py-4 text-sm font-semibold text-muted-foreground sm:flex-row sm:items-center sm:justify-between md:px-6">
       <label class="flex items-center gap-2">
         Rows
-        <select v-model.number="perPage" class="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800">
+        <select v-model.number="perPage" class="rounded-lg border border-border bg-background px-2 py-1 text-sm">
           <option :value="10">10</option>
           <option :value="25">25</option>
           <option :value="50">50</option>
         </select>
       </label>
       <div class="flex items-center gap-2">
-        <button type="button" :disabled="page === 1" aria-label="Previous page" class="rounded-lg border border-neutral-200 p-1.5 disabled:opacity-40 dark:border-neutral-700" @click="page--"><ChevronLeft :size="16" /></button>
+        <button type="button" :disabled="page === 1" aria-label="Previous page" class="rounded-lg border border-border p-1.5 disabled:opacity-40" @click="page--"><ChevronLeft :size="16" /></button>
         <span class="font-mono">{{ page }} / {{ pages }}</span>
-        <button type="button" :disabled="page === pages" aria-label="Next page" class="rounded-lg border border-neutral-200 p-1.5 disabled:opacity-40 dark:border-neutral-700" @click="page++"><ChevronRight :size="16" /></button>
+        <button type="button" :disabled="page === pages" aria-label="Next page" class="rounded-lg border border-border p-1.5 disabled:opacity-40" @click="page++"><ChevronRight :size="16" /></button>
       </div>
     </div>
   </div>

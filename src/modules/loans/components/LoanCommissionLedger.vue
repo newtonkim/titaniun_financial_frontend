@@ -146,21 +146,21 @@ onMounted(() => load())
       Unpaid commission carries forward to the quarter-end distribution after clearance. Distribution views include
       unpaid commissions from earlier quarters.
     </p>
-    <dl class="loan-summary-list" style="margin: 20px 0">
-      <div>
-        <dt>{{ periodBasis === 'distribution' ? 'Tracked commission (including carried forward)' : 'Earned' }}</dt>
-        <dd>{{ formatMoney(summary.earned) }}</dd>
+    <dl class="my-3 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-3">
+      <div class="bg-background px-3 py-2">
+        <dt class="text-xs text-muted-foreground">{{ periodBasis === 'distribution' ? 'Tracked commission (including carried forward)' : 'Earned' }}</dt>
+        <dd class="mt-0.5 font-semibold tabular-nums text-navy dark:text-white">{{ formatMoney(summary.earned) }}</dd>
       </div>
-      <div>
-        <dt>Unpaid liability</dt>
-        <dd>{{ formatMoney(summary.payable) }}</dd>
+      <div class="bg-background px-3 py-2">
+        <dt class="text-xs text-muted-foreground">Unpaid liability</dt>
+        <dd class="mt-0.5 font-semibold tabular-nums text-navy dark:text-white">{{ formatMoney(summary.payable) }}</dd>
       </div>
-      <div>
-        <dt>Paid</dt>
-        <dd>{{ formatMoney(summary.paid) }}</dd>
+      <div class="bg-background px-3 py-2">
+        <dt class="text-xs text-muted-foreground">Paid</dt>
+        <dd class="mt-0.5 font-semibold tabular-nums text-navy dark:text-white">{{ formatMoney(summary.paid) }}</dd>
       </div>
     </dl>
-    <div class="loan-fields" style="margin-bottom: 18px">
+    <div class="loan-fields loan-fields--filters" style="margin-bottom: 12px">
       <label class="loan-field-label"
         >Period view<select v-model="periodBasis" :disabled="busy">
           <option value="distribution">Quarterly distribution, including carried forward</option>

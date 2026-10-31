@@ -210,14 +210,14 @@ const tip = computed(() => (hovered.value === null ? null : bars.value[hovered.v
 
         <div
           v-if="tip && hovered !== null"
-          class="pointer-events-none absolute top-2 z-10 w-56 rounded-lg border border-neutral-200 bg-white p-3 text-xs shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+          class="pointer-events-none absolute top-2 z-10 w-56 rounded-lg border border-border bg-background p-3 text-xs shadow-lg"
           :style="tipStyle"
         >
-          <p class="font-semibold text-neutral-900 dark:text-white">{{ tip.label }}</p>
-          <p class="mt-1 text-base font-bold tabular-nums text-neutral-900 dark:text-white">
+          <p class="font-semibold text-foreground">{{ tip.label }}</p>
+          <p class="mt-1 text-base font-bold tabular-nums text-foreground">
             {{ cashMoney(tip.amount) }}
           </p>
-          <p class="mt-1 text-neutral-500">{{ tip.note }}</p>
+          <p class="mt-1 text-muted-foreground">{{ tip.note }}</p>
         </div>
       </div>
     </div>

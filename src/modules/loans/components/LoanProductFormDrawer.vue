@@ -34,11 +34,11 @@ const title = computed(() => (isEditing.value ? 'Edit Loan Product' : 'Create Lo
 const showAccountingMapping = ref(true)
 const showFeesAndPenalties = ref(true)
 
-const input = 'w-full rounded-xl border px-3 py-2 text-sm dark:bg-neutral-800 dark:text-white'
-const inputClass = (field: string) => [input, fieldError(field) ? 'border-red-400 dark:border-red-500' : 'border-neutral-200 dark:border-neutral-700']
-const card = 'rounded-2xl border border-neutral-100 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900'
+const input = 'w-full rounded-lg border px-3 py-2 text-sm dark:bg-neutral-800 dark:text-white'
+const inputClass = (field: string) => [input, fieldError(field) ? 'border-red-400 dark:border-red-500' : 'border-border']
+const card = 'rounded-lg border border-border bg-background p-6'
 const label = 'mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300'
-const hint = 'mt-1 text-xs text-neutral-400 dark:text-neutral-500'
+const hint = 'mt-1 text-xs text-muted-foreground'
 const money = (value: number | string | null | undefined) => formatMoney(value ?? 0)
 </script>
 
@@ -53,16 +53,16 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
     :save-button-text="isEditing ? 'Update' : 'Create'"
     @save="save"
   >
-    <div v-if="loading" class="flex items-center justify-center py-20 text-sm text-neutral-400">Loading…</div>
+    <div v-if="loading" class="flex items-center justify-center py-20 text-sm text-muted-foreground">Loading…</div>
 
     <div v-else class="flex flex-col gap-6">
-      <p v-if="message" role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
+      <p v-if="message" role="alert" class="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
         {{ message }}
       </p>
 
       <!-- Basic information -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-neutral-900 dark:text-white">Basic Information</h2>
+        <h2 class="mb-5 text-base font-semibold text-foreground">Basic Information</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label :class="label" for="lp-name">Product Name <span class="text-red-500">*</span></label>
@@ -76,7 +76,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
               :value="form.code"
               type="text"
               readonly
-              class="w-full cursor-default rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-500 dark:border-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-400"
+              class="w-full cursor-default rounded-lg border border-border bg-neutral-50 px-3 py-2 text-sm text-muted-foreground dark:bg-neutral-800/60"
             />
             <p :class="hint">Auto-generated from product name.</p>
             <p v-if="fieldError('code')" class="mt-1 text-xs text-red-500">{{ fieldError('code') }}</p>
@@ -88,7 +88,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
               v-model="form.description"
               rows="3"
               placeholder="Short operational description for staff"
-              class="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+              class="w-full rounded-lg border border-border px-3 py-2 text-sm dark:bg-neutral-800 dark:text-white"
             />
           </div>
           <div class="flex items-center gap-3 sm:col-span-2">
@@ -113,7 +113,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
 
       <!-- Amount and term -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-neutral-900 dark:text-white">Amount and Term</h2>
+        <h2 class="mb-5 text-base font-semibold text-foreground">Amount and Term</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label :class="label" for="lp-min">Minimum Amount</label>
@@ -171,7 +171,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
 
       <!-- Interest -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-neutral-900 dark:text-white">Interest and Repayment Structure</h2>
+        <h2 class="mb-5 text-base font-semibold text-foreground">Interest and Repayment Structure</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <p :class="label">Interest Method</p>
@@ -184,12 +184,12 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
                 :key="method.value"
                 type="button"
                 :aria-pressed="form.interest_method === method.value"
-                class="rounded-2xl border p-4 text-left transition-colors"
-                :class="form.interest_method === method.value ? 'border-brand bg-brand/5' : 'border-neutral-200 dark:border-neutral-700'"
+                class="rounded-lg border p-4 text-left transition-colors"
+                :class="form.interest_method === method.value ? 'border-brand bg-brand/5' : 'border-border'"
                 @click="form.interest_method = method.value"
               >
-                <p class="text-sm font-semibold text-neutral-900 dark:text-white">{{ method.title }}</p>
-                <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{{ method.text }}</p>
+                <p class="text-sm font-semibold text-foreground">{{ method.title }}</p>
+                <p class="mt-1 text-xs text-muted-foreground">{{ method.text }}</p>
               </button>
             </div>
             <p v-if="fieldError('interest_method')" class="mt-1 text-xs text-red-500">{{ fieldError('interest_method') }}</p>
@@ -218,7 +218,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
       </div>
 
       <div :class="card">
-        <h2 class="mb-3 text-base font-semibold text-neutral-900 dark:text-white">Interest distribution</h2>
+        <h2 class="mb-3 text-base font-semibold text-foreground">Interest distribution</h2>
         <label :class="label" for="lp-commission">Commission share of collected interest (%)</label>
         <input id="lp-commission" v-model.number="form.commission_rate" type="number" min="0" max="100" step="0.01" :class="inputClass('commission_rate')" />
         <p v-if="fieldError('commission_rate')" class="mt-1 text-xs text-red-500">{{ fieldError('commission_rate') }}</p>
@@ -227,13 +227,13 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
 
       <!-- Workflow and eligibility -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-neutral-900 dark:text-white">Workflow and Eligibility</h2>
+        <h2 class="mb-5 text-base font-semibold text-foreground">Workflow and Eligibility</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label :class="label" for="lp-appraisal">Savings Appraisal Threshold (%)</label>
             <div class="relative">
               <input id="lp-appraisal" v-model.number="form.savings_appraisal_threshold" type="number" min="0" max="100" step="0.01" placeholder="0" :class="[inputClass('savings_appraisal_threshold'), 'pr-10']" />
-              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400">%</span>
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
             </div>
             <p :class="hint">Percentage of applicant savings that does not require appraisal.</p>
             <p v-if="fieldError('savings_appraisal_threshold')" class="mt-1 text-xs text-red-500">{{ fieldError('savings_appraisal_threshold') }}</p>
@@ -248,7 +248,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
             <label :class="label" for="lp-security-value">Security Value (%)</label>
             <div class="relative">
               <input id="lp-security-value" v-model.number="form.security_value_percentage" type="number" min="0" step="0.01" placeholder="150" :class="[inputClass('security_value_percentage'), 'pr-10']" />
-              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400">%</span>
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
             </div>
             <p :class="hint">Required security value as a percentage of the loan amount.</p>
             <p v-if="fieldError('security_value_percentage')" class="mt-1 text-xs text-red-500">{{ fieldError('security_value_percentage') }}</p>
@@ -259,10 +259,10 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
       <!-- Fees and penalties -->
       <div :class="card">
         <div class="mb-5 flex items-center justify-between">
-          <h2 class="text-base font-semibold text-neutral-900 dark:text-white">Fees and Penalties</h2>
+          <h2 class="text-base font-semibold text-foreground">Fees and Penalties</h2>
           <button
             type="button"
-            class="flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800"
+            class="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
             :aria-expanded="showFeesAndPenalties"
             @click="showFeesAndPenalties = !showFeesAndPenalties"
           >
@@ -271,7 +271,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
           </button>
         </div>
         <template v-if="showFeesAndPenalties">
-          <div class="mb-5 rounded-xl border border-neutral-200 bg-neutral-50/70 p-3.5 text-xs text-neutral-600 dark:border-neutral-700 dark:bg-neutral-800/60 dark:text-neutral-300">
+          <div class="mb-5 rounded-lg border border-border bg-neutral-50/70 p-3.5 text-xs text-neutral-600 dark:bg-neutral-800/60 dark:text-neutral-300">
             <p class="font-medium text-neutral-700 dark:text-neutral-200">Set the fees and penalties that apply to this loan product.</p>
             <ul class="mt-2 list-disc space-y-1.5 pl-4">
               <li><strong class="font-semibold">Processing fees:</strong> deducted at disbursement.</li>
@@ -307,10 +307,10 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
               <p v-if="fieldError('penalty_rate')" class="mt-1 text-xs text-red-500">{{ fieldError('penalty_rate') }}</p>
             </div>
           </div>
-          <div v-if="form.penalty_type !== 'none'" class="mt-5 rounded-xl border border-neutral-100 p-4 dark:border-neutral-800">
+          <div v-if="form.penalty_type !== 'none'" class="mt-5 rounded-lg border border-border p-4">
             <label :class="label" for="lp-penalty-grace">Penalty Grace Period (days)</label>
             <input id="lp-penalty-grace" v-model.number="form.penalty_grace_days" type="number" min="0" placeholder="0" :class="inputClass('penalty_grace_days')" />
-            <p class="mt-1 text-xs text-neutral-400">
+            <p class="mt-1 text-xs text-muted-foreground">
               Number of days after a repayment due date before penalties begin. Set to 0 for immediate application.
             </p>
           </div>
@@ -320,10 +320,10 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
       <!-- Accounting mapping -->
       <div :class="card">
         <div class="mb-5 flex items-center justify-between">
-          <h2 class="text-base font-semibold text-neutral-900 dark:text-white">Accounting Mapping</h2>
+          <h2 class="text-base font-semibold text-foreground">Accounting Mapping</h2>
           <button
             type="button"
-            class="flex items-center gap-1.5 rounded-xl border border-neutral-200 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-400 dark:hover:bg-neutral-800"
+            class="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
             :aria-expanded="showAccountingMapping"
             @click="showAccountingMapping = !showAccountingMapping"
           >
@@ -332,7 +332,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
           </button>
         </div>
         <template v-if="showAccountingMapping">
-          <p class="mb-4 text-xs text-neutral-500 dark:text-neutral-400">
+          <p class="mb-4 text-xs text-muted-foreground">
             These accounts define where journal entries are posted for loan transactions. Defaults are pre-filled from your
             chart of accounts — change them if needed.
           </p>
@@ -354,27 +354,27 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
       <div :class="card">
         <div class="mb-4 flex items-center gap-2">
           <Calculator class="h-4 w-4 text-brand" />
-          <h2 class="text-base font-semibold text-neutral-900 dark:text-white">Live Preview</h2>
+          <h2 class="text-base font-semibold text-foreground">Live Preview</h2>
         </div>
 
         <div class="space-y-4">
           <div class="grid gap-3 sm:grid-cols-2">
             <div>
-              <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400" for="lp-preview-amount">Preview Amount</label>
-              <input id="lp-preview-amount" v-model.number="previewAmount" type="number" min="0" step="0.01" placeholder="500000" :class="[input, 'border-neutral-200 dark:border-neutral-700']" />
+              <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-muted-foreground" for="lp-preview-amount">Preview Amount</label>
+              <input id="lp-preview-amount" v-model.number="previewAmount" type="number" min="0" step="0.01" placeholder="500000" :class="[input, 'border-border']" />
             </div>
             <div>
-              <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400" for="lp-preview-term">Preview Term</label>
-              <input id="lp-preview-term" v-model.number="previewTerm" type="number" min="1" placeholder="12" :class="[input, 'border-neutral-200 dark:border-neutral-700']" />
+              <label class="mb-1 block text-xs font-medium uppercase tracking-wide text-muted-foreground" for="lp-preview-term">Preview Term</label>
+              <input id="lp-preview-term" v-model.number="previewTerm" type="number" min="1" placeholder="12" :class="[input, 'border-border']" />
             </div>
           </div>
 
-          <div class="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800/60">
-            <p class="text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Method Summary</p>
-            <p class="mt-2 text-sm text-neutral-900 dark:text-white">
+          <div class="rounded-lg bg-neutral-50 p-4 dark:bg-neutral-800/60">
+            <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Method Summary</p>
+            <p class="mt-2 text-sm text-foreground">
               {{ form.interest_method === 'reducing_balance' ? 'Reducing balance' : form.interest_method === 'flat' ? 'Flat rate' : 'Select an interest method' }}
             </p>
-            <p class="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            <p class="mt-1 text-xs text-muted-foreground">
               <span v-if="form.interest_method === 'reducing_balance' && form.repayment_structure === 'equal_installment'">Installments stay level while principal share rises over time.</span>
               <span v-else-if="form.interest_method === 'reducing_balance' && form.repayment_structure === 'equal_principal'">Principal stays fixed and total installments decline over time.</span>
               <span v-else-if="form.interest_method === 'flat'">Interest is spread on original principal for the full term.</span>
@@ -382,46 +382,46 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
             </p>
           </div>
 
-          <div v-if="previewLoading" class="py-10 text-center text-sm text-neutral-400">Calculating preview…</div>
+          <div v-if="previewLoading" class="py-10 text-center text-sm text-muted-foreground">Calculating preview…</div>
 
           <template v-else-if="preview">
             <div class="grid gap-3">
-              <div class="rounded-2xl border border-neutral-100 p-4 dark:border-neutral-800">
-                <p class="text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Estimated Installment</p>
-                <p class="mt-1 text-xl font-semibold text-neutral-900 dark:text-white">{{ money(preview.installment_amount) }}</p>
+              <div class="rounded-lg border border-border p-4">
+                <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Estimated Installment</p>
+                <p class="mt-1 text-xl font-semibold text-foreground">{{ money(preview.installment_amount) }}</p>
               </div>
               <div class="grid gap-3 sm:grid-cols-2">
-                <div class="rounded-2xl border border-neutral-100 p-4 dark:border-neutral-800">
-                  <p class="text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Total Interest</p>
-                  <p class="mt-1 text-base font-semibold text-neutral-900 dark:text-white">{{ money(preview.total_interest) }}</p>
+                <div class="rounded-lg border border-border p-4">
+                  <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Total Interest</p>
+                  <p class="mt-1 text-base font-semibold text-foreground">{{ money(preview.total_interest) }}</p>
                 </div>
-                <div class="rounded-2xl border border-neutral-100 p-4 dark:border-neutral-800">
-                  <p class="text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Total Repayment</p>
-                  <p class="mt-1 text-base font-semibold text-neutral-900 dark:text-white">{{ money(preview.total_repayment) }}</p>
+                <div class="rounded-lg border border-border p-4">
+                  <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Total Repayment</p>
+                  <p class="mt-1 text-base font-semibold text-foreground">{{ money(preview.total_repayment) }}</p>
                 </div>
               </div>
             </div>
 
-            <div class="rounded-2xl bg-neutral-50 p-4 dark:bg-neutral-800/60">
+            <div class="rounded-lg bg-neutral-50 p-4 dark:bg-neutral-800/60">
               <p class="text-sm text-neutral-700 dark:text-neutral-300">Company interest share: <strong>{{ money(preview.company_interest ?? 0) }}</strong></p>
               <p class="mt-1 text-sm text-neutral-700 dark:text-neutral-300">Commission: <strong>{{ money(preview.commission_amount ?? 0) }}</strong>, earned on collection and payable at quarter-end after full loan clearance.</p>
             </div>
 
             <!-- Total cost of credit -->
-            <div v-if="estimatedFees.breakdown.length" class="rounded-2xl border border-amber-100 bg-amber-50/50 p-4 dark:border-amber-900/30 dark:bg-amber-950/20">
+            <div v-if="estimatedFees.breakdown.length" class="rounded-lg border border-amber-100 bg-amber-50/50 p-4 dark:border-amber-900/30 dark:bg-amber-950/20">
               <p class="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-400">Total Cost of Credit</p>
               <div class="mt-3 space-y-2">
                 <div class="flex items-center justify-between text-sm">
                   <span class="text-neutral-600 dark:text-neutral-400">Principal</span>
-                  <span class="font-medium text-neutral-900 dark:text-white">{{ money(Number(previewAmount || form.min_amount || 0)) }}</span>
+                  <span class="font-medium text-foreground">{{ money(Number(previewAmount || form.min_amount || 0)) }}</span>
                 </div>
                 <div class="flex items-center justify-between text-sm">
                   <span class="text-neutral-600 dark:text-neutral-400">Total Interest</span>
-                  <span class="font-medium text-neutral-900 dark:text-white">{{ money(preview.total_interest) }}</span>
+                  <span class="font-medium text-foreground">{{ money(preview.total_interest) }}</span>
                 </div>
                 <div v-for="fee in estimatedFees.breakdown" :key="fee.name" class="flex items-center justify-between text-sm">
                   <span class="text-neutral-600 dark:text-neutral-400">{{ fee.name }}</span>
-                  <span class="font-medium text-neutral-900 dark:text-white">{{ money(fee.amount) }}</span>
+                  <span class="font-medium text-foreground">{{ money(fee.amount) }}</span>
                 </div>
                 <div class="border-t border-amber-200 pt-2 dark:border-amber-800">
                   <div class="flex items-center justify-between text-sm font-semibold">
@@ -435,10 +435,10 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
             </div>
 
             <div>
-              <p class="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Schedule Snapshot</p>
-              <div class="max-h-80 overflow-y-auto rounded-2xl border border-neutral-100 dark:border-neutral-800">
+              <p class="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Schedule Snapshot</p>
+              <div class="max-h-80 overflow-y-auto rounded-lg border border-border">
                 <table class="w-full text-xs">
-                  <thead class="sticky top-0 bg-neutral-50 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
+                  <thead class="sticky top-0 bg-neutral-50 text-muted-foreground dark:bg-neutral-800">
                     <tr>
                       <th class="px-3 py-2 text-left">#</th>
                       <th class="px-3 py-2 text-right">Principal</th>
@@ -451,7 +451,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
                       <td class="px-3 py-2 text-neutral-700 dark:text-neutral-200">{{ row.period }}</td>
                       <td class="px-3 py-2 text-right text-neutral-600 dark:text-neutral-300">{{ money(row.principal) }}</td>
                       <td class="px-3 py-2 text-right text-neutral-600 dark:text-neutral-300">{{ money(row.interest) }}</td>
-                      <td class="px-3 py-2 text-right font-medium text-neutral-900 dark:text-white">{{ money(row.installment) }}</td>
+                      <td class="px-3 py-2 text-right font-medium text-foreground">{{ money(row.installment) }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -459,11 +459,11 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
             </div>
 
             <div v-if="preview.messages?.length" class="space-y-2">
-              <p v-for="note in preview.messages" :key="note" class="text-xs text-neutral-500 dark:text-neutral-400">{{ note }}</p>
+              <p v-for="note in preview.messages" :key="note" class="text-xs text-muted-foreground">{{ note }}</p>
             </div>
           </template>
 
-          <div v-else class="rounded-2xl border border-dashed border-neutral-200 px-4 py-8 text-center text-sm text-neutral-400 dark:border-neutral-700 dark:text-neutral-500">
+          <div v-else class="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
             Fill in interest method, rate, term, and preview amount to generate a repayment sample.
           </div>
         </div>

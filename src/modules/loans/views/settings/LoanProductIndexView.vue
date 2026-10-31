@@ -30,17 +30,17 @@ const {
         >
           <ArrowLeft class="h-4 w-4 text-neutral-600 dark:text-neutral-400" />
         </button>
-        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-800">
+        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
           <CreditCard class="h-5 w-5 text-brand" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">Loan Products</h1>
-          <p class="text-sm text-neutral-500 dark:text-neutral-400">Manage loan types and their configurations</p>
+          <h1 class="text-2xl font-bold tracking-tight text-foreground">Loan Products</h1>
+          <p class="text-sm text-muted-foreground">Manage loan types and their configurations</p>
         </div>
       </div>
       <button
         type="button"
-        class="flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
+        class="flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-dark"
         @click="openCreate"
       >
         <Plus class="h-4 w-4" />
@@ -50,34 +50,34 @@ const {
 
     <!-- Search -->
     <div class="relative max-w-sm">
-      <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+      <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <input
         v-model="search"
         type="text"
         placeholder="Search loan products…"
         aria-label="Search loan products"
-        class="w-full rounded-xl border border-neutral-200 bg-white py-2 pl-9 pr-4 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+        class="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-4 text-sm dark:text-white"
       />
     </div>
 
-    <p v-if="error" role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
+    <p v-if="error" role="alert" class="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
       {{ error }}
     </p>
 
     <!-- Table -->
-    <div class="overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-      <div v-if="loading" class="flex items-center justify-center py-16 text-sm text-neutral-400">Loading…</div>
+    <div class="overflow-hidden rounded-lg border border-border bg-background">
+      <div v-if="loading" class="flex items-center justify-center py-16 text-sm text-muted-foreground">Loading…</div>
       <div v-else-if="products.length === 0" class="flex flex-col items-center justify-center gap-2 py-16">
         <CreditCard class="h-8 w-8 text-neutral-300 dark:text-neutral-600" />
-        <p class="text-sm text-neutral-500 dark:text-neutral-400">No loan products found.</p>
+        <p class="text-sm text-muted-foreground">No loan products found.</p>
         <button type="button" class="mt-2 text-sm font-medium text-brand hover:underline" @click="openCreate">
           Create your first loan product
         </button>
       </div>
       <div v-else class="overflow-x-auto">
         <table class="w-full text-sm">
-          <thead class="border-b border-neutral-100 dark:border-neutral-800">
-            <tr class="text-left text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+          <thead class="border-b border-border">
+            <tr class="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <th class="px-6 py-3 text-left">Name</th>
               <th class="px-6 py-3 text-left">Interest Method</th>
               <th class="px-6 py-3 text-left">Interest Rate</th>
@@ -89,9 +89,9 @@ const {
           </thead>
           <tbody class="divide-y divide-neutral-50 dark:divide-neutral-800">
             <tr v-for="product in products" :key="product.id" class="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
-              <td class="px-6 py-4 font-medium text-neutral-900 dark:text-white">
+              <td class="px-6 py-4 font-medium text-foreground">
                 {{ product.name }}
-                <span class="ml-1 font-mono text-xs font-normal text-neutral-400">{{ product.code }}</span>
+                <span class="ml-1 font-mono text-xs font-normal text-muted-foreground">{{ product.code }}</span>
               </td>
               <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">{{ interestMethodLabel(product.interest_method) }}</td>
               <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">
@@ -108,7 +108,7 @@ const {
                   class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium"
                   :class="product.is_active
                     ? 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                    : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400'"
+                    : 'bg-neutral-100 text-muted-foreground dark:bg-neutral-800'"
                 >
                   <component :is="product.is_active ? ToggleRight : ToggleLeft" class="h-3 w-3" />
                   {{ product.is_active ? 'Active' : 'Inactive' }}
@@ -123,7 +123,7 @@ const {
                     :aria-label="`View ${product.name}`"
                     @click="router.push({ name: 'loans.products.show', params: { id: product.id } })"
                   >
-                    <Eye class="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+                    <Eye class="h-4 w-4 text-muted-foreground" />
                   </button>
                   <button
                     type="button"
@@ -132,7 +132,7 @@ const {
                     :aria-label="`Edit ${product.name}`"
                     @click="openEdit(product)"
                   >
-                    <Pencil class="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+                    <Pencil class="h-4 w-4 text-muted-foreground" />
                   </button>
                   <button
                     type="button"

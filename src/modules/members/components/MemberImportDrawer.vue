@@ -69,17 +69,17 @@ async function upload(): Promise<void> {
     @save="upload"
   >
     <div class="flex flex-col gap-5">
-      <p v-if="message" role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
+      <p v-if="message" role="alert" class="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
         {{ message }}
       </p>
 
-      <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-        <p class="text-sm font-semibold text-neutral-900 dark:text-white">1. Download the template</p>
-        <p class="mt-1 text-xs text-neutral-500">Fill one member per row. Name, gender, marital status, nationality, address and phone are required; member_type is new_member or existing_member.</p>
+      <div class="rounded-lg border border-border bg-background p-5">
+        <p class="text-sm font-semibold text-foreground">1. Download the template</p>
+        <p class="mt-1 text-xs text-muted-foreground">Fill one member per row. Name, gender, marital status, nationality, address and phone are required; member_type is new_member or existing_member.</p>
         <button
           type="button"
           :disabled="downloading"
-          class="mt-3 inline-flex items-center gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+          class="mt-3 inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-50 dark:text-neutral-200 dark:hover:bg-neutral-800"
           @click="downloadTemplate"
         >
           <Download class="h-4 w-4" />
@@ -87,16 +87,16 @@ async function upload(): Promise<void> {
         </button>
       </div>
 
-      <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-        <p class="text-sm font-semibold text-neutral-900 dark:text-white">2. Upload the completed sheet</p>
-        <label class="mt-3 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-neutral-200 px-4 py-8 text-center transition-colors hover:border-brand dark:border-neutral-700">
-          <FileSpreadsheet class="h-8 w-8 text-neutral-400" />
+      <div class="rounded-lg border border-border bg-background p-5">
+        <p class="text-sm font-semibold text-foreground">2. Upload the completed sheet</p>
+        <label class="mt-3 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border px-4 py-8 text-center transition-colors hover:border-brand">
+          <FileSpreadsheet class="h-8 w-8 text-muted-foreground" />
           <span class="text-sm font-medium text-neutral-700 dark:text-neutral-200">{{ file ? file.name : 'Choose an .xlsx, .xls or .csv file' }}</span>
           <input type="file" accept=".xlsx,.xls,.csv" class="sr-only" @change="pick" />
         </label>
       </div>
 
-      <div v-if="result" class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      <div v-if="result" class="rounded-lg border border-border bg-background p-5">
         <p class="flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
           <CheckCircle2 class="h-4 w-4" /> {{ result.imported }} member{{ result.imported === 1 ? '' : 's' }} imported
         </p>

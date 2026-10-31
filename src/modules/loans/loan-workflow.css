@@ -1,10 +1,10 @@
 .loan-workflow {
-  --loan-accent: #141416;
-  --loan-accent-text: light-dark(#141416, #ededf0);
-  --loan-text: light-dark(#242429, #ededf0);
-  --loan-muted: light-dark(#707078, #b0b0b8);
-  --loan-soft: light-dark(#f6f6f8, #212125);
-  --loan-border: light-dark(#e4e4e8, #35353b);
+  --loan-accent: var(--primary);
+  --loan-accent-text: var(--heading);
+  --loan-text: var(--text);
+  --loan-muted: var(--muted);
+  --loan-soft: var(--surface-sunken);
+  --loan-border: var(--border);
   scroll-margin-top: 100px;
   width: 100%;
   max-width: 1400px;
@@ -85,7 +85,7 @@
   flex: none;
   width: 46px;
   height: 46px;
-  border-radius: 14px;
+  border-radius: var(--radius-panel);
   background: var(--loan-soft);
   color: var(--loan-accent-text);
   border: 1px solid var(--loan-border);
@@ -99,7 +99,7 @@
   height: 36px;
   padding: 0;
   border: 1px solid var(--loan-border);
-  border-radius: 10px;
+  border-radius: var(--radius-panel);
   background: var(--surface);
   color: var(--loan-text);
   cursor: pointer;
@@ -110,11 +110,11 @@
 }
 .loan-card {
   min-width: 0;
-  padding: 25px;
+  padding: 1rem 1.25rem;
   border: 1px solid var(--loan-border);
-  border-radius: 17px;
+  border-radius: var(--radius-panel);
   background: var(--surface);
-  box-shadow: 0 1px 2px rgb(20 20 22 / 3%);
+  box-shadow: none;
 }
 .loan-card-heading {
   display: flex;
@@ -211,10 +211,10 @@
   align-items: center;
   justify-content: center;
   gap: 9px;
-  min-height: 42px;
-  padding: 10px 16px;
+  min-height: 32px;
+  padding: 6px 12px;
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--loan-text);
   font-size: 13px;
@@ -292,7 +292,13 @@
 .loan-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 21px 18px;
+  gap: 12px;
+}
+/* A row of filters above a table. */
+@media (min-width: 1024px) {
+  .loan-fields--filters {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+  }
 }
 .loan-fields--single {
   grid-template-columns: minmax(0, 1fr);
@@ -314,11 +320,11 @@
   display: block;
   width: 100%;
   min-width: 0;
-  min-height: 44px;
-  margin-top: 7px;
-  padding: 10px 12px;
+  min-height: 36px;
+  margin-top: 4px;
+  padding: 6px 10px;
   border: 1px solid var(--loan-border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: var(--surface);
   color: var(--loan-text);
   font: inherit;
@@ -434,7 +440,7 @@
   justify-content: space-between;
   gap: 22px;
   padding: 14px;
-  border-radius: 10px;
+  border-radius: var(--radius-panel);
   background: var(--loan-soft);
 }
 .loan-review-list dt {
@@ -477,7 +483,7 @@
   margin-bottom: 20px;
   padding: 15px 18px;
   border: 1px solid var(--loan-border);
-  border-radius: 11px;
+  border-radius: var(--radius-panel);
   background: var(--loan-soft);
   color: var(--loan-text);
   font-size: 13px;
@@ -542,7 +548,7 @@
   max-height: 280px;
   overflow-y: auto;
   border: 1px solid var(--loan-border);
-  border-radius: 11px;
+  border-radius: var(--radius-panel);
   background: var(--surface);
   box-shadow: 0 8px 20px rgb(20 20 22 / 10%);
 }
@@ -589,7 +595,7 @@
   gap: 12px;
   padding: 14px;
   border: 1px solid var(--loan-border);
-  border-radius: 11px;
+  border-radius: var(--radius-panel);
 }
 .loan-selected-member > div {
   flex: 1;
@@ -611,7 +617,7 @@
 .loan-mini-schedule {
   margin-top: 15px;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: var(--radius-panel);
   background: var(--loan-soft);
 }
 .loan-mini-schedule > div {
@@ -635,7 +641,7 @@
   gap: 14px;
   margin-block: 18px;
   padding: 15px;
-  border-radius: 10px;
+  border-radius: var(--radius-panel);
   background: var(--loan-soft);
 }
 .loan-security-totals span {
@@ -688,7 +694,7 @@
   margin-block: 18px;
   padding: 18px;
   border: 1px solid var(--loan-border);
-  border-radius: 11px;
+  border-radius: var(--radius-panel);
 }
 .loan-subform .loan-inline-actions {
   margin-top: 15px;
@@ -979,7 +985,7 @@
   }
   .loan-card {
     padding: 19px 17px;
-    border-radius: 14px;
+    border-radius: var(--radius-panel);
   }
   .loan-stepper {
     padding: 17px 12px;
@@ -1060,4 +1066,9 @@
   .loan-workflow * {
     transition: none !important;
   }
+}
+.loan-workflow .page-head__title {
+  color: var(--heading);
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
 }

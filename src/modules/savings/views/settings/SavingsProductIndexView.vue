@@ -69,12 +69,12 @@ function openChargesModal(product: SavingsProduct) {
       <RouterLink :to="{ name: 'savings.settings' }" aria-label="Back" class="mr-2 rounded-full p-2 transition hover:bg-neutral-200 dark:hover:bg-neutral-800">
         <ChevronLeft class="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
       </RouterLink>
-      <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 dark:bg-neutral-800">
+      <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
         <Landmark class="h-5 w-5 text-brand" />
       </div>
       <div class="flex-1">
-        <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">Savings Products List</h1>
-        <p class="text-sm text-neutral-500 dark:text-neutral-400">Manage rules and configurations for savings products</p>
+        <h1 class="text-2xl font-bold tracking-tight text-foreground">Savings Products List</h1>
+        <p class="text-sm text-muted-foreground">Manage rules and configurations for savings products</p>
       </div>
 
       <button
@@ -87,13 +87,13 @@ function openChargesModal(product: SavingsProduct) {
       </button>
     </div>
 
-    <p v-if="error" role="alert" class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
+    <p v-if="error" role="alert" class="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-300">
       {{ error }}
     </p>
 
-    <div class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <div class="overflow-hidden rounded-lg border border-border bg-background">
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-neutral-500 dark:text-neutral-400">
+        <table class="w-full text-left text-sm text-muted-foreground">
           <thead class="bg-neutral-50 text-xs uppercase text-neutral-700 dark:bg-neutral-800/50 dark:text-neutral-400">
             <tr>
               <th scope="col" class="px-6 py-4 text-left font-semibold">Name</th>
@@ -107,21 +107,21 @@ function openChargesModal(product: SavingsProduct) {
           <tbody>
             <tr v-if="loading">
               <td colspan="6" class="px-6 py-10 text-center">
-                <div class="flex items-center justify-center gap-2 text-sm text-neutral-500">
+                <div class="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden="true" />
                   Loading savings products...
                 </div>
               </td>
             </tr>
             <tr v-else-if="products.length === 0">
-              <td colspan="6" class="px-6 py-8 text-center text-neutral-500">No savings products found. Click "Create Product" to add one.</td>
+              <td colspan="6" class="px-6 py-8 text-center text-muted-foreground">No savings products found. Click "Create Product" to add one.</td>
             </tr>
             <tr
               v-for="product in products"
               :key="product.id"
-              class="border-b border-neutral-100 transition-colors last:border-0 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50"
+              class="border-b border-border transition-colors last:border-0 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
             >
-              <td class="whitespace-nowrap px-6 py-4 font-medium text-neutral-900 dark:text-white">{{ product.name }}</td>
+              <td class="whitespace-nowrap px-6 py-4 font-medium text-foreground">{{ product.name }}</td>
               <td class="whitespace-nowrap px-6 py-4 capitalize">{{ product.type }}</td>
               <td class="whitespace-nowrap px-6 py-4">{{ formatMoney(product.minimum_balance) }}</td>
               <td class="whitespace-nowrap px-6 py-4 text-center">
@@ -151,7 +151,7 @@ function openChargesModal(product: SavingsProduct) {
                   <button
                     type="button"
                     :aria-label="`Edit ${product.name}`"
-                    class="rounded-lg p-1.5 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-brand dark:hover:bg-neutral-800"
+                    class="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-neutral-100 hover:text-brand dark:hover:bg-neutral-800"
                     @click="openForm(product)"
                   >
                     <Edit class="h-4 w-4" />
@@ -159,7 +159,7 @@ function openChargesModal(product: SavingsProduct) {
                   <button
                     type="button"
                     :aria-label="`Delete ${product.name}`"
-                    class="rounded-lg p-1.5 text-neutral-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                    class="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
                     @click="deleteTarget = product"
                   >
                     <Trash2 class="h-4 w-4" />

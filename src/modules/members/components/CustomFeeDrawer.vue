@@ -46,15 +46,15 @@ async function save() {
   }
 }
 
-const input = 'w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand dark:border-neutral-700 dark:bg-neutral-800 dark:text-white'
+const input = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand dark:text-white'
 const product = () => props.account?.product
 </script>
 
 <template>
   <AppDrawer v-model:open="open" title="Custom Fees" save-button-text="Save fee" :loading="form.processing" @save="save">
     <div v-if="account" class="tw-scope flex flex-col gap-5">
-      <p v-if="form.message" class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">{{ form.message }}</p>
-      <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/30 dark:bg-amber-900/10">
+      <p v-if="form.message" class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">{{ form.message }}</p>
+      <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900/30 dark:bg-amber-900/10">
         <h4 class="mb-1 flex items-center gap-2 text-sm font-semibold text-amber-900 dark:text-amber-400"><Star :size="14" /> Fee Overrides</h4>
         <p class="text-xs text-amber-700 dark:text-amber-400">
           Settings defined here override the monthly fee on the {{ product()?.name }} product for account {{ account.account_number }}.
@@ -65,10 +65,10 @@ const product = () => props.account?.product
           <strong>{{ product()?.monthly_fee_enabled ? (product()?.monthly_fee_type === 'percentage' ? `${product()?.monthly_fee_amount}% of the balance` : `UGX ${formatMoney(product()?.monthly_fee_amount)}`) : 'none' }}</strong>
         </p>
       </div>
-      <label class="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-neutral-200 p-4 dark:border-neutral-700">
+      <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border p-4">
         <span>
           <span class="block text-sm font-semibold text-neutral-800 dark:text-neutral-100">Use a custom monthly fee</span>
-          <span class="text-xs text-neutral-500">Charge this account its own fee instead of the product's.</span>
+          <span class="text-xs text-muted-foreground">Charge this account its own fee instead of the product's.</span>
         </span>
         <input id="custom-fee-enabled" v-model="form.enabled" type="checkbox" class="h-5 w-5 accent-[var(--color-brand)]" />
       </label>

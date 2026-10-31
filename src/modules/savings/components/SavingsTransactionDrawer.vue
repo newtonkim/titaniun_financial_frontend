@@ -73,7 +73,7 @@ async function save() {
 
 const label = 'mb-1.5 block text-[13px] font-semibold capitalize text-neutral-700 dark:text-neutral-300'
 const input =
-  'w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition focus:border-brand focus:ring-1 focus:ring-brand dark:border-neutral-700 dark:bg-neutral-800 dark:text-white'
+  'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-brand focus:ring-1 focus:ring-brand'
 const fieldError = 'mt-1 text-xs text-red-500'
 </script>
 
@@ -88,11 +88,11 @@ const fieldError = 'mt-1 text-xs text-red-500'
     @save="save"
   >
     <div v-if="account" class="tw-scope flex h-full flex-col px-1">
-      <p v-if="form.message.value" class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">{{ form.message.value }}</p>
+      <p v-if="form.message.value" class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">{{ form.message.value }}</p>
 
       <!-- Account summary -->
       <div
-        class="relative mb-6 overflow-hidden rounded-2xl p-5 text-white shadow-sm"
+        class="relative mb-6 overflow-hidden rounded-lg p-5 text-white shadow-sm"
         :class="deposit ? 'bg-gradient-to-br from-emerald-600 to-emerald-800' : 'bg-gradient-to-br from-navy to-[#2c3b7a]'"
       >
         <div class="absolute -right-8 -top-8 size-32 rounded-full bg-white/10 blur-2xl" />
@@ -118,8 +118,8 @@ const fieldError = 'mt-1 text-xs text-red-500'
       </div>
 
       <!-- Transaction form -->
-      <div class="rounded-2xl border border-neutral-100 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-        <p class="mb-4 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+      <div class="rounded-lg border border-border bg-background p-5">
+        <p class="mb-4 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           <component :is="deposit ? CircleDollarSign : MinusCircle" :size="13" /> {{ deposit ? 'Deposit Details' : 'Withdrawal Details' }}
         </p>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5">
@@ -160,11 +160,11 @@ const fieldError = 'mt-1 text-xs text-red-500'
         <!-- Live balance-after preview -->
         <div
           v-if="entered > 0"
-          class="mt-5 flex items-center justify-between rounded-xl border px-4 py-3"
-          :class="deposit ? 'border-emerald-200 bg-emerald-50/60' : belowMinimum ? 'border-rose-200 bg-rose-50/60' : 'border-neutral-100 bg-neutral-50/70'"
+          class="mt-5 flex items-center justify-between rounded-lg border px-4 py-3"
+          :class="deposit ? 'border-emerald-200 bg-emerald-50/60' : belowMinimum ? 'border-rose-200 bg-rose-50/60' : 'border-border bg-neutral-50/70'"
         >
-          <div class="flex items-center gap-2 text-sm font-medium text-neutral-500">
-            <component :is="deposit ? TrendingUp : TrendingDown" :size="15" :class="deposit ? 'text-emerald-500' : 'text-neutral-400'" />
+          <div class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <component :is="deposit ? TrendingUp : TrendingDown" :size="15" :class="deposit ? 'text-emerald-500' : 'text-muted-foreground'" />
             {{ deposit ? 'Balance after deposit' : 'Balance after withdrawal' }}
           </div>
           <span class="text-base font-black tabular-nums" :class="deposit ? 'text-emerald-700' : belowMinimum ? 'text-rose-600' : 'text-neutral-900'">
@@ -179,7 +179,7 @@ const fieldError = 'mt-1 text-xs text-red-500'
 
       <!-- Note -->
       <div
-        class="mt-5 flex items-start gap-2.5 rounded-xl border px-4 py-3"
+        class="mt-5 flex items-start gap-2.5 rounded-lg border px-4 py-3"
         :class="deposit ? 'border-emerald-100 bg-emerald-50/60' : 'border-amber-100 bg-amber-50/60'"
       >
         <Info :size="15" class="mt-0.5 shrink-0" :class="deposit ? 'text-emerald-500' : 'text-amber-500'" />

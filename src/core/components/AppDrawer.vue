@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DialogClose, DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
 import { X } from 'lucide-vue-next'
+import { Button } from '@/core/components/ui/button'
 
 /**
  * A right-hand sheet that hosts a form: title bar, scrolling body and a Cancel / Save footer.
@@ -52,25 +53,21 @@ function handleCancel() {
 <template>
   <DialogRoot :open="open" @update:open="setOpen">
     <DialogPortal>
-      <DialogOverlay class="app-drawer-overlay fixed inset-0 z-50 bg-black/60" />
+      <DialogOverlay class="app-drawer-overlay fixed inset-0 z-50 bg-black/40" />
       <DialogContent
         v-bind="description ? {} : { 'aria-describedby': undefined }"
         :class="[
-          'app-drawer-panel tw-scope fixed inset-y-0 right-0 z-50 flex h-full max-w-full flex-col border-l border-neutral-100 bg-gray-50 shadow-lg dark:border-neutral-800 dark:bg-neutral-900',
+          'app-drawer-panel tw-scope fixed inset-y-0 right-0 z-50 flex h-full max-w-full flex-col border-l border-border bg-background text-foreground shadow-lg',
           width,
         ]"
       >
-        <div class="flex shrink-0 items-start justify-between gap-4 border-b border-neutral-100 bg-white px-5 py-4 dark:border-neutral-800 dark:bg-neutral-900">
+        <div class="flex shrink-0 items-start justify-between gap-4 border-b border-border px-5 py-3.5">
           <div class="min-w-0">
-            <DialogTitle class="text-xl font-bold capitalize text-neutral-900 dark:text-white">{{ title.toLocaleLowerCase() }}</DialogTitle>
-            <DialogDescription v-if="description" class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{{ description }}</DialogDescription>
+            <DialogTitle class="text-lg font-bold text-navy dark:text-white">{{ title }}</DialogTitle>
+            <DialogDescription v-if="description" class="mt-0.5 text-sm text-muted-foreground">{{ description }}</DialogDescription>
           </div>
-          <DialogClose
-            aria-label="Close"
-            :disabled="loading"
-            class="rounded-md p-1 text-neutral-500 opacity-70 transition-opacity hover:opacity-100 disabled:pointer-events-none"
-          >
-            <X class="h-4 w-4" />
+          <DialogClose as-child>
+            <Button variant="ghost" size="icon-sm" aria-label="Close" :disabled="loading"><X /></Button>
           </DialogClose>
         </div>
 
@@ -79,25 +76,14 @@ function handleCancel() {
             <slot />
           </div>
 
-          <div v-if="showFooter" class="z-10 shrink-0 border-t border-neutral-100 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <div v-if="showFooter" class="z-10 shrink-0 border-t border-border px-5 py-3">
             <slot name="actions">
-              <div class="flex w-full items-center justify-between gap-3">
-                <button
-                  type="button"
-                  :disabled="loading"
-                  class="h-10 w-36 rounded-lg border border-neutral-200 bg-white text-sm font-bold text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
-                  @click="handleCancel"
-                >
-                  {{ cancelButtonText }}
-                </button>
-                <button
-                  type="submit"
-                  :disabled="loading || saveDisabled"
-                  class="flex h-10 w-36 items-center justify-center gap-2 rounded-lg bg-navy text-sm font-bold text-white shadow-sm transition-colors hover:bg-navy/90 disabled:opacity-50"
-                >
-                  <span v-if="loading" class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden="true" />
+              <div class="flex w-full items-center justify-end gap-2">
+                <Button type="button" variant="outline" size="sm" :disabled="loading" @click="handleCancel">{{ cancelButtonText }}</Button>
+                <Button type="submit" size="sm" :disabled="loading || saveDisabled">
+                  <span v-if="loading" class="spinner" aria-hidden="true" />
                   {{ loading ? saveLoadingText : saveButtonText }}
-                </button>
+                </Button>
               </div>
             </slot>
           </div>
@@ -108,10 +94,10 @@ function handleCancel() {
 </template>
 
 <style>
-.app-drawer-overlay[data-state='open'] { animation: app-drawer-fade-in 300ms ease-out; }
-.app-drawer-overlay[data-state='closed'] { animation: app-drawer-fade-out 300ms ease-in; }
-.app-drawer-panel[data-state='open'] { animation: app-drawer-slide-in 500ms cubic-bezier(0.32, 0.72, 0, 1); }
-.app-drawer-panel[data-state='closed'] { animation: app-drawer-slide-out 300ms ease-in; }
+.app-drawer-overlay[data-state='open'] { animation: app-drawer-fade-in 200ms ease-out; }
+.app-drawer-overlay[data-state='closed'] { animation: app-drawer-fade-out 150ms ease-in; }
+.app-drawer-panel[data-state='open'] { animation: app-drawer-slide-in 240ms var(--ease-out); }
+.app-drawer-panel[data-state='closed'] { animation: app-drawer-slide-out 160ms ease-in; }
 
 @keyframes app-drawer-fade-in { from { opacity: 0; } }
 @keyframes app-drawer-fade-out { to { opacity: 0; } }

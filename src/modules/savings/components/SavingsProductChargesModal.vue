@@ -42,13 +42,13 @@ const formatValue = (charge: SavingsProductCharge) =>
   <div v-if="isOpen" class="tw-scope fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0" role="dialog" aria-modal="true" aria-labelledby="charges-modal-title">
     <div class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity" @click="emit('close')" />
 
-    <div class="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl sm:my-8 dark:bg-neutral-900">
-      <div class="flex items-center justify-between border-b border-neutral-100 px-6 py-4 dark:border-neutral-800">
+    <div class="relative w-full max-w-2xl overflow-hidden rounded-lg bg-background shadow-xl sm:my-8">
+      <div class="flex items-center justify-between border-b border-border px-6 py-4">
         <div>
-          <h3 id="charges-modal-title" class="text-lg font-semibold text-neutral-900 dark:text-white">Attached Charges</h3>
-          <p class="text-sm text-neutral-500 dark:text-neutral-400">{{ product?.name }}</p>
+          <h3 id="charges-modal-title" class="text-lg font-semibold text-foreground">Attached Charges</h3>
+          <p class="text-sm text-muted-foreground">{{ product?.name }}</p>
         </div>
-        <button type="button" aria-label="Close" class="rounded-full p-2 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-500 dark:hover:bg-neutral-800" @click="emit('close')">
+        <button type="button" aria-label="Close" class="rounded-full p-2 text-muted-foreground transition-colors hover:bg-neutral-100 hover:text-neutral-500 dark:hover:bg-neutral-800" @click="emit('close')">
           <X class="h-5 w-5" />
         </button>
       </div>
@@ -56,40 +56,40 @@ const formatValue = (charge: SavingsProductCharge) =>
       <div class="max-h-[60vh] overflow-y-auto px-6 py-6">
         <div v-if="!hasCharges" class="py-8 text-center">
           <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
-            <CheckCircle2 class="h-6 w-6 text-neutral-400" />
+            <CheckCircle2 class="h-6 w-6 text-muted-foreground" />
           </div>
-          <p class="font-medium text-neutral-500 dark:text-neutral-400">No charges are attached to this product.</p>
+          <p class="font-medium text-muted-foreground">No charges are attached to this product.</p>
         </div>
 
         <div v-else class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div v-for="(charge, index) in product?.charges" :key="index" :class="['flex items-start gap-3 rounded-xl border p-3', CARD_CLASSES[charge.type]]">
-            <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white shadow-sm dark:bg-neutral-900">
+          <div v-for="(charge, index) in product?.charges" :key="index" :class="['flex items-start gap-3 rounded-lg border p-3', CARD_CLASSES[charge.type]]">
+            <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-background shadow-sm">
               <component :is="ICONS[charge.type]" :class="['h-4 w-4', ICON_CLASSES[charge.type]]" />
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-sm font-semibold capitalize text-neutral-900 dark:text-white">{{ charge.type }} Charge</p>
+              <p class="text-sm font-semibold capitalize text-foreground">{{ charge.type }} Charge</p>
               <div class="mt-0.5 flex items-baseline gap-1.5 text-sm">
-                <span class="font-medium text-neutral-900 dark:text-white">{{ formatValue(charge) }}</span>
-                <span class="text-xs text-neutral-500">fee</span>
+                <span class="font-medium text-foreground">{{ formatValue(charge) }}</span>
+                <span class="text-xs text-muted-foreground">fee</span>
               </div>
-              <div class="mt-0.5 flex gap-3 text-xs text-neutral-500">
+              <div class="mt-0.5 flex gap-3 text-xs text-muted-foreground">
                 <span>Min: {{ Number(charge.minimum_amount) ? `${CURRENCY} ${formatMoney(charge.minimum_amount)}` : 'None' }}</span>
                 <span v-if="charge.maximum_amount">Max: {{ CURRENCY }} {{ formatMoney(charge.maximum_amount) }}</span>
               </div>
             </div>
           </div>
 
-          <div v-if="product?.monthly_fee_enabled" class="flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50 p-3 dark:border-amber-900/30 dark:bg-amber-900/10">
-            <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white shadow-sm dark:bg-neutral-900">
+          <div v-if="product?.monthly_fee_enabled" class="flex items-start gap-3 rounded-lg border border-amber-100 bg-amber-50 p-3 dark:border-amber-900/30 dark:bg-amber-900/10">
+            <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-background shadow-sm">
               <CalendarClock class="h-4 w-4 text-amber-600 dark:text-amber-400" />
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-sm font-semibold text-neutral-900 dark:text-white">Monthly Fee</p>
+              <p class="text-sm font-semibold text-foreground">Monthly Fee</p>
               <div class="mt-0.5 flex items-baseline gap-1.5 text-sm">
-                <span class="font-medium text-neutral-900 dark:text-white">{{ monthlyFeeLabel }}</span>
-                <span class="text-xs text-neutral-500">per month</span>
+                <span class="font-medium text-foreground">{{ monthlyFeeLabel }}</span>
+                <span class="text-xs text-muted-foreground">per month</span>
               </div>
-              <div class="mt-0.5 text-xs text-neutral-500">Deducted on day {{ product.monthly_fee_deduction_day }} of the month</div>
+              <div class="mt-0.5 text-xs text-muted-foreground">Deducted on day {{ product.monthly_fee_deduction_day }} of the month</div>
             </div>
           </div>
         </div>

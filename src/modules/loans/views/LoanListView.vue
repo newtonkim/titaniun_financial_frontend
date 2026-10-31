@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import type { PageParams } from '@/core/api/resource'
 import { reactive, ref } from 'vue'
+import { Plus } from 'lucide-vue-next'
 import ResourceTable, { type Column } from '@/core/components/ResourceTable.vue'
 import StatusBadge from '@/core/components/StatusBadge.vue'
+import { Button } from '@/core/components/ui/button'
 import { formatDate, formatEnum, formatMoney } from '@/core/utils/format'
 import { loansApi } from '../api'
 import { LOAN_STATUSES, type Loan, type LoanFilters } from '../types'
@@ -11,19 +14,20 @@ const actionError = ref<string | null>(null)
 const busyLoanId = ref<number | null>(null)
 
 const columns: Column<Loan>[] = [
-  { key: 'loan_number', label: 'Loan #' },
-  { key: 'borrower', label: 'Borrower', value: (loan) => (loan.borrower ? loan.borrower.name : null) },
-  { key: 'product', label: 'Product', value: (loan) => loan.product?.name },
-  { key: 'principal', label: 'Principal', align: 'right', value: (loan) => formatMoney(loan.principal) },
+  { key: 'loan_number', label: 'Loan #', sortable: true },
+  { key: 'borrower', label: 'Borrower', sortable: true, value: (loan) => (loan.borrower ? loan.borrower.name : null) },
+  { key: 'product', label: 'Product', sortable: true, value: (loan) => loan.product?.name },
+  { key: 'principal', label: 'Principal', sortable: true, align: 'right', value: (loan) => formatMoney(loan.principal) },
   {
     key: 'outstanding_principal',
     label: 'Outstanding',
+    sortable: true,
     align: 'right',
     value: (loan) => formatMoney(loan.outstanding_principal),
   },
-  { key: 'term', label: 'Term' },
-  { key: 'status', label: 'Status' },
-  { key: 'maturity_date', label: 'Matures', value: (loan) => formatDate(loan.maturity_date) },
+  { key: 'term', label: 'Term', sortable: true },
+  { key: 'status', label: 'Status', sortable: true },
+  { key: 'maturity_date', label: 'Matures', sortable: true, value: (loan) => formatDate(loan.maturity_date) },
 ]
 
 async function run(loan: Loan, action: (id: number) => Promise<Loan>, reload: () => Promise<void>): Promise<void> {
@@ -40,14 +44,16 @@ async function run(loan: Loan, action: (id: number) => Promise<Loan>, reload: ()
 }
 
 const disburse = (id: number) => loansApi.disburse(id)
-const fetchPage = (page: number) => loansApi.list({ ...filters, page })
+const fetchPage = (params: PageParams) => loansApi.list({ ...filters, ...params })
 </script>
 
 <template>
-  <p v-if="actionError" class="alert alert--error">{{ actionError }}</p>
   <ResourceTable title="Loans" description="Applications, approvals and the active loan book." :columns="columns" :filters="filters" :fetch="fetchPage">
     <template #actions>
-      <RouterLink class="btn btn--primary" :to="{ name: 'loans.create' }">New loan</RouterLink>
+      <Button as-child size="sm"><RouterLink :to="{ name: 'loans.create' }"><Plus /> New loan</RouterLink></Button>
+    </template>
+    <template #messages>
+      <p v-if="actionError" role="alert" class="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{{ actionError }}</p>
     </template>
     <template #filters>
       <select v-model="filters.status">
@@ -55,43 +61,17 @@ const fetchPage = (page: number) => loansApi.list({ ...filters, page })
         <option v-for="status in LOAN_STATUSES" :key="status" :value="status">{{ formatEnum(status) }}</option>
       </select>
     </template>
-    <template #cell-loan_number="{ row }"
-      ><RouterLink class="loan-record-link" :to="{ name: 'loans.show', params: { id: row.id } }">{{
-        row.loan_number
-      }}</RouterLink></template
-    >
+    <template #cell-loan_number="{ row }">
+      <RouterLink class="font-semibold text-navy underline-offset-2 hover:underline dark:text-white" :to="{ name: 'loans.show', params: { id: row.id } }">{{ row.loan_number }}</RouterLink>
+    </template>
     <template #cell-status="{ row }"><StatusBadge :status="row.status" /></template>
     <template #row-actions="{ row, reload }">
-      <RouterLink class="btn btn--small" :to="{ name: 'loans.show', params: { id: row.id } }">Open</RouterLink>
+      <Button as-child variant="outline" size="xs"><RouterLink :to="{ name: 'loans.show', params: { id: row.id } }">Open</RouterLink></Button>
       <template v-if="!row.uses_workflow && row.status === 'pending'">
-        <button class="btn btn--small" :disabled="busyLoanId === row.id" @click="run(row, loansApi.approve, reload)">
-          Approve
-        </button>
-        <button
-          class="btn btn--small btn--danger"
-          :disabled="busyLoanId === row.id"
-          @click="run(row, loansApi.reject, reload)"
-        >
-          Reject
-        </button>
+        <Button variant="outline" size="xs" :disabled="busyLoanId === row.id" @click="run(row, loansApi.approve, reload)">Approve</Button>
+        <Button variant="outline" size="xs" class="text-destructive hover:text-destructive" :disabled="busyLoanId === row.id" @click="run(row, loansApi.reject, reload)">Reject</Button>
       </template>
-      <button
-        v-else-if="!row.uses_workflow && row.status === 'approved'"
-        class="btn btn--small"
-        :disabled="busyLoanId === row.id"
-        @click="run(row, disburse, reload)"
-      >
-        Disburse
-      </button>
+      <Button v-else-if="!row.uses_workflow && row.status === 'approved'" variant="outline" size="xs" :disabled="busyLoanId === row.id" @click="run(row, disburse, reload)">Disburse</Button>
     </template>
   </ResourceTable>
 </template>
-
-<style scoped>
-.loan-record-link {
-  color: var(--text);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-</style>

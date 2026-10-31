@@ -79,17 +79,17 @@ onBeforeUnmount(() => {
     <DialogPortal>
       <DialogOverlay class="fixed inset-0 z-50 bg-neutral-950/20" />
       <DialogContent
-        class="tw-scope fixed right-0 top-0 z-50 flex h-full w-full max-w-xl flex-col bg-white shadow-2xl dark:bg-neutral-900"
+        class="tw-scope fixed right-0 top-0 z-50 flex h-full w-full max-w-xl flex-col bg-background shadow-2xl"
       >
         <div
-          class="flex items-center justify-between border-b border-neutral-100 px-6 py-4 dark:border-neutral-800"
+          class="flex items-center justify-between border-b border-border px-6 py-4"
         >
           <div>
-            <p class="font-mono text-xs text-neutral-400">{{ account?.code }}</p>
-            <DialogTitle class="font-bold text-neutral-900 dark:text-white">{{
+            <p class="font-mono text-xs text-muted-foreground">{{ account?.code }}</p>
+            <DialogTitle class="font-bold text-foreground">{{
               account?.name
             }}</DialogTitle>
-            <DialogDescription class="mt-0.5 text-xs text-neutral-500">
+            <DialogDescription class="mt-0.5 text-xs text-muted-foreground">
               Cash entries, {{ dayLabel(from) }} to {{ dayLabel(to) }}
             </DialogDescription>
           </div>
@@ -99,7 +99,7 @@ onBeforeUnmount(() => {
             class="rounded-full p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800"
             @click="open = false"
           >
-            <X class="h-4 w-4 text-neutral-500" />
+            <X class="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
 
@@ -113,7 +113,7 @@ onBeforeUnmount(() => {
             {{ error }}
           </p>
           <table v-else class="w-full text-sm">
-            <thead class="sticky top-0 bg-neutral-50 text-xs text-neutral-500 dark:bg-neutral-800">
+            <thead class="sticky top-0 bg-neutral-50 text-xs text-muted-foreground dark:bg-neutral-800">
               <tr>
                 <th scope="col" class="px-4 py-3 text-left">Date</th>
                 <th scope="col" class="px-4 py-3 text-left">Entry</th>
@@ -125,13 +125,13 @@ onBeforeUnmount(() => {
               <tr
                 v-for="line in lines"
                 :key="line.id"
-                class="border-b border-neutral-100 dark:border-neutral-800"
+                class="border-b border-border"
               >
                 <td class="whitespace-nowrap px-4 py-2.5 text-neutral-600 dark:text-neutral-300">
                   {{ dayLabel(line.date) }}
                 </td>
                 <td class="px-4 py-2.5">
-                  <p class="font-mono text-xs text-neutral-400">{{ line.reference }}</p>
+                  <p class="font-mono text-xs text-muted-foreground">{{ line.reference }}</p>
                   <p class="text-neutral-700 dark:text-neutral-200">
                     {{ line.description ?? '—' }}
                   </p>
@@ -140,7 +140,7 @@ onBeforeUnmount(() => {
                 <td class="px-4 py-2.5 text-right tabular-nums">{{ cashMoney(line.cash_out) }}</td>
               </tr>
               <tr v-if="!lines.length && !loading">
-                <td colspan="4" class="px-4 py-12 text-center text-neutral-400">
+                <td colspan="4" class="px-4 py-12 text-center text-muted-foreground">
                   No cash entries in this period.
                 </td>
               </tr>
@@ -149,7 +149,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div
-          class="flex items-center justify-between border-t border-neutral-100 px-6 py-3 text-xs text-neutral-500 dark:border-neutral-800"
+          class="flex items-center justify-between border-t border-border px-6 py-3 text-xs text-muted-foreground"
         >
           <span>{{ lines.length }} of {{ total }} entries</span>
           <button
