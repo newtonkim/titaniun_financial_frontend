@@ -83,7 +83,7 @@ function print() {
   page.print()
 }
 
-const label = 'mb-1.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-neutral-500'
+const label = 'mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-neutral-500'
 const input = 'h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm font-semibold text-neutral-700 outline-none focus:border-brand dark:border-neutral-700 dark:bg-neutral-800 dark:text-white'
 </script>
 
@@ -118,23 +118,23 @@ const input = 'h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 te
       <div v-if="statement" class="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900" :aria-busy="loading">
         <div class="flex flex-wrap items-start justify-between gap-4 border-b-[3px] border-navy px-6 py-5">
           <div>
-            <h3 class="text-lg font-black normal-case tracking-normal text-navy dark:text-white">{{ SACCO }}</h3>
-            <p class="text-[11px] font-bold uppercase tracking-wider text-brand">Savings &amp; Credit Cooperative</p>
+            <h3 class="text-subsection text-heading">{{ SACCO }}</h3>
+            <p class="text-xs font-bold uppercase tracking-wider text-brand">Savings &amp; Credit Cooperative</p>
           </div>
           <div class="text-right">
-            <p class="text-[11px] font-bold uppercase tracking-wider text-neutral-400">Account statement</p>
-            <p class="font-mono text-[15px] font-bold text-navy dark:text-white">{{ statement.account.account_number }}</p>
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-400">Account statement</p>
+            <p class="font-mono text-sm font-bold text-navy dark:text-white">{{ statement.account.account_number }}</p>
             <p class="text-xs text-neutral-500">{{ formatDate(statement.period.from) }} – {{ formatDate(statement.period.to) }}</p>
           </div>
         </div>
         <div class="grid gap-3 px-6 py-4 sm:grid-cols-2">
           <div class="rounded-lg bg-neutral-50 px-4 py-3 dark:bg-neutral-800/50">
-            <p class="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Account holder</p>
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-400">Account holder</p>
             <p class="text-sm font-bold text-neutral-900 dark:text-white">{{ statement.member.name }}</p>
             <p class="text-xs text-neutral-500">{{ statement.member.member_number }}<template v-if="statement.member.phone"> · {{ statement.member.phone }}</template></p>
           </div>
           <div class="rounded-lg bg-neutral-50 px-4 py-3 dark:bg-neutral-800/50">
-            <p class="text-[10px] font-bold uppercase tracking-wider text-neutral-400">Account</p>
+            <p class="text-xs font-bold uppercase tracking-wider text-neutral-400">Account</p>
             <p class="text-sm font-bold text-neutral-900 dark:text-white">{{ statement.account.product }}</p>
             <p class="text-xs capitalize text-neutral-500">Opened {{ formatDate(statement.account.opened_at) }} · {{ statement.account.status }}</p>
           </div>
@@ -146,13 +146,13 @@ const input = 'h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 te
             { label: 'Total debits', value: statement.balances.debits, tone: 'text-rose-700' },
             { label: 'Closing balance', value: statement.balances.closing, tone: 'text-navy dark:text-white' },
           ]" :key="item.label" class="rounded-lg border border-neutral-200 px-3 py-2 dark:border-neutral-700">
-            <p class="text-[10px] font-bold uppercase tracking-wide text-neutral-500">{{ item.label }}</p>
-            <p class="mt-1 font-mono text-sm font-bold" :class="item.tone">UGX {{ formatMoney(item.value) }}</p>
+            <p class="text-xs font-bold uppercase tracking-wide text-neutral-500">{{ item.label }}</p>
+            <p class="mt-1 tabular-nums text-sm font-bold" :class="item.tone">UGX {{ formatMoney(item.value) }}</p>
           </div>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left text-[13px]">
-            <thead class="bg-navy text-[10px] font-bold uppercase tracking-wider text-white">
+            <thead class="bg-navy text-xs font-bold uppercase tracking-wider text-white">
               <tr><th class="px-4 py-2.5">Date</th><th class="px-4 py-2.5">Description</th><th class="px-4 py-2.5 text-right">Debit</th><th class="px-4 py-2.5 text-right">Credit</th><th class="px-4 py-2.5 text-right">Balance</th></tr>
             </thead>
             <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -161,18 +161,18 @@ const input = 'h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 te
                 <td class="px-4 py-2.5 font-semibold text-neutral-600 dark:text-neutral-300">Balance brought forward</td>
                 <td class="px-4 py-2.5 text-right text-neutral-300">—</td>
                 <td class="px-4 py-2.5 text-right text-neutral-300">—</td>
-                <td class="px-4 py-2.5 text-right font-mono font-bold text-neutral-700 dark:text-neutral-200">{{ formatMoney(statement.balances.opening) }}</td>
+                <td class="px-4 py-2.5 text-right tabular-nums font-bold text-neutral-700 dark:text-neutral-200">{{ formatMoney(statement.balances.opening) }}</td>
               </tr>
               <tr v-for="row in statement.transactions" :key="row.id" :class="row.is_reversal ? 'text-amber-700' : ''">
                 <td class="whitespace-nowrap px-4 py-2.5 text-neutral-500">{{ formatDate(row.date) }}</td>
                 <td class="px-4 py-2.5">
                   <span class="font-medium text-neutral-800 dark:text-neutral-100">{{ row.description }}</span>
-                  <span v-if="row.is_reversed" class="ml-1.5 rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-neutral-500 dark:bg-neutral-800">Reversed</span>
-                  <span v-if="row.reference" class="block font-mono text-[11px] text-neutral-400">{{ row.reference }}</span>
+                  <span v-if="row.is_reversed" class="ml-1.5 rounded bg-neutral-100 px-1.5 py-0.5 text-xs font-bold uppercase text-neutral-500 dark:bg-neutral-800">Reversed</span>
+                  <span v-if="row.reference" class="block font-mono text-xs text-neutral-400">{{ row.reference }}</span>
                 </td>
-                <td class="whitespace-nowrap px-4 py-2.5 text-right font-mono text-rose-700">{{ Number(row.debit) ? formatMoney(row.debit) : '—' }}</td>
-                <td class="whitespace-nowrap px-4 py-2.5 text-right font-mono text-emerald-700">{{ Number(row.credit) ? formatMoney(row.credit) : '—' }}</td>
-                <td class="whitespace-nowrap px-4 py-2.5 text-right font-mono font-bold text-neutral-900 dark:text-white">{{ formatMoney(row.balance) }}</td>
+                <td class="whitespace-nowrap px-4 py-2.5 text-right tabular-nums text-rose-700">{{ Number(row.debit) ? formatMoney(row.debit) : '—' }}</td>
+                <td class="whitespace-nowrap px-4 py-2.5 text-right tabular-nums text-emerald-700">{{ Number(row.credit) ? formatMoney(row.credit) : '—' }}</td>
+                <td class="whitespace-nowrap px-4 py-2.5 text-right tabular-nums font-bold text-neutral-900 dark:text-white">{{ formatMoney(row.balance) }}</td>
               </tr>
               <tr v-if="!statement.transactions.length">
                 <td colspan="5" class="px-4 py-8 text-center text-sm text-neutral-500">No transactions in this period.</td>

@@ -45,7 +45,7 @@ const formatValue = (charge: SavingsProductCharge) =>
     <div class="relative w-full max-w-2xl overflow-hidden rounded-lg bg-background shadow-xl sm:my-8">
       <div class="flex items-center justify-between border-b border-border px-6 py-4">
         <div>
-          <h3 id="charges-modal-title" class="text-lg font-semibold text-foreground">Attached Charges</h3>
+          <h3 id="charges-modal-title" class="text-subsection text-heading">Attached Charges</h3>
           <p class="text-sm text-muted-foreground">{{ product?.name }}</p>
         </div>
         <button type="button" aria-label="Close" class="rounded-full p-2 text-muted-foreground transition-colors hover:bg-neutral-100 hover:text-neutral-500 dark:hover:bg-neutral-800" @click="emit('close')">

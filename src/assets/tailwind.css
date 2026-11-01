@@ -52,12 +52,26 @@
   --color-navy-mid: #2b3a7a;
   --color-blue: #3f55b5;
   --color-ink: #141417;
+
+  /* Type levels. Size, weight and spacing together say how important a piece of text is. */
+  --text-page-title: 1.5rem;
+  --text-page-title--line-height: 2rem;
+  --text-page-title--font-weight: 700;
+  --text-page-title--letter-spacing: -0.02em;
+  --text-section: 1rem;
+  --text-section--line-height: 1.5rem;
+  --text-section--font-weight: 600;
+  --text-section--letter-spacing: -0.01em;
+  --text-subsection: 0.875rem;
+  --text-subsection--line-height: 1.25rem;
+  --text-subsection--font-weight: 600;
 }
 
 /* The shared UI primitives' palette, read from the Titaniun tokens in main.css so both themes follow. */
 @theme inline {
   --color-background: var(--surface);
   --color-foreground: var(--text);
+  --color-heading: var(--heading);
   --color-popover: var(--surface);
   --color-popover-foreground: var(--text);
   --color-primary: var(--primary);
@@ -85,12 +99,20 @@
   border: 0 solid;
 }
 
-:where(.tw-scope) :is(h1, h2, h3, p, dl, dd, figure, fieldset, legend, ul, ol) {
+:where(.tw-scope) :is(p, dl, dd, figure, fieldset, legend, ul, ol) {
   margin: 0;
   padding: 0;
   font-size: inherit;
   font-weight: inherit;
   letter-spacing: inherit;
+  text-transform: none;
+  color: inherit;
+}
+
+/* Headings keep their type level from main.css; only the spacing and colour reset applies. */
+:where(.tw-scope) :is(h1, h2, h3) {
+  margin: 0;
+  padding: 0;
   text-transform: none;
   color: inherit;
 }

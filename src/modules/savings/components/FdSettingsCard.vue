@@ -42,7 +42,7 @@ const inputClass =
 
 <template>
   <div class="rounded-lg border border-amber-200 bg-amber-50/40 p-6 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/10">
-    <h2 class="mb-4 text-lg font-semibold text-foreground">Fixed Deposit Settings</h2>
+    <h2 class="mb-4 text-section text-heading">Fixed Deposit Settings</h2>
 
     <div class="grid gap-4 sm:grid-cols-2">
       <div>

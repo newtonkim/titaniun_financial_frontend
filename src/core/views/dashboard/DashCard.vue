@@ -7,7 +7,7 @@ defineProps<{ title: string; lede?: string }>()
   <section class="flex min-w-0 flex-col rounded-lg border border-border bg-background">
     <header class="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border px-3 py-2">
       <div class="min-w-0">
-        <h2 class="text-sm font-bold normal-case tracking-normal text-navy dark:text-white">{{ title }}</h2>
+        <h2 class="text-section text-heading">{{ title }}</h2>
         <p v-if="lede" class="text-xs text-muted-foreground">{{ lede }}</p>
       </div>
       <slot name="tools" />

@@ -46,7 +46,7 @@ const COMPUTED_HINT = 'Calculated from income and expense accounts — no year-e
 <template>
   <!-- Section heading -->
   <tr v-if="row.kind === 'section'">
-    <td :colspan="showComparison ? 4 : 2" class="px-4 pt-7 pb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-brand">
+    <td :colspan="showComparison ? 4 : 2" class="px-4 pt-7 pb-2 text-xs font-bold uppercase tracking-[0.16em] text-brand">
       {{ row.label }}
     </td>
   </tr>
@@ -73,10 +73,10 @@ const COMPUTED_HINT = 'Calculated from income and expense accounts — no year-e
           @click="emit('toggle', row.key)">
           <ChevronRight :class="['h-3.5 w-3.5 transition-transform', row.expanded ? 'rotate-90' : '']" />
         </button>
-        <span v-if="row.glCode && row.line?.is_postable" class="font-mono text-[11px] text-muted-foreground">{{ row.glCode }}</span>
+        <span v-if="row.glCode && row.line?.is_postable" class="font-mono text-xs text-muted-foreground">{{ row.glCode }}</span>
         <span>{{ row.label }}</span>
         <span v-if="row.line?.is_computed" :title="COMPUTED_HINT"
-          class="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+          class="rounded-full bg-amber-50 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
           computed
         </span>
       </div>

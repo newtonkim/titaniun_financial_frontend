@@ -428,7 +428,7 @@ function removePhoto(): void {
 .profile-field__hint { color: var(--profile-muted); font-size: 13px; line-height: 1.45; }
 .profile-field__error { color: var(--danger); font-size: 13px; }
 .profile-form-footer { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px 20px; padding: 18px 27px; border-top: 1px solid var(--profile-border); }
-.profile-form-footer > p { flex: 1 1 180px; color: var(--profile-muted); font-size: 11px; line-height: 1.5; }
+.profile-form-footer > p { flex: 1 1 180px; color: var(--profile-muted); font-size: 12px; line-height: 1.5; }
 .profile-form-actions { display: flex; gap: 8px; }
 .profile-account__rows { margin: 0; padding: 15px 27px 12px; }
 .profile-account__rows > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; padding-block: 12px; border-bottom: 1px solid var(--profile-border); }

@@ -183,7 +183,7 @@ const inputClass = 'rounded-md border border-border bg-background px-3 py-1.5 te
         <header class="flex flex-wrap items-start justify-between gap-3 border-b border-border px-4 py-3">
           <div>
             <p class="text-xs text-muted-foreground">{{ result.entity }}</p>
-            <h2 class="text-lg font-bold normal-case tracking-normal text-navy dark:text-white">Statement of cash flows</h2>
+            <h2 class="text-section text-heading">Statement of cash flows</h2>
             <p class="text-sm text-muted-foreground">For {{ dayLabel(result.from) }} to {{ dayLabel(result.to) }}. Direct method, in {{ result.currency }}.</p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
@@ -259,7 +259,7 @@ const inputClass = 'rounded-md border border-border bg-background px-3 py-1.5 te
 
       <div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <DataPanel label="Note 1: cash and cash equivalents">
-          <h2 class="border-b border-border px-4 py-2.5 text-sm font-bold normal-case tracking-normal text-navy dark:text-white">Note 1: Cash and cash equivalents</h2>
+          <h2 class="border-b border-border px-4 py-2.5 text-section text-heading">Note 1: Cash and cash equivalents</h2>
           <div class="overflow-x-auto">
             <table class="w-full text-sm tabular-nums">
               <thead class="bg-muted text-xs text-muted-foreground">
@@ -287,7 +287,7 @@ const inputClass = 'rounded-md border border-border bg-background px-3 py-1.5 te
         </DataPanel>
 
         <DataPanel label="Statement checks">
-          <h2 class="border-b border-border px-4 py-2.5 text-sm font-bold normal-case tracking-normal text-navy dark:text-white">Statement checks <span class="font-normal text-muted-foreground">{{ failedChecks ? `${failedChecks} ${failedChecks === 1 ? 'needs' : 'need'} attention` : 'all passed' }}</span></h2>
+          <h2 class="border-b border-border px-4 py-2.5 text-section text-heading">Statement checks <span class="font-normal text-muted-foreground">{{ failedChecks ? `${failedChecks} ${failedChecks === 1 ? 'needs' : 'need'} attention` : 'all passed' }}</span></h2>
           <ul class="divide-y divide-border text-sm">
             <li v-for="check in result.checks" :key="check.key" class="flex items-start gap-2 px-4 py-3">
               <CircleCheck v-if="check.passed" class="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />
@@ -298,7 +298,7 @@ const inputClass = 'rounded-md border border-border bg-background px-3 py-1.5 te
         </DataPanel>
 
         <DataPanel label="Note 2: non-cash transactions">
-          <h2 class="border-b border-border px-4 py-2.5 text-sm font-bold normal-case tracking-normal text-navy dark:text-white">Note 2: Non-cash transactions</h2>
+          <h2 class="border-b border-border px-4 py-2.5 text-section text-heading">Note 2: Non-cash transactions</h2>
           <p v-if="!hasNonCash" class="px-4 py-3 text-sm text-muted-foreground">No shares were bought from savings and no dividends were credited to savings in these periods.</p>
           <table v-else class="w-full text-sm tabular-nums">
             <thead class="bg-muted text-xs text-muted-foreground">
@@ -320,7 +320,7 @@ const inputClass = 'rounded-md border border-border bg-background px-3 py-1.5 te
         </DataPanel>
 
         <DataPanel label="Note 3: liabilities from financing activities">
-          <h2 class="border-b border-border px-4 py-2.5 text-sm font-bold normal-case tracking-normal text-navy dark:text-white">Note 3: Liabilities from financing activities</h2>
+          <h2 class="border-b border-border px-4 py-2.5 text-section text-heading">Note 3: Liabilities from financing activities</h2>
           <p v-if="!hasBorrowings" class="px-4 py-3 text-sm text-muted-foreground">The SACCO has no external borrowings in these periods.</p>
           <table v-else class="w-full text-sm tabular-nums">
             <thead class="bg-muted text-xs text-muted-foreground">

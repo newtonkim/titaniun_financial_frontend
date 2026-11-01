@@ -50,7 +50,7 @@ function account(p: LoanProduct, field: string): AccountSummary | null | undefin
           <CreditCard class="h-5 w-5 text-brand" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold tracking-tight text-foreground">{{ loading ? 'Loading…' : product?.name }}</h1>
+          <h1 class="text-page-title text-heading">{{ loading ? 'Loading…' : product?.name }}</h1>
           <p class="text-sm text-muted-foreground">{{ product?.code ? `${product.code} · ` : '' }}Loan product details</p>
         </div>
       </div>
@@ -70,7 +70,7 @@ function account(p: LoanProduct, field: string): AccountSummary | null | undefin
     <template v-else-if="product">
       <!-- General -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-foreground">General Information</h2>
+        <h2 class="mb-5 text-section text-heading">General Information</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="flex items-center gap-3 sm:col-span-2">
             <span
@@ -101,7 +101,7 @@ function account(p: LoanProduct, field: string): AccountSummary | null | undefin
 
       <!-- Interest -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-foreground">Interest Settings</h2>
+        <h2 class="mb-5 text-section text-heading">Interest Settings</h2>
         <div class="grid gap-4 sm:grid-cols-3">
           <div>
             <p :class="term">Interest Method</p>
@@ -119,14 +119,14 @@ function account(p: LoanProduct, field: string): AccountSummary | null | undefin
       </div>
 
       <div :class="card">
-        <h2 class="mb-3 text-base font-semibold text-foreground">Interest distribution</h2>
+        <h2 class="mb-3 text-section text-heading">Interest distribution</h2>
         <p :class="detail">{{ 100 - Number(product.commission_rate) }}% company · {{ product.commission_rate }}% commission</p>
         <p class="mt-2 text-sm text-muted-foreground">The selected officer or referring guarantor earns commission on collected interest. Payout is held until the client fully clears the loan, then included in a quarter-end distribution. The borrower’s rate and principal are unaffected.</p>
       </div>
 
       <!-- Term & repayment -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-foreground">Loan Term &amp; Repayment</h2>
+        <h2 class="mb-5 text-section text-heading">Loan Term &amp; Repayment</h2>
         <div class="grid gap-4 sm:grid-cols-3">
           <div>
             <p :class="term">Loan Duration</p>
@@ -149,7 +149,7 @@ function account(p: LoanProduct, field: string): AccountSummary | null | undefin
 
       <!-- Fees and penalties -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-foreground">Fees &amp; Penalties</h2>
+        <h2 class="mb-5 text-section text-heading">Fees &amp; Penalties</h2>
         <div class="grid gap-4 sm:grid-cols-3">
           <div>
             <p :class="term">Processing Fee</p>
@@ -168,7 +168,7 @@ function account(p: LoanProduct, field: string): AccountSummary | null | undefin
 
       <!-- Accounting mapping -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-foreground">Accounting Mapping</h2>
+        <h2 class="mb-5 text-section text-heading">Accounting Mapping</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div v-for="meta in ACCOUNT_FIELDS" :key="meta.field">
             <p :class="term">{{ meta.label }}</p>

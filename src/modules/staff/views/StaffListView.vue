@@ -111,7 +111,7 @@ async function confirmDelete() {
 
     <div v-if="deleting" class="tw-scope fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="delete-staff-title">
       <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
-        <h3 id="delete-staff-title" class="mb-1 text-[15px] font-bold normal-case tracking-normal text-foreground">Delete {{ deleting.name }}?</h3>
+        <h3 id="delete-staff-title" class="mb-1 text-subsection text-heading">Delete {{ deleting.name }}?</h3>
         <p class="mb-4 text-[13px] text-muted-foreground">
           Their account is removed permanently and records they made no longer show who made them. To keep that history, edit them and switch off <strong>Active</strong> instead.
         </p>

@@ -22,7 +22,7 @@ defineEmits<{
     @keydown.escape="$emit('cancel')"
   >
     <div class="mx-4 w-full max-w-sm rounded-lg border border-border bg-background p-6 shadow-xl">
-      <h3 id="delete-loan-product-title" class="mb-2 text-base font-semibold text-foreground">Delete Loan Product</h3>
+      <h3 id="delete-loan-product-title" class="mb-2 text-subsection text-heading">Delete Loan Product</h3>
       <p class="mb-6 text-sm text-muted-foreground">
         Are you sure you want to delete
         <strong class="text-neutral-800 dark:text-neutral-200">{{ productName }}</strong>?

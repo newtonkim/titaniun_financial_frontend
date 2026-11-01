@@ -62,7 +62,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
 
       <!-- Basic information -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-foreground">Basic Information</h2>
+        <h2 class="mb-5 text-section text-heading">Basic Information</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label :class="label" for="lp-name">Product Name <span class="text-red-500">*</span></label>
@@ -113,7 +113,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
 
       <!-- Amount and term -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-foreground">Amount and Term</h2>
+        <h2 class="mb-5 text-section text-heading">Amount and Term</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label :class="label" for="lp-min">Minimum Amount</label>
@@ -171,7 +171,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
 
       <!-- Interest -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-foreground">Interest and Repayment Structure</h2>
+        <h2 class="mb-5 text-section text-heading">Interest and Repayment Structure</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <p :class="label">Interest Method</p>
@@ -218,7 +218,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
       </div>
 
       <div :class="card">
-        <h2 class="mb-3 text-base font-semibold text-foreground">Interest distribution</h2>
+        <h2 class="mb-3 text-section text-heading">Interest distribution</h2>
         <label :class="label" for="lp-commission">Commission share of collected interest (%)</label>
         <input id="lp-commission" v-model.number="form.commission_rate" type="number" min="0" max="100" step="0.01" :class="inputClass('commission_rate')" />
         <p v-if="fieldError('commission_rate')" class="mt-1 text-xs text-red-500">{{ fieldError('commission_rate') }}</p>
@@ -227,7 +227,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
 
       <!-- Workflow and eligibility -->
       <div :class="card">
-        <h2 class="mb-5 text-base font-semibold text-foreground">Workflow and Eligibility</h2>
+        <h2 class="mb-5 text-section text-heading">Workflow and Eligibility</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
             <label :class="label" for="lp-appraisal">Savings Appraisal Threshold (%)</label>
@@ -259,7 +259,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
       <!-- Fees and penalties -->
       <div :class="card">
         <div class="mb-5 flex items-center justify-between">
-          <h2 class="text-base font-semibold text-foreground">Fees and Penalties</h2>
+          <h2 class="text-section text-heading">Fees and Penalties</h2>
           <button
             type="button"
             class="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
@@ -320,7 +320,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
       <!-- Accounting mapping -->
       <div :class="card">
         <div class="mb-5 flex items-center justify-between">
-          <h2 class="text-base font-semibold text-foreground">Accounting Mapping</h2>
+          <h2 class="text-section text-heading">Accounting Mapping</h2>
           <button
             type="button"
             class="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
@@ -354,7 +354,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
       <div :class="card">
         <div class="mb-4 flex items-center gap-2">
           <Calculator class="h-4 w-4 text-brand" />
-          <h2 class="text-base font-semibold text-foreground">Live Preview</h2>
+          <h2 class="text-section text-heading">Live Preview</h2>
         </div>
 
         <div class="space-y-4">

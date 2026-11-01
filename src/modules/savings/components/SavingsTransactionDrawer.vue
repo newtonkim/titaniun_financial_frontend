@@ -99,27 +99,27 @@ const fieldError = 'mt-1 text-xs text-red-500'
         <div class="relative">
           <div class="flex items-start justify-between gap-4">
             <div class="min-w-0">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-white/60">{{ deposit ? 'Depositing to' : 'Withdrawing from' }}</p>
-              <h3 class="mt-0.5 truncate text-lg font-black">{{ memberName || '—' }}</h3>
+              <p class="text-xs font-bold uppercase tracking-wider text-white/60">{{ deposit ? 'Depositing to' : 'Withdrawing from' }}</p>
+              <h3 class="mt-0.5 truncate text-subsection">{{ memberName || '—' }}</h3>
               <button type="button" class="mt-1 flex items-center gap-1.5 font-mono text-[13px] text-white/75 transition-colors hover:text-white" @click="copyCode">
                 {{ account.account_number }}
                 <component :is="copied ? Check : Copy" :size="12" />
               </button>
             </div>
-            <span v-if="account.product" class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-white/15 px-2.5 py-1 text-[12px] font-semibold capitalize ring-1 ring-white/15">
+            <span v-if="account.product" class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-white/15 px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-white/15">
               <Wallet :size="13" /> {{ account.product.name }}
             </span>
           </div>
           <div class="mt-4 border-t border-white/15 pt-4">
-            <p class="text-[10px] font-bold uppercase tracking-wider text-white/60">{{ deposit ? 'Current Balance' : 'Available Balance' }}</p>
-            <p class="mt-0.5 text-[28px] font-black leading-none tabular-nums">{{ CURRENCY }} {{ formatMoney(balance) }}</p>
+            <p class="text-xs font-bold uppercase tracking-wider text-white/60">{{ deposit ? 'Current Balance' : 'Available Balance' }}</p>
+            <p class="mt-0.5 text-[28px] font-bold leading-none tabular-nums">{{ CURRENCY }} {{ formatMoney(balance) }}</p>
           </div>
         </div>
       </div>
 
       <!-- Transaction form -->
       <div class="rounded-lg border border-border bg-background p-5">
-        <p class="mb-4 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        <p class="mb-4 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
           <component :is="deposit ? CircleDollarSign : MinusCircle" :size="13" /> {{ deposit ? 'Deposit Details' : 'Withdrawal Details' }}
         </p>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5">
@@ -167,7 +167,7 @@ const fieldError = 'mt-1 text-xs text-red-500'
             <component :is="deposit ? TrendingUp : TrendingDown" :size="15" :class="deposit ? 'text-emerald-500' : 'text-muted-foreground'" />
             {{ deposit ? 'Balance after deposit' : 'Balance after withdrawal' }}
           </div>
-          <span class="text-base font-black tabular-nums" :class="deposit ? 'text-emerald-700' : belowMinimum ? 'text-rose-600' : 'text-neutral-900'">
+          <span class="text-base font-bold tabular-nums" :class="deposit ? 'text-emerald-700' : belowMinimum ? 'text-rose-600' : 'text-neutral-900'">
             {{ CURRENCY }} {{ formatMoney(balanceAfter) }}
           </span>
         </div>
@@ -183,7 +183,7 @@ const fieldError = 'mt-1 text-xs text-red-500'
         :class="deposit ? 'border-emerald-100 bg-emerald-50/60' : 'border-amber-100 bg-amber-50/60'"
       >
         <Info :size="15" class="mt-0.5 shrink-0" :class="deposit ? 'text-emerald-500' : 'text-amber-500'" />
-        <p class="text-[12px] leading-relaxed" :class="deposit ? 'text-emerald-700' : 'text-amber-700'">
+        <p class="text-xs leading-relaxed" :class="deposit ? 'text-emerald-700' : 'text-amber-700'">
           {{
             deposit
               ? "This deposit is posted immediately to the member's account and the general ledger. Make sure the amount and payment mode are correct before saving."

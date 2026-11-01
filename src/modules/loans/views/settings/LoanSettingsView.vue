@@ -19,7 +19,7 @@ const loanProductCards = [
           <CreditCard class="h-5 w-5 text-brand" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-foreground">Loan Products</h1>
+          <h1 class="text-page-title text-heading">Loan Products</h1>
           <p class="text-sm text-muted-foreground">Configure loan types and charges</p>
         </div>
       </div>
@@ -29,7 +29,7 @@ const loanProductCards = [
           :key="card.title"
           class="rounded-lg border border-border bg-background p-6"
         >
-          <h3 class="mb-4 text-base font-semibold text-foreground">{{ card.title }}</h3>
+          <h3 class="mb-4 text-subsection text-heading">{{ card.title }}</h3>
           <p class="mb-4 text-sm text-muted-foreground">{{ card.description }}</p>
           <div class="mt-4 flex flex-wrap gap-3">
             <RouterLink

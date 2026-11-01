@@ -204,7 +204,7 @@ const cellInput = 'h-8 w-full rounded-md border border-border bg-background px-3
       <div class="flex w-full min-w-0 flex-col gap-3">
         <div class="flex items-center gap-2">
           <List class="h-4 w-4 text-muted-foreground" />
-          <h3 class="text-sm font-bold uppercase tracking-wide text-neutral-700 dark:text-neutral-300">Entry Lines</h3>
+          <h3 class="text-subsection text-heading">Entry Lines</h3>
         </div>
 
         <!-- Scrolls sideways only on narrow screens; at drawer width the account dropdown may overflow the table. -->

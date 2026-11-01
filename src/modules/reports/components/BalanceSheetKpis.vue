@@ -10,7 +10,7 @@ defineProps<{ kpis: BalanceSheetKpi[]; isBalanced: boolean; difference: number; 
   <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
     <div v-for="kpi in kpis" :key="kpi.key"
       class="rounded-lg border border-border bg-background p-4">
-      <p class="text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{{ kpi.label }}</p>
+      <p class="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">{{ kpi.label }}</p>
       <p class="mt-2 text-xl font-bold tabular-nums text-foreground">{{ formatAccounting(kpi.amount) }}</p>
       <p v-if="compareTo" class="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
         <template v-if="kpi.change !== null">
@@ -29,7 +29,7 @@ defineProps<{ kpis: BalanceSheetKpi[]; isBalanced: boolean; difference: number; 
       isBalanced
         ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-900/20'
         : 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-900/20']">
-      <p class="text-[11px] font-bold uppercase tracking-[0.12em]"
+      <p class="text-xs font-bold uppercase tracking-[0.12em]"
         :class="isBalanced ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'">Balance check</p>
       <p class="mt-2 flex items-center gap-2 text-xl font-bold"
         :class="isBalanced ? 'text-emerald-800 dark:text-emerald-300' : 'text-rose-800 dark:text-rose-300'">
