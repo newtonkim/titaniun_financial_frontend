@@ -1,8 +1,10 @@
 import type { AppModule, SettingsPage } from '@/core/module'
 import accounting from './accounting'
+import communication from './communication'
 import expenses from './expenses'
 import loans from './loans'
 import members from './members'
+import notifications from './notifications'
 import reports from './reports'
 import savings from './savings'
 import settings from './settings'
@@ -10,7 +12,7 @@ import shares from './shares'
 import staff from './staff'
 import { moduleStatuses } from './statuses'
 
-const registered: AppModule[] = [members, staff, savings, loans, shares, accounting, expenses, reports, settings]
+const registered: AppModule[] = [members, staff, savings, loans, shares, accounting, expenses, reports, communication, notifications, settings]
 
 export const modules: AppModule[] = registered.filter((module) => moduleStatuses[module.name] !== false)
 

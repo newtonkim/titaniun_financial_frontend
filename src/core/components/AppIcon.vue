@@ -3,7 +3,7 @@ export type IconName =
   | 'dashboard' | 'members' | 'wallet' | 'loan' | 'shares' | 'receipt' | 'ledger' | 'journal' | 'report'
   | 'layers' | 'tag' | 'logout' | 'search' | 'arrow-left' | 'arrow-right' | 'chevron-right' | 'chevron-down'
   | 'plus' | 'refresh' | 'more' | 'arrow-in' | 'arrow-out' | 'menu' | 'close' | 'clock' | 'user' | 'lock'
-  | 'settings' | 'sun' | 'moon' | 'sidebar' | 'home'
+  | 'settings' | 'sun' | 'moon' | 'sidebar' | 'home' | 'message'
 
 withDefaults(defineProps<{ name: IconName; size?: number }>(), { size: 20 })
 </script>
@@ -51,6 +51,7 @@ withDefaults(defineProps<{ name: IconName; size?: number }>(), { size: 20 })
     <template v-else-if="name === 'moon'"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" /></template>
     <template v-else-if="name === 'sidebar'"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5" /><path d="M9.5 4.5v15" /></template>
     <template v-else-if="name === 'home'"><path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H5.5A1.5 1.5 0 0 1 4 19z" /></template>
+    <template v-else-if="name === 'message'"><path d="M20.5 5.5v10a2 2 0 0 1-2 2H9l-5 3.5V5.5a2 2 0 0 1 2-2h12.5a2 2 0 0 1 2 2z" /><path d="M8 8.5h8M8 12.5h5" /></template>
     <template v-else-if="name === 'clock'"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></template>
   </svg>
 </template>

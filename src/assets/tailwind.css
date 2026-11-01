@@ -18,6 +18,8 @@
 @source '../modules/settings';
 @source '../modules/accounting';
 @source '../modules/shares';
+@source '../modules/notifications';
+@source '../modules/communication';
 @source '../modules/staff';
 @source '../modules/expenses';
 /* main.css owns `.inline` (a muted inline-flex row); never let the utility of that name override it. */
