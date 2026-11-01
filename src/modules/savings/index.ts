@@ -5,9 +5,12 @@ export default defineModule({
   label: 'Savings',
   routes: [
     { path: 'savings/accounts', name: 'savings.accounts', meta: { title: 'Savings accounts' }, component: () => import('./views/SavingsAccountListView.vue') },
+    { path: 'savings/accounts/:id(\\d+)', name: 'savings.accounts.show', meta: { title: 'Savings account' }, props: true, component: () => import('./views/SavingsAccountShowView.vue') },
+    { path: 'savings/approvals', name: 'savings.approvals', meta: { title: 'Savings approvals' }, component: () => import('./views/SavingsApprovalsView.vue') },
   ],
   nav: [
     { label: 'Savings accounts', to: { name: 'savings.accounts' }, icon: 'wallet', group: 'savings' },
+    { label: 'Savings approvals', to: { name: 'savings.approvals' }, icon: 'clock', group: 'savings' },
   ],
   settings: [
     {

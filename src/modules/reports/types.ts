@@ -63,6 +63,7 @@ export type AttentionKey =
   | 'awaiting_disbursement'
   | 'pending_members'
   | 'savings_reversals'
+  | 'savings_account_requests'
   | 'draft_journals'
   | 'draft_dividends'
 

@@ -152,7 +152,7 @@ tfoot th { color: var(--text); }
 .badge { display: inline-block; padding: 0.2rem 0.65rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: var(--surface-sunken); color: var(--muted); }
 .badge--active, .badge--approved, .badge--disbursed, .badge--paid, .badge--posted { background: color-mix(in srgb, var(--success) 12%, transparent); color: var(--success); }
 .badge--pending, .badge--dormant, .badge--submitted, .badge--awaiting_guarantors, .badge--draft { background: color-mix(in srgb, var(--warning) 13%, transparent); color: var(--warning); }
-.badge--rejected, .badge--written_off, .badge--exited, .badge--suspended, .badge--reversed { background: color-mix(in srgb, var(--danger) 11%, transparent); color: var(--danger); }
+.badge--rejected, .badge--frozen, .badge--written_off, .badge--exited, .badge--suspended, .badge--reversed { background: color-mix(in srgb, var(--danger) 11%, transparent); color: var(--danger); }
 .alert { padding: 0.6rem 0.8rem; border-radius: var(--radius); margin: 0 0 1rem; }
 .alert--error { border: 1px solid oklch(from var(--danger) l c h / 0.35); background: oklch(from var(--danger) l c h / 0.07); color: var(--danger); }
 

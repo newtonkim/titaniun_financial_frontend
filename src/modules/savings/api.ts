@@ -4,7 +4,11 @@ import type { Paginated, Wrapped } from '@/core/api/types'
 import type {
   CustomFeePayload,
   SavingsAccount,
+  SavingsAccountEvent,
   SavingsAccountFilters,
+  SavingsAccountRequest,
+  SavingsAccountRequestType,
+  SavingsFreezeReason,
   SavingsProduct,
   SavingsProductFilters,
   SavingsProductSettings,
@@ -14,12 +18,11 @@ import type {
   SavingsTransaction,
   StoreSavingsAccountPayload,
   StoreSavingsTransactionPayload,
-  UpdateSavingsAccountPayload,
 } from './types'
 
 export const savingsProductsApi = createResourceApi<SavingsProduct, SavingsProductSettings, Partial<SavingsProductSettings>, SavingsProductFilters>('/savings-products')
 
-const { remove: _remove, ...savingsAccounts } = createResourceApi<SavingsAccount, StoreSavingsAccountPayload, UpdateSavingsAccountPayload, SavingsAccountFilters>('/savings-accounts')
+const { remove: _remove, update: _update, ...savingsAccounts } = createResourceApi<SavingsAccount, StoreSavingsAccountPayload, never, SavingsAccountFilters>('/savings-accounts')
 
 export const savingsAccountsApi = {
   ...savingsAccounts,
@@ -31,6 +34,23 @@ export const savingsAccountsApi = {
   /** Set or clear the account's own monthly fee, which overrides the product's. */
   updateCustomFees: (accountId: number, payload: CustomFeePayload) =>
     http.put<Wrapped<SavingsAccount>>(`/savings-accounts/${accountId}/custom-fees`, payload).then((response) => response.data),
+  /** The account's permanent history, newest first. */
+  events: (accountId: number) => http.get<{ data: SavingsAccountEvent[] }>(`/savings-accounts/${accountId}/events`).then((response) => response.data),
+  markDormant: (accountId: number, reason: string) =>
+    http.post<Wrapped<SavingsAccount>>(`/savings-accounts/${accountId}/dormant`, { reason }).then((response) => response.data),
+  freeze: (accountId: number, reasonCode: SavingsFreezeReason, reason: string) =>
+    http.post<Wrapped<SavingsAccount>>(`/savings-accounts/${accountId}/freeze`, { reason_code: reasonCode, reason }).then((response) => response.data),
+  /** Ask to close, reactivate or release the account; it takes effect once someone else approves. */
+  requestChange: (accountId: number, type: SavingsAccountRequestType, reason: string) =>
+    http.post<Wrapped<SavingsAccountRequest>>(`/savings-accounts/${accountId}/requests`, { type, reason }).then((response) => response.data),
+}
+
+export const savingsAccountRequestsApi = {
+  list: (filters: { status?: string; savings_account_id?: number } = {}) =>
+    http.get<{ data: SavingsAccountRequest[] }>('/savings-account-requests', filters).then((response) => response.data),
+  approve: (id: number) => http.post<Wrapped<SavingsAccountRequest>>(`/savings-account-requests/${id}/approve`, {}).then((response) => response.data),
+  reject: (id: number, reason: string) =>
+    http.post<Wrapped<SavingsAccountRequest>>(`/savings-account-requests/${id}/reject`, { reason }).then((response) => response.data),
 }
 
 export const savingsTransactionsApi = {
