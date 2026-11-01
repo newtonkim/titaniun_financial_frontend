@@ -8,6 +8,7 @@ import { useTheme } from '@/core/composables/useTheme'
 import { NAV_GROUPS, type NavItem } from '@/core/module'
 import { modules } from '@/modules'
 import { useAuth } from '@/modules/auth/store'
+import NotificationBell from '@/modules/notifications/components/NotificationBell.vue'
 
 /** A sidebar row: a plain link, or a flyout menu gathering links under headings. */
 type SidebarEntry =
@@ -365,6 +366,7 @@ onBeforeUnmount(() => {
         </nav>
 
         <div class="topbar__actions">
+          <NotificationBell />
           <div class="user-menu">
             <button
               type="button"
