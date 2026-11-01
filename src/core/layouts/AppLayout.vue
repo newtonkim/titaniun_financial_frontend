@@ -477,7 +477,7 @@ onBeforeUnmount(() => {
 .sidebar__name {
   overflow: hidden;
   font-size: 1.125rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.02em;
   color: var(--nav-strong);
@@ -521,7 +521,7 @@ onBeforeUnmount(() => {
 .nav-group__label {
   margin: 1rem 0 0.25rem;
   padding: 0 0.5rem;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -613,7 +613,7 @@ onBeforeUnmount(() => {
 
 .submenu__heading {
   margin: 0.5rem 0.75rem 0.25rem;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -720,8 +720,8 @@ onBeforeUnmount(() => {
   gap: 0.5rem;
   margin: 0;
   padding: 0.25rem 0.25rem 0.375rem;
-  font-size: 0.625rem;
-  font-weight: 800;
+  font-size: 0.75rem;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
@@ -799,7 +799,7 @@ onBeforeUnmount(() => {
   margin: 0;
   padding: 0.45rem 0.875rem 0.55rem;
   border-top: 1px solid var(--border);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--muted);
 }
 

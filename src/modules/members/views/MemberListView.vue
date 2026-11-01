@@ -109,7 +109,7 @@ async function toggleDormant(member: Member): Promise<void> {
 
       <template #cell-member="{ row }">
         <div class="flex items-center gap-2">
-          <span class="flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-navy/10 text-[0.625rem] font-bold text-navy dark:bg-white/10 dark:text-white">
+          <span class="flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-navy/10 text-xs font-bold text-navy dark:bg-white/10 dark:text-white">
             <img v-if="row.avatar_url" :src="row.avatar_url" :alt="row.name" class="size-full object-cover" />
             <template v-else>{{ memberInitials(row.name) }}</template>
           </span>

@@ -76,7 +76,7 @@ const services = [
   --line: #d3d6de;
   --panel: #141417;
   --serif: 'DM Serif Display', Georgia, 'Times New Roman', serif;
-  --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --sans: var(--font-sans);
 
   display: grid;
   grid-template-columns: clamp(400px, 32.5vw, 520px) minmax(0, 1fr);

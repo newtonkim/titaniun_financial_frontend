@@ -57,7 +57,7 @@ const tiles = computed(() => {
 
 .settings-home__title {
   margin: 0;
-  font-size: 1.875rem;
+  font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: normal;
   text-transform: none;

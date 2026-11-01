@@ -114,7 +114,7 @@ onMounted(load)
     <template v-else>
       <DataPanel v-if="candidates.length" label="Accounts to review">
         <div class="border-b border-border px-4 py-3">
-          <h2 class="text-sm font-bold normal-case tracking-normal text-navy dark:text-white">To review</h2>
+          <h2 class="text-section text-heading">To review</h2>
           <p class="text-sm text-muted-foreground">Check with the member first. An officer confirms before an account moves to the register.</p>
         </div>
         <Table class="text-sm tabular-nums">
@@ -141,7 +141,7 @@ onMounted(load)
 
       <DataPanel label="Register">
         <div class="border-b border-border px-4 py-3">
-          <h2 class="text-sm font-bold normal-case tracking-normal text-navy dark:text-white">On the register</h2>
+          <h2 class="text-section text-heading">On the register</h2>
           <p class="text-sm text-muted-foreground">A Board decision is a record only. Any transfer of unclaimed money stays a separate step.</p>
         </div>
         <Table v-if="entries.length" class="text-sm tabular-nums">

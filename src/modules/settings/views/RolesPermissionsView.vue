@@ -590,7 +590,7 @@ onBeforeUnmount(() => {
 }
 .access-heading h2 {
   font-size: 25px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.6px;
   margin: 0 0 5px;
   text-transform: none;
@@ -706,7 +706,7 @@ onBeforeUnmount(() => {
 .access-table th {
   background: var(--surface-sunken);
   padding: 13px 20px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--muted);
   white-space: nowrap;
@@ -739,7 +739,7 @@ onBeforeUnmount(() => {
 }
 .access-secondary {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   margin: 5px 0 0;
   line-height: 1.6;
 }
@@ -751,7 +751,7 @@ onBeforeUnmount(() => {
   background: var(--surface-sunken);
   border-radius: 5px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
 }
 .access-badge--approved {
@@ -776,7 +776,7 @@ onBeforeUnmount(() => {
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text);
-  font-size: 11px;
+  font-size: 12px;
   padding: 8px 10px;
   min-height: 33px;
   cursor: pointer;
@@ -793,7 +793,7 @@ onBeforeUnmount(() => {
   cursor: not-allowed;
 }
 .access-footnote {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   line-height: 1.8;
   margin: 0;
@@ -813,7 +813,7 @@ onBeforeUnmount(() => {
   gap: 16px;
   padding: 14px 20px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   border-top: 1px solid var(--border);
 }
 .access-pagination > div {
@@ -824,7 +824,7 @@ onBeforeUnmount(() => {
   background: none;
   border: 0;
   color: var(--primary);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-decoration: underline;
   cursor: pointer;
@@ -902,7 +902,7 @@ onBeforeUnmount(() => {
 }
 .access-permission-heading p {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   margin: 0;
 }
 .access-permission-group {
@@ -917,7 +917,7 @@ onBeforeUnmount(() => {
 .access-permission-group legend {
   color: var(--heading);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   padding: 0 6px;
 }
 .access-permission-group > button {
@@ -944,7 +944,7 @@ onBeforeUnmount(() => {
 .access-checkbox small {
   display: block;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
 }
 .access-info {

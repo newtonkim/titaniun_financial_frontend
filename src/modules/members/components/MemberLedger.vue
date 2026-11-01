@@ -131,7 +131,7 @@ function clearFilters() {
 const money = (value: number) => `${CURRENCY} ${formatMoney(value)}`
 const filterInput =
   'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-neutral-800 outline-none focus:border-brand dark:text-white'
-const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide text-muted-foreground'
+const filterLabel = 'mb-1 block text-xs font-bold uppercase tracking-wide text-muted-foreground'
 </script>
 
 <template>
@@ -139,25 +139,25 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
     <div class="border-b border-border bg-background px-4 py-5 md:px-6">
       <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
-          <h3 class="text-base font-bold text-neutral-950 dark:text-white">{{ title }}</h3>
+          <h3 class="text-subsection text-heading">{{ title }}</h3>
           <p class="mt-0.5 text-xs font-medium text-muted-foreground">{{ subtitle }}</p>
         </div>
         <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <div class="rounded-lg border border-border bg-neutral-50 px-3 py-2 dark:bg-neutral-800">
-            <p class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Entries</p>
-            <p class="mt-1 font-mono text-sm font-bold text-neutral-950 dark:text-white">{{ totals.count }}</p>
+            <p class="text-xs font-bold uppercase tracking-wide text-muted-foreground">Entries</p>
+            <p class="mt-1 tabular-nums text-sm font-bold text-neutral-950 dark:text-white">{{ totals.count }}</p>
           </div>
           <div v-if="showCredit" class="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2">
-            <p class="text-[10px] font-bold uppercase tracking-wide text-emerald-700">Credits</p>
-            <p class="mt-1 font-mono text-sm font-bold text-emerald-800">{{ formatMoney(totals.credits) }}</p>
+            <p class="text-xs font-bold uppercase tracking-wide text-emerald-700">Credits</p>
+            <p class="mt-1 tabular-nums text-sm font-bold text-emerald-800">{{ formatMoney(totals.credits) }}</p>
           </div>
           <div v-if="showDebit" class="rounded-lg border border-rose-100 bg-rose-50 px-3 py-2">
-            <p class="text-[10px] font-bold uppercase tracking-wide text-rose-700">Debits</p>
-            <p class="mt-1 font-mono text-sm font-bold text-rose-800">{{ formatMoney(totals.debits) }}</p>
+            <p class="text-xs font-bold uppercase tracking-wide text-rose-700">Debits</p>
+            <p class="mt-1 tabular-nums text-sm font-bold text-rose-800">{{ formatMoney(totals.debits) }}</p>
           </div>
           <div class="rounded-lg border border-border bg-background px-3 py-2">
-            <p class="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Net</p>
-            <p class="mt-1 font-mono text-sm font-bold" :class="totals.net >= 0 ? 'text-emerald-700' : 'text-rose-700'">{{ formatMoney(totals.net) }}</p>
+            <p class="text-xs font-bold uppercase tracking-wide text-muted-foreground">Net</p>
+            <p class="mt-1 tabular-nums text-sm font-bold" :class="totals.net >= 0 ? 'text-emerald-700' : 'text-rose-700'">{{ formatMoney(totals.net) }}</p>
           </div>
         </div>
       </div>
@@ -199,7 +199,7 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
 
     <div class="overflow-x-auto">
       <table class="w-full text-left text-sm">
-        <thead class="border-b border-border bg-neutral-50 text-[11px] font-bold uppercase tracking-wide text-muted-foreground dark:bg-neutral-800/40">
+        <thead class="border-b border-border bg-neutral-50 text-xs font-bold uppercase tracking-wide text-muted-foreground dark:bg-neutral-800/40">
           <tr>
             <th class="px-5 py-3">Value date</th>
             <th class="px-5 py-3">Transaction</th>
@@ -225,21 +225,21 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
             <td class="whitespace-nowrap px-5 py-3.5 font-mono text-xs font-semibold text-neutral-600 dark:text-neutral-300">{{ formatDate(txn.date) }}</td>
             <td class="px-5 py-3.5">
               <span class="block text-sm font-bold text-foreground">{{ typeLabel(txn) }}</span>
-              <span v-if="txn.transacted_by" class="text-[11px] font-semibold text-muted-foreground">By {{ txn.transacted_by }}</span>
+              <span v-if="txn.transacted_by" class="text-xs font-semibold text-muted-foreground">By {{ txn.transacted_by }}</span>
             </td>
             <td class="whitespace-nowrap px-5 py-3.5">
               <span class="block font-mono text-xs font-bold text-neutral-800 dark:text-neutral-200">{{ txn.account }}</span>
-              <span class="text-[11px] text-muted-foreground">{{ txn.account_type ?? 'Member account' }}</span>
+              <span class="text-xs text-muted-foreground">{{ txn.account_type ?? 'Member account' }}</span>
             </td>
             <td v-if="showDebit" class="whitespace-nowrap px-5 py-3.5 text-right">
-              <span v-if="debit(txn)" class="font-mono text-sm font-bold text-rose-700">{{ money(debit(txn)) }}</span>
+              <span v-if="debit(txn)" class="tabular-nums text-sm font-bold text-rose-700">{{ money(debit(txn)) }}</span>
               <span v-else class="text-neutral-300">—</span>
             </td>
             <td v-if="showCredit" class="whitespace-nowrap px-5 py-3.5 text-right">
-              <span v-if="credit(txn)" class="font-mono text-sm font-bold text-emerald-700">{{ money(credit(txn)) }}</span>
+              <span v-if="credit(txn)" class="tabular-nums text-sm font-bold text-emerald-700">{{ money(credit(txn)) }}</span>
               <span v-else class="text-neutral-300">—</span>
             </td>
-            <td class="whitespace-nowrap px-5 py-3.5 text-right font-mono text-sm font-bold text-foreground">
+            <td class="whitespace-nowrap px-5 py-3.5 text-right text-sm font-bold text-foreground">
               {{ running.byTransaction.has(key(txn)) ? money(running.byTransaction.get(key(txn)) ?? 0) : '—' }}
             </td>
             <td class="max-w-[260px] px-5 py-3.5 text-xs text-neutral-600 dark:text-neutral-300">{{ txn.narration || '—' }}</td>
@@ -250,7 +250,7 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
             </td>
             <td v-if="mode === 'all'" class="whitespace-nowrap px-5 py-3.5 text-xs font-semibold text-neutral-600 dark:text-neutral-300">{{ txn.recorded_by || 'System' }}</td>
             <td class="whitespace-nowrap px-5 py-3.5">
-              <span :class="['inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold capitalize ring-1 ring-inset', statusClass[status(txn)]]">{{ status(txn) }}</span>
+              <span :class="['inline-flex rounded-full px-2 py-0.5 text-xs font-bold capitalize ring-1 ring-inset', statusClass[status(txn)]]">{{ status(txn) }}</span>
             </td>
             <td class="whitespace-nowrap px-5 py-3.5 text-center">
               <div v-if="txn.source === 'savings'" class="flex items-center justify-center gap-1.5">
@@ -275,20 +275,20 @@ const filterLabel = 'mb-1 block text-[11px] font-bold uppercase tracking-wide te
         <tfoot v-if="filtered.length" class="border-t-2 border-border bg-neutral-50 dark:bg-neutral-800/40">
           <tr>
             <td colspan="3" class="px-5 py-4">
-              <div class="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Filtered totals</div>
+              <div class="text-xs font-bold uppercase tracking-wide text-muted-foreground">Filtered totals</div>
               <div class="mt-1 text-xs font-medium text-muted-foreground">{{ totals.count }} {{ totals.count === 1 ? 'entry' : 'entries' }}</div>
             </td>
             <td v-if="showDebit" class="px-5 py-4 text-right">
-              <div class="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Debit</div>
-              <div class="mt-1 font-mono text-sm font-bold text-rose-800">{{ money(totals.debits) }}</div>
+              <div class="text-xs font-bold uppercase tracking-wide text-muted-foreground">Debit</div>
+              <div class="mt-1 tabular-nums text-sm font-bold text-rose-800">{{ money(totals.debits) }}</div>
             </td>
             <td v-if="showCredit" class="px-5 py-4 text-right">
-              <div class="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Credit</div>
-              <div class="mt-1 font-mono text-sm font-bold text-emerald-800">{{ money(totals.credits) }}</div>
+              <div class="text-xs font-bold uppercase tracking-wide text-muted-foreground">Credit</div>
+              <div class="mt-1 tabular-nums text-sm font-bold text-emerald-800">{{ money(totals.credits) }}</div>
             </td>
             <td class="px-5 py-4 text-right">
-              <div class="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{{ balanceLabel }}</div>
-              <div v-if="totals.latest !== null" class="mt-1 font-mono text-sm font-bold text-neutral-950 dark:text-white">{{ money(totals.latest) }}</div>
+              <div class="text-xs font-bold uppercase tracking-wide text-muted-foreground">{{ balanceLabel }}</div>
+              <div v-if="totals.latest !== null" class="mt-1 tabular-nums text-sm font-bold text-neutral-950 dark:text-white">{{ money(totals.latest) }}</div>
             </td>
             <td :colspan="mode === 'all' ? 5 : 4" class="px-5 py-4 text-xs font-medium text-muted-foreground">{{ balanceHelp }}</td>
           </tr>

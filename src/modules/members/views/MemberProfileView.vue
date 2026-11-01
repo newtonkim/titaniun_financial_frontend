@@ -340,7 +340,7 @@ async function uploadAvatar(event: Event): Promise<void> {
 }
 
 const card = 'rounded-lg border border-border bg-background'
-const th = 'px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.09em] text-muted-foreground'
+const th = 'px-5 py-3 text-xs font-semibold uppercase tracking-[0.09em] text-muted-foreground'
 const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
 </script>
 
@@ -351,7 +351,7 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
         <ChevronLeft class="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
       </RouterLink>
       <div class="flex-1">
-        <h1 class="text-2xl font-bold tracking-tight text-foreground">Member Profile</h1>
+        <h1 class="text-page-title text-heading">Member Profile</h1>
         <p class="text-sm text-muted-foreground">Details, accounts and activity.</p>
       </div>
     </div>
@@ -362,7 +362,7 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
     <div v-if="loading" class="flex min-h-[50vh] items-center justify-center">
       <div class="flex flex-col items-center gap-3">
         <span class="inline-block h-12 w-12 animate-spin rounded-full border-4 border-brand/20 border-r-brand border-t-brand" aria-hidden="true" />
-        <span class="text-[12px] font-bold uppercase tracking-widest text-brand">Loading Member Data</span>
+        <span class="text-xs font-bold uppercase tracking-widest text-brand">Loading Member Data</span>
       </div>
     </div>
 
@@ -371,7 +371,7 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
       <aside class="flex w-full shrink-0 flex-col gap-6 lg:w-[280px]">
         <div :class="[card, 'overflow-hidden']">
           <div class="relative h-[88px] bg-navy">
-            <span class="absolute left-1/2 top-4 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-brand/40 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+            <span class="absolute left-1/2 top-4 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-brand/40 bg-white/5 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white">
               <Star :size="10" fill="currentColor" class="text-brand" /> Standard
             </span>
           </div>
@@ -386,46 +386,46 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
             <input ref="avatarInput" type="file" accept="image/*" class="sr-only" @change="uploadAvatar" />
           </div>
           <div class="mb-5 px-5 pt-3 text-center">
-            <h2 class="text-[17px] font-black normal-case tracking-tight text-foreground">{{ member.name }}</h2>
+            <h2 class="text-section text-heading">{{ member.name }}</h2>
             <p class="mt-1 text-[13px] tracking-tight text-muted-foreground">ID · {{ member.member_number }}</p>
             <p class="mt-0.5 text-[13px] tracking-tight text-muted-foreground">{{ member.email || '—' }}</p>
             <div class="mt-4">
-              <span v-if="member.status === 'active'" class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-600">
+              <span v-if="member.status === 'active'" class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-600">
                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Active Member
               </span>
-              <span v-else-if="member.status === 'pending'" class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-600">
+              <span v-else-if="member.status === 'pending'" class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-600">
                 <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" /> Pending Approval
               </span>
-              <span v-else-if="member.status === 'rejected'" class="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-red-500">
+              <span v-else-if="member.status === 'rejected'" class="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-red-500">
                 <span class="h-1.5 w-1.5 rounded-full bg-red-500" /> Rejected
               </span>
-              <span v-else class="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              <span v-else class="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 <span class="h-1.5 w-1.5 rounded-full bg-neutral-400" /> {{ formatEnum(member.status) }}
               </span>
             </div>
           </div>
           <div class="mx-5 mb-5 grid grid-cols-2 overflow-hidden rounded-lg border border-border">
             <div class="border-b border-r border-border p-4">
-              <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Shares</span>
-              <span class="text-[17px] font-extrabold text-foreground">{{ sharesHeld }}</span>
+              <span class="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Shares</span>
+              <span class="text-base font-bold text-foreground">{{ sharesHeld }}</span>
             </div>
             <div class="border-b border-border p-4">
-              <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Gender</span>
+              <span class="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Gender</span>
               <span :class="['inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ring-1 ring-inset', genderPill(member.gender)]">{{ member.gender || '—' }}</span>
             </div>
             <div class="border-r border-border p-4">
-              <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Marital</span>
-              <span class="text-[16px] font-bold capitalize text-foreground">{{ member.marital_status || '—' }}</span>
+              <span class="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Marital</span>
+              <span class="text-base font-bold capitalize text-foreground">{{ member.marital_status || '—' }}</span>
             </div>
             <div class="p-4">
-              <span class="mb-2 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Age</span>
-              <span class="text-[16px] font-bold text-foreground">{{ age }}</span>
+              <span class="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Age</span>
+              <span class="text-base font-bold text-foreground">{{ age }}</span>
             </div>
           </div>
         </div>
 
         <div :class="[card, 'p-6']">
-          <h3 class="mb-5 text-[12px] font-bold uppercase tracking-wider text-muted-foreground">Quick Info</h3>
+          <h3 class="mb-5 text-subsection text-muted-foreground">Quick Info</h3>
           <div class="space-y-[18px]">
             <label class="block">
               <span class="mb-1.5 block text-[13px] text-muted-foreground">Status</span>
@@ -453,13 +453,13 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
           <Clock class="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
           <div class="min-w-0 flex-1">
             <p class="text-[13px] font-bold text-amber-800 dark:text-amber-300">Awaiting Approval</p>
-            <p class="mt-0.5 text-[12px] text-amber-700 dark:text-amber-200">This member is pending approval. Deposits, withdrawals, and loans are blocked until an admin approves the registration.</p>
+            <p class="mt-0.5 text-xs text-amber-700 dark:text-amber-200">This member is pending approval. Deposits, withdrawals, and loans are blocked until an admin approves the registration.</p>
           </div>
           <div class="flex shrink-0 items-center gap-2">
-            <button type="button" :disabled="busy" class="flex items-center gap-1.5 rounded-full border border-red-200 bg-white px-4 py-2 text-[12px] font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50" @click="rejectOpen = true">
+            <button type="button" :disabled="busy" class="flex items-center gap-1.5 rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50" @click="rejectOpen = true">
               <ShieldX class="h-3.5 w-3.5" /> Reject
             </button>
-            <button type="button" :disabled="busy" class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-[12px] font-bold text-white shadow-sm transition-colors hover:bg-green-700 disabled:opacity-50" @click="approve">
+            <button type="button" :disabled="busy" class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-green-700 disabled:opacity-50" @click="approve">
               <ShieldCheck class="h-3.5 w-3.5" /> {{ busy ? 'Approving…' : 'Approve Member' }}
             </button>
           </div>
@@ -469,12 +469,12 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
           <ShieldX class="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
           <div class="min-w-0 flex-1">
             <p class="text-[13px] font-bold text-red-800 dark:text-red-300">Registration Rejected</p>
-            <p class="mt-0.5 text-[12px] text-red-700 dark:text-red-200">
+            <p class="mt-0.5 text-xs text-red-700 dark:text-red-200">
               This member's registration was rejected and cannot transact. {{ member.rejection_reason }}
               <span v-if="member.rejecter"> — {{ member.rejecter.name }}, {{ formatDate(member.rejected_at) }}</span>
             </p>
           </div>
-          <button type="button" :disabled="busy" class="flex items-center gap-1.5 rounded-full border border-red-200 bg-white px-4 py-2 text-[12px] font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50" @click="requeue">
+          <button type="button" :disabled="busy" class="flex items-center gap-1.5 rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-bold text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50" @click="requeue">
             <RotateCcw class="h-3.5 w-3.5" /> Send back for approval
           </button>
         </div>
@@ -511,7 +511,7 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
             >
               <component :is="item.icon" :size="16" />
               {{ item.label }}
-              <span v-if="item.count !== null" class="inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-neutral-100 px-1.5 font-mono text-[11px] font-bold text-muted-foreground dark:bg-neutral-800">{{ item.count }}</span>
+              <span v-if="item.count !== null" class="inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-neutral-100 px-1.5 font-mono text-xs font-bold text-muted-foreground dark:bg-neutral-800">{{ item.count }}</span>
               <span v-if="tab === item.id" class="absolute bottom-0 left-4 right-4 h-[3px] rounded-t-full bg-brand" />
             </button>
           </div>
@@ -522,29 +522,29 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
               <section v-for="section in profileSections" :key="section.title" class="mb-4 break-inside-avoid overflow-hidden rounded-lg border border-border bg-background">
                 <div class="flex items-center gap-2 border-b border-border bg-neutral-50/50 px-3.5 py-2.5 dark:bg-neutral-800/40">
                   <span class="flex size-6 shrink-0 items-center justify-center rounded-md bg-brand/10"><component :is="section.icon" :size="13" class="text-brand" /></span>
-                  <h3 class="text-[14px] font-bold uppercase tracking-wide text-neutral-800 dark:text-neutral-100">{{ section.title }}</h3>
+                  <h3 class="text-subsection text-heading">{{ section.title }}</h3>
                 </div>
                 <div class="divide-y divide-neutral-50 dark:divide-neutral-800">
                   <div v-for="field in section.fields" :key="field.label" class="flex items-start justify-between gap-3 px-3.5 py-2">
-                    <span class="flex shrink-0 items-center gap-1.5 pt-px text-[14px] font-medium text-muted-foreground">
+                    <span class="flex shrink-0 items-center gap-1.5 pt-px text-sm font-medium text-muted-foreground">
                       <component :is="field.icon" :size="12" class="shrink-0" /> {{ field.label }}
                     </span>
                     <div class="min-w-0 text-right">
                       <template v-if="field.type === 'badge'">
-                        <span v-if="field.value" :class="['inline-flex items-center rounded-full px-2 py-0.5 text-[14px] font-bold capitalize ring-1 ring-inset', badgeClass(field.value)]">{{ field.value }}</span>
-                        <span v-else class="text-[14px] text-neutral-300">—</span>
+                        <span v-if="field.value" :class="['inline-flex items-center rounded-full px-2 py-0.5 text-sm font-bold capitalize ring-1 ring-inset', badgeClass(field.value)]">{{ field.value }}</span>
+                        <span v-else class="text-sm text-neutral-300">—</span>
                       </template>
                       <div v-else-if="field.type === 'copy'" class="flex items-center justify-end gap-1.5">
-                        <span class="truncate font-mono text-[14px] font-bold text-foreground">{{ field.value ?? '—' }}</span>
+                        <span class="truncate font-mono text-sm font-bold text-foreground">{{ field.value ?? '—' }}</span>
                         <button v-if="field.value" type="button" title="Copy" class="shrink-0 text-muted-foreground transition-colors hover:text-brand" @click="copy(field.value)">
                           <component :is="copied === field.value ? Check : Copy" :size="13" :class="copied === field.value ? 'text-emerald-500' : ''" />
                         </button>
                       </div>
-                      <span v-else-if="field.type === 'currency'" class="text-[14px] font-bold text-foreground">
+                      <span v-else-if="field.type === 'currency'" class="text-sm font-bold text-foreground">
                         <template v-if="field.value !== null && field.value !== undefined">{{ CURRENCY }} {{ formatMoney(field.value) }}</template>
                         <span v-else class="text-neutral-300">—</span>
                       </span>
-                      <span v-else class="break-words text-[14px] font-bold text-foreground">
+                      <span v-else class="break-words text-sm font-bold text-foreground">
                         <template v-if="field.value">{{ field.value }}</template>
                         <span v-else class="text-neutral-300">—</span>
                       </span>
@@ -591,8 +591,8 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
     <!-- Reject dialog -->
     <div v-if="rejectOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="reject-title">
       <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
-        <h3 id="reject-title" class="mb-1 text-[15px] font-bold text-foreground">Reject Registration</h3>
-        <p class="mb-4 text-[12px] text-muted-foreground">Optionally give a reason. It is saved with the member's record.</p>
+        <h3 id="reject-title" class="mb-1 text-subsection text-heading">Reject Registration</h3>
+        <p class="mb-4 text-xs text-muted-foreground">Optionally give a reason. It is saved with the member's record.</p>
         <textarea v-model="rejectionReason" rows="3" aria-label="Rejection reason" class="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm dark:text-white" placeholder="e.g. Missing ID copy" />
         <div class="mt-4 flex justify-end gap-2">
           <button type="button" :disabled="busy" class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200" @click="rejectOpen = false">Cancel</button>
@@ -607,10 +607,10 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
         <div class="flex items-start gap-4">
           <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30"><RotateCcw :size="20" class="text-amber-600" /></span>
           <div class="min-w-0 flex-1">
-            <h3 id="reverse-title" class="text-[15px] font-bold normal-case tracking-normal text-foreground">Reverse {{ reversing.type }} of {{ CURRENCY }} {{ formatMoney(reversing.amount) }}?</h3>
+            <h3 id="reverse-title" class="text-subsection text-heading">Reverse {{ reversing.type }} of {{ CURRENCY }} {{ formatMoney(reversing.amount) }}?</h3>
             <p class="mt-1 text-sm text-muted-foreground">Transaction <strong class="text-neutral-700 dark:text-neutral-200">{{ reversing.reference || `#${reversing.id}` }}</strong> on {{ reversing.account }}.</p>
             <textarea v-model="reversalReason" required minlength="3" maxlength="1000" rows="3" aria-label="Reason for the reversal" placeholder="Enter a reason for the reversal" class="mt-3 w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm dark:text-white" />
-            <p class="mt-2 text-[12px] text-muted-foreground">
+            <p class="mt-2 text-xs text-muted-foreground">
               A counter-transaction undoes this entry once someone else with approval rights approves it. The original stays in the audit trail marked as <em>reversed</em>.
             </p>
           </div>
@@ -627,7 +627,7 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
     <!-- Status change confirmation -->
     <div v-if="statusChange" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="status-title">
       <div class="w-full max-w-md rounded-lg bg-background p-6 shadow-2xl">
-        <h3 id="status-title" class="mb-1 text-[15px] font-bold normal-case tracking-normal text-foreground">Change member status</h3>
+        <h3 id="status-title" class="mb-1 text-subsection text-heading">Change member status</h3>
         <p class="mb-4 text-[13px] text-muted-foreground">Move {{ member?.name }} from <strong>{{ formatEnum(member?.status) }}</strong> to <strong>{{ formatEnum(statusChange) }}</strong>?</p>
         <div class="flex justify-end gap-2">
           <button type="button" class="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:text-neutral-200" @click="statusChange = null">Cancel</button>

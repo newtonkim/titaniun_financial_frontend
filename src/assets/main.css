@@ -1,3 +1,35 @@
+/*
+ * Inter is one self-hosted file: weights 400 to 700, cut down to the characters member names use.
+ * The fallbacks are sized to match it, so text barely moves when the font arrives.
+ */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-titaniun-v1.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter Fallback Roboto';
+  src: local('Roboto');
+  size-adjust: 106.6%;
+  ascent-override: 90.88%;
+  descent-override: 22.63%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Inter Fallback Arial';
+  src: local('Arial');
+  size-adjust: 106.97%;
+  ascent-override: 90.57%;
+  descent-override: 22.55%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'DM Serif Display';
+  src: url('/fonts/dm-serif-display-v1.woff2') format('woff2');
+  font-display: swap;
+}
+
 :root {
   /* Titaniun Financial brand */
   --crimson: #b83236;
@@ -26,7 +58,7 @@
   --radius-panel: 8px;
   --shadow-card: none;
   --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
-  --font-sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Inter', 'Inter Fallback Roboto', 'Inter Fallback Arial', system-ui, sans-serif;
   --font-serif: 'DM Serif Display', Georgia, 'Times New Roman', serif;
   color-scheme: light;
 }
@@ -80,13 +112,15 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 15px/1.5 var(--font-sans);
+  font: 14px/20px var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
 a { color: var(--primary); text-decoration: none; }
-h1 { font-size: 1.25rem; margin: 0; color: var(--heading); }
-h2 { font-size: 0.75rem; margin: 0 0 0.25rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+/* Type levels: the same steps as the text-page-title, text-section and text-subsection utilities. */
+h1 { margin: 0; color: var(--heading); font-size: 1.5rem; font-weight: 700; line-height: 2rem; letter-spacing: -0.02em; }
+h2 { margin: 0 0 0.25rem; color: var(--heading); font-size: 1rem; font-weight: 600; line-height: 1.5rem; letter-spacing: -0.01em; }
+h3 { margin: 0; color: var(--heading); font-size: 0.875rem; font-weight: 600; line-height: 1.25rem; }
 
 input, select, button { font: inherit; color: inherit; }
 input, select {
@@ -107,8 +141,8 @@ input:focus-visible, select:focus-visible { outline: none; }
 
 /* Page header: title and lede on the left, page actions on the right. */
 .page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
-.page-head__title { color: var(--heading); font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
-.page-head__lede { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem; }
+.page-head__title { color: var(--heading); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; line-height: 2rem; }
+.page-head__lede { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.875rem; line-height: 1.25rem; }
 .page-head__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
 /* Panels & tables */
@@ -119,9 +153,9 @@ input:focus-visible, select:focus-visible { outline: none; }
 .inline { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--muted); }
 .table-wrap { overflow-x: auto; }
 .table-wrap[aria-busy='true'] { opacity: 0.6; }
-table { width: 100%; border-collapse: collapse; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 th, td { text-align: left; padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
-th { font-weight: 600; color: var(--muted); font-size: 0.8rem; }
+th { font-weight: 500; color: var(--muted); font-size: 0.75rem; }
 tfoot th { color: var(--text); }
 /* Data tables: a sunken header strip over comfortable rows, matching the shared table primitives. */
 .table-wrap table { font-size: 0.875rem; font-variant-numeric: tabular-nums; }
@@ -160,8 +194,8 @@ tfoot th { color: var(--text); }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
 .span-all { grid-column: 1 / -1; }
 .field { display: flex; flex-direction: column; gap: 0.3rem; }
-.field__label { font-weight: 500; font-size: 0.8125rem; }
-.field__error { color: var(--danger); font-size: 0.8rem; }
+.field__label { font-weight: 500; font-size: 0.75rem; line-height: 1rem; }
+.field__error { color: var(--danger); font-size: 0.75rem; line-height: 1rem; }
 .field--invalid input, .field--invalid select { border-color: var(--danger); }
 .form-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
 .picker { display: flex; flex-direction: column; gap: 0.35rem; }

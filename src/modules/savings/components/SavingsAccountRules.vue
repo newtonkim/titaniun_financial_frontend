@@ -14,7 +14,7 @@ const RULES = [
 
 <template>
   <section class="rounded-lg border border-border bg-background p-5" aria-label="Savings account rules">
-    <h2 class="flex items-center gap-2 text-sm font-bold normal-case tracking-normal text-navy dark:text-white">
+    <h2 class="flex items-center gap-2 text-section text-heading">
       <ShieldCheck class="size-4 text-brand" aria-hidden="true" />
       Savings account rules
     </h2>

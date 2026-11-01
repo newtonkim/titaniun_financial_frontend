@@ -141,7 +141,7 @@ onMounted(load)
 
     <section class="flex flex-col gap-3 pt-2">
       <div>
-        <h2 class="text-base font-bold normal-case tracking-normal text-navy dark:text-white">Year-end appropriation</h2>
+        <h2 class="text-section text-heading">Year-end appropriation</h2>
         <p class="mt-0.5 max-w-[75ch] text-sm text-muted-foreground">
           Before a dividend, each closed year's surplus goes {{ appropriations?.meta.reserve_fund_rate ?? '10.00' }}% to the Reserve Fund and up to
           {{ appropriations?.meta.share_transfer_fund_maximum_rate ?? '5.00' }}% of share capital to the Share Transfer Fund, at the rate UMRA sets.

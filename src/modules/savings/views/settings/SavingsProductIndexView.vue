@@ -74,7 +74,7 @@ function openChargesModal(product: SavingsProduct) {
         <Landmark class="h-5 w-5 text-brand" />
       </div>
       <div class="flex-1">
-        <h1 class="text-2xl font-bold tracking-tight text-foreground">Savings Products List</h1>
+        <h1 class="text-page-title text-heading">Savings Products List</h1>
         <p class="text-sm text-muted-foreground">Manage rules and configurations for savings products</p>
       </div>
 

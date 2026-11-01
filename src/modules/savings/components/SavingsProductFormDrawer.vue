@@ -49,7 +49,7 @@ const inputClass = (field: string) => [input, fieldError(field) ? 'border-red-40
 const cellInput = 'w-full rounded-md border border-border bg-background px-2.5 py-1.5 text-sm dark:text-white'
 const card = 'rounded-lg border border-border bg-background p-6'
 const label = 'mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300'
-const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white'
+const step = 'rounded-full bg-navy px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-white'
 </script>
 
 <template>
@@ -74,7 +74,7 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
 
       <!-- General information -->
       <div :class="card">
-        <h2 class="mb-4 text-lg font-semibold text-foreground">General Information</h2>
+        <h2 class="mb-4 text-section text-heading">General Information</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="sm:col-span-2">
             <label :class="label" for="sp-name">Name <span class="text-red-500">*</span></label>
@@ -162,7 +162,7 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
       <div :class="card">
         <div class="mb-4 flex items-center justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-foreground">Monthly fees</h2>
+            <h2 class="text-section text-heading">Monthly fees</h2>
             <p class="text-xs text-muted-foreground">Configure compulsory monthly or maintenance fees.</p>
           </div>
           <label class="flex cursor-pointer items-center gap-2">
@@ -178,7 +178,7 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
           <div class="rounded-lg border border-border bg-neutral-50 p-4 dark:bg-neutral-800/40">
             <div class="mb-3 flex items-center gap-2">
               <span :class="step">Step 1</span>
-              <h3 class="text-sm font-semibold text-foreground">Choose fee type</h3>
+              <h3 class="text-subsection text-heading">Choose fee type</h3>
             </div>
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
@@ -198,7 +198,7 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
           <div class="rounded-lg border border-border bg-background p-4">
             <div class="mb-3 flex items-center gap-2">
               <span :class="step">Step 2</span>
-              <h3 class="text-sm font-semibold text-foreground">Set base fee (all members)</h3>
+              <h3 class="text-subsection text-heading">Set base fee (all members)</h3>
             </div>
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
@@ -216,7 +216,7 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
           <div class="rounded-lg border border-border bg-background p-4">
             <div class="mb-3 flex items-center gap-2">
               <span :class="step">Step 3</span>
-              <h3 class="text-sm font-semibold text-foreground">Select deduction timing</h3>
+              <h3 class="text-subsection text-heading">Select deduction timing</h3>
             </div>
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
@@ -235,7 +235,7 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
           <div class="rounded-lg border border-border bg-background p-4">
             <div class="mb-3 flex items-center gap-2">
               <span :class="step">Step 4</span>
-              <h3 class="text-sm font-semibold text-foreground">Adjust fee for loyal members</h3>
+              <h3 class="text-subsection text-heading">Adjust fee for loyal members</h3>
             </div>
             <div class="flex items-center justify-between gap-4">
               <div>
@@ -284,7 +284,7 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
       <div :class="card">
         <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-foreground">Attached Charges</h2>
+            <h2 class="text-section text-heading">Attached Charges</h2>
             <p class="text-xs text-muted-foreground">Define charge ranges per transaction type.</p>
           </div>
           <button type="button" class="flex items-center justify-center gap-1.5 rounded-md bg-brand px-3 py-1.5 text-xs font-medium text-white transition hover:bg-brand-dark" @click="addCharge">
@@ -387,7 +387,7 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
 
       <!-- Applies to activity -->
       <div :class="card">
-        <h3 class="mb-4 text-sm font-semibold text-foreground">Applies To Activity</h3>
+        <h3 class="mb-4 text-subsection text-heading">Applies To Activity</h3>
         <div v-if="activityWarnings.length" class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
           <span class="font-semibold">Warning:</span>
           {{ activityWarnings.join(', ') }} {{ activityWarnings.length === 1 ? 'charge is' : 'charges are' }} attached but the activity toggle is off — those fees will never apply.

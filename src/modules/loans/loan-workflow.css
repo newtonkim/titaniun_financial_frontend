@@ -633,7 +633,7 @@
 }
 .loan-mini-schedule p {
   margin-top: 5px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .loan-security-totals {
   display: grid;
@@ -647,7 +647,7 @@
 .loan-security-totals span {
   display: block;
   color: var(--loan-muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 .loan-security-totals strong {
   display: block;
@@ -999,7 +999,7 @@
     text-align: center;
   }
   .loan-stepper strong {
-    font-size: 11px;
+    font-size: 12px;
   }
   .loan-step-number {
     width: 29px;

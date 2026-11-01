@@ -116,9 +116,9 @@ onMounted(load)
           :class="item.color"
         >
           <span class="block truncate text-xs text-white/85">{{ item.label }}</span>
-          <span class="mt-1 block truncate text-xl font-bold tabular-nums">{{ item.value }}</span>
+          <span class="mt-1 block truncate text-lg font-bold tabular-nums">{{ item.value }}</span>
           <span class="mt-0.5 block truncate text-xs text-white/85">{{ item.note }}</span>
-          <span v-if="item.alert" class="mt-2 inline-flex items-center gap-1 self-start rounded-full bg-white px-2 py-0.5 text-[0.6875rem] font-semibold text-brand-dark">
+          <span v-if="item.alert" class="mt-2 inline-flex items-center gap-1 self-start rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-brand-dark">
             <CircleAlert class="size-3" aria-hidden="true" />{{ item.alert }}
           </span>
         </RouterLink>

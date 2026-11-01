@@ -75,7 +75,7 @@ onMounted(async () => {
     <template v-else>
       <section v-if="exit" class="flex flex-col gap-4" aria-label="Member exit">
         <div class="flex flex-wrap items-center gap-3">
-          <h2 class="text-sm font-bold normal-case tracking-normal text-navy dark:text-white">{{ formatEnum(exit.type) }}</h2>
+          <h2 class="text-section text-heading">{{ formatEnum(exit.type) }}</h2>
           <StatusBadge :status="exit.status" />
           <span class="text-sm text-muted-foreground">Notice given {{ formatDate(exit.notice_given_on) }}<template v-if="exit.notice_days">, {{ exit.notice_days }} days, earliest exit {{ formatDate(exit.earliest_exit_on) }}</template></span>
         </div>
@@ -89,7 +89,7 @@ onMounted(async () => {
         </dl>
 
         <div v-if="inProgress" class="rounded-lg border border-border">
-          <h3 class="border-b border-border px-4 py-2.5 text-sm font-semibold text-foreground">Still to clear</h3>
+          <h3 class="border-b border-border px-4 py-2.5 text-subsection text-heading">Still to clear</h3>
           <ul v-if="exit.settlement.blockers.length" class="divide-y divide-border">
             <li v-for="blocker in exit.settlement.blockers" :key="blocker" class="flex items-start gap-2 px-4 py-2.5 text-sm">
               <CircleAlert class="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />{{ blocker }}
@@ -103,11 +103,11 @@ onMounted(async () => {
         </div>
 
         <div v-if="inProgress && exit.type === 'death'" class="rounded-lg border border-border px-4 py-3 text-sm">
-          <h3 class="font-semibold text-foreground">Nominees</h3>
+          <h3 class="font-semibold text-foreground">Share nominees</h3>
           <ul v-if="exit.settlement.nominees.length" class="mt-1 text-muted-foreground">
             <li v-for="nominee in exit.settlement.nominees" :key="nominee.name">{{ nominee.name }}, {{ nominee.relationship }}, {{ nominee.percentage }}%<template v-if="!nominee.witnessed"> (not witnessed)</template></li>
           </ul>
-          <p v-else class="mt-1 text-muted-foreground">No nominee recorded. Take advice before paying out.</p>
+          <p v-else class="mt-1 text-muted-foreground">No share nominee recorded.</p>
         </div>
 
         <div v-if="canManage && exit.status === 'settling'" class="flex gap-2">
@@ -118,7 +118,7 @@ onMounted(async () => {
       </section>
 
       <form v-if="canStart" class="flex max-w-xl flex-col gap-3 rounded-lg border border-border p-4" @submit.prevent="start">
-        <h2 class="text-sm font-bold normal-case tracking-normal text-navy dark:text-white">Start an exit</h2>
+        <h2 class="text-section text-heading">Start an exit</h2>
         <p class="text-sm text-muted-foreground">Records the notice. Nothing changes on the member's accounts until a second person approves the finished exit.</p>
         <label class="flex flex-col gap-1 text-sm font-medium">
           Type

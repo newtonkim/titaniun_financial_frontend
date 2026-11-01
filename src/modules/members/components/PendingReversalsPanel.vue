@@ -52,14 +52,14 @@ const ownRequest = (reversal: SavingsReversal) => props.currentUserId !== null &
             <p class="mt-0.5 text-xs text-muted-foreground">Requested by {{ reversal.requested_by ?? 'staff' }} on {{ formatDate(reversal.created_at) }}</p>
           </div>
           <div v-if="canApprove" class="flex shrink-0 items-center gap-2">
-            <button type="button" :disabled="busy === reversal.id" class="flex items-center gap-1 rounded-full border border-red-200 bg-white px-3 py-1.5 text-[12px] font-bold text-red-600 hover:bg-red-50 disabled:opacity-50" @click="rejecting = rejecting === reversal.id ? null : reversal.id">
+            <button type="button" :disabled="busy === reversal.id" class="flex items-center gap-1 rounded-full border border-red-200 bg-white px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 disabled:opacity-50" @click="rejecting = rejecting === reversal.id ? null : reversal.id">
               <X :size="13" /> Reject
             </button>
             <button
               type="button"
               :disabled="busy === reversal.id || ownRequest(reversal)"
               :title="ownRequest(reversal) ? 'Someone else must approve your own request' : undefined"
-              class="flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-[12px] font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+              class="flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
               @click="decide(reversal, true)"
             >
               <Check :size="13" /> Approve

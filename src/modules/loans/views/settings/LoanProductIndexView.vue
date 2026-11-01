@@ -34,7 +34,7 @@ const {
           <CreditCard class="h-5 w-5 text-brand" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold tracking-tight text-foreground">Loan Products</h1>
+          <h1 class="text-page-title text-heading">Loan Products</h1>
           <p class="text-sm text-muted-foreground">Manage loan types and their configurations</p>
         </div>
       </div>

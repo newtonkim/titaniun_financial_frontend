@@ -170,7 +170,7 @@ const buttonClass =
           <p class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             {{ result.entity }}
           </p>
-          <h2 class="mt-1 text-xl font-semibold">Statement of Surplus / (Deficit)</h2>
+          <h2 class="mt-1 text-section">Statement of Surplus / (Deficit)</h2>
           <p class="mt-2 text-sm text-muted-foreground">
             {{ result.from }} to {{ result.to }} · {{ result.currency }}
           </p>

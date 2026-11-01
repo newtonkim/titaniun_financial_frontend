@@ -134,7 +134,7 @@ const ghostBtn   = 'flex items-center gap-1.5 rounded-lg border border-border bg
       <section class="overflow-hidden rounded-lg border border-border bg-background">
         <header class="border-b border-border px-6 py-6 text-center">
           <p class="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">{{ result.entity }}</p>
-          <h2 class="mt-1 text-lg font-bold text-foreground">Statement of Financial Position</h2>
+          <h2 class="mt-1 text-section text-heading">Statement of Financial Position</h2>
           <p v-if="!showComparison" class="text-sm text-muted-foreground">As at {{ formatLongDate(result.as_at) }}</p>
           <p v-else-if="selection" class="text-sm text-muted-foreground">
             Period 1: {{ formatShortDate(selection.firstFrom) }} – {{ formatShortDate(selection.firstTo) }}<br />
@@ -146,7 +146,7 @@ const ghostBtn   = 'flex items-center gap-1.5 rounded-lg border border-border bg
         <div class="overflow-x-auto px-2 pb-4">
           <table class="w-full min-w-[640px] border-collapse">
             <thead>
-              <tr class="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              <tr class="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 <th class="px-4 pt-4 pb-2 text-left font-bold">Account</th>
                 <th class="px-4 pt-4 pb-2 text-right font-bold text-neutral-700 dark:text-neutral-200">{{ showComparison ? 'Period 1 closing · ' : '' }}{{ formatShortDate(result.as_at) }}</th>
                 <th v-if="showComparison" class="px-4 pt-4 pb-2 text-right font-bold">Period 2 closing · {{ formatShortDate(result.compare_to) }}</th>
