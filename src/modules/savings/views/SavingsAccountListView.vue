@@ -10,8 +10,9 @@ import { savingsAccountsApi, savingsProductsApi } from '../api'
 import { SAVINGS_ACCOUNT_STATUSES, type SavingsAccount, type SavingsAccountFilters, type SavingsProduct } from '../types'
 
 const QUIET_PERIODS = [6, 12, 24]
+const PAST_WARNING = 'warning'
 
-const filters = reactive<SavingsAccountFilters>({ status: '', savings_product_id: '', quiet_months: '', opened_from: '', opened_to: '', closed_from: '', closed_to: '' })
+const filters = reactive<Omit<SavingsAccountFilters, 'quiet_months'> & { quiet_months: number | string }>({ status: '', savings_product_id: '', quiet_months: '', opened_from: '', opened_to: '', closed_from: '', closed_to: '' })
 const products = ref<SavingsProduct[]>([])
 const showClosedDates = computed(() => filters.status === 'closed')
 
@@ -25,7 +26,11 @@ const columns: Column<SavingsAccount>[] = [
   { key: 'opened_at', label: 'Opened', sortable: true, value: (account) => formatDate(account.opened_at) },
 ]
 
-const fetchPage = (params: PageParams) => savingsAccountsApi.list({ ...filters, ...params })
+function fetchPage(params: PageParams) {
+  const { quiet_months: quiet, ...rest } = filters
+  const quietFilter = quiet === PAST_WARNING ? { past_warning: true } : { quiet_months: quiet === '' ? ('' as const) : Number(quiet) }
+  return savingsAccountsApi.list({ ...rest, ...quietFilter, ...params })
+}
 
 onMounted(async () => {
   products.value = (await savingsProductsApi.list({ per_page: 100 })).data
@@ -45,6 +50,7 @@ onMounted(async () => {
       </select>
       <select v-model="filters.quiet_months" aria-label="Quiet accounts">
         <option value="">Any activity</option>
+        <option :value="PAST_WARNING">Past inactivity warning</option>
         <option v-for="months in QUIET_PERIODS" :key="months" :value="months">Quiet {{ months }}+ months</option>
       </select>
       <span class="text-xs text-muted-foreground">Opened</span>

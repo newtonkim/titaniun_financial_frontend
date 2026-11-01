@@ -11,6 +11,10 @@ const LABELS: Record<Exclude<SavingsAccountEventType, 'request_submitted' | 'req
   closed: 'Closed',
   reactivated: 'Reactivated',
   freeze_released: 'Freeze released',
+  statement_requested: 'Member asked for a statement',
+  notice_sent: 'Dormancy notice sent',
+  advertised: 'Dormant balance advertised',
+  board_decision: 'Board decision recorded',
 }
 
 function title(event: SavingsAccountEvent): string {

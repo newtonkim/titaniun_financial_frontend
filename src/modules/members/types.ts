@@ -154,3 +154,39 @@ export interface MemberImportResult {
   failed: number
   failures: { row: number; errors: Record<string, string[]> }[]
 }
+
+export type MemberExitType = 'withdrawal' | 'death' | 'expulsion'
+export type MemberExitStatus = 'settling' | 'awaiting_approval' | 'completed' | 'cancelled'
+
+/** What stands between a member and leaving. It reports only; staff settle on the usual screens. */
+export interface MemberSettlement {
+  savings: { id: number; account_number: string; status: string; frozen: boolean; balance: Money }[]
+  savings_total: Money
+  loans: { id: number; loan_number: string; outstanding: Money }[]
+  loans_total: Money
+  guarantees: { id: number; loan_number: string | null; amount: Money }[]
+  shares: { id: number; account_number: string; shares_held: number; value: Money }[]
+  net_savings_after_loans: Money
+  nominees: { name: string; relationship: string; percentage: Money; witnessed: boolean }[]
+  blockers: string[]
+}
+
+export interface MemberExit {
+  id: number
+  member_id: number
+  member_name?: string
+  type: MemberExitType
+  status: MemberExitStatus
+  reason: string
+  notice_given_on: ISODate
+  notice_days: number
+  earliest_exit_on: ISODate
+  started_by: string
+  submitted_by: string | null
+  submitted_by_id: number | null
+  decided_by: string | null
+  decided_at: ISODateTime | null
+  rejection_reason: string | null
+  created_at: ISODateTime | null
+  settlement: MemberSettlement
+}

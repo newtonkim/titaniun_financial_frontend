@@ -2,7 +2,7 @@ import { computed, ref, watch, type Ref } from 'vue'
 import { ApiError } from '@/core/api/http'
 import { chartOfAccountsApi } from '@/modules/accounting/api'
 import type { ChartOfAccount } from '@/modules/accounting/types'
-import { savingsProductsApi } from '../api'
+import { savingsPolicyApi, savingsProductsApi } from '../api'
 import type { ChargeTrigger, SavingsProduct, SavingsProductCharge, SavingsProductSettings } from '../types'
 import { useMonthlyFeeSummary } from './useMonthlyFeeSummary'
 
@@ -108,13 +108,20 @@ export function useSavingsProductForm(productId: Ref<number | null>, onSaved: (p
     }
   }
 
+  /** A new product starts from the warning period in the savings policy. */
+  async function loadDefaultWarning() {
+    if (productId.value !== null) return
+    const policy = await savingsPolicyApi.show().catch(() => null)
+    if (policy) form.value.dormancy_period_months = policy.default_warning_months
+  }
+
   /** Reset the form and load whatever the drawer needs for `productId`. */
   async function open() {
     form.value = createDefaultForm()
     errors.value = {}
     message.value = ''
     selectedChargeTab.value = 'deposit'
-    await Promise.all([loadProduct(), loadSupportingData()])
+    await Promise.all([loadProduct(), loadSupportingData(), loadDefaultWarning()])
   }
 
   function fieldError(field: string): string | null {

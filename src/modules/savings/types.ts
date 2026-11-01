@@ -90,6 +90,7 @@ export interface SavingsAccount {
   frozen_at: ISODateTime | null
   freeze_reason_code: SavingsFreezeReason | null
   freeze_reason: string | null
+  last_statement_requested_at?: ISODateTime | null
   pending_request?: SavingsAccountRequest | null
   opened_at: ISODate
   closed_at: ISODate | null
@@ -119,7 +120,46 @@ export interface SavingsAccountRequest {
   created_at: ISODateTime | null
 }
 
-export type SavingsAccountEventType = 'marked_dormant' | 'frozen' | 'request_submitted' | 'request_rejected' | 'closed' | 'reactivated' | 'freeze_released'
+export type SavingsAccountEventType =
+  | 'marked_dormant'
+  | 'frozen'
+  | 'request_submitted'
+  | 'request_rejected'
+  | 'closed'
+  | 'reactivated'
+  | 'freeze_released'
+  | 'statement_requested'
+  | 'notice_sent'
+  | 'advertised'
+  | 'board_decision'
+
+/** The SACCO's own savings choices; statutory values come back read-only. */
+export interface SavingsPolicy {
+  exit_notice_days: number
+  dormant_accounts_earn_interest: boolean
+  default_warning_months: number
+  statutory_dormancy_months: number
+  changes: { id: number; field: string; old_value: string; new_value: string; actor: string; created_at: ISODateTime | null }[]
+}
+
+/** One spell of an account on the dormant register. */
+export interface SavingsDormantEntry {
+  id: number
+  savings_account_id: number
+  account_number?: string
+  member_name?: string | null
+  dormant_since: ISODate
+  balance_on_entry: Money
+  notice_sent_on: ISODate | null
+  notice_reference: string | null
+  advert_due_on: ISODate
+  advertised_on: ISODate | null
+  advert_reference: string | null
+  board_decided_on: ISODate | null
+  board_reference: string | null
+  board_decision: string | null
+  released_at: ISODateTime | null
+}
 
 /** A permanent entry in the account's history. */
 export interface SavingsAccountEvent {
@@ -149,6 +189,7 @@ export type SavingsAccountFilters = {
   closed_from?: ISODate
   closed_to?: ISODate
   quiet_months?: number | ''
+  past_warning?: boolean
 }
 
 export interface SavingsTransaction {

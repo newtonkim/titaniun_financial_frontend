@@ -8,7 +8,9 @@ import type {
   SavingsAccountFilters,
   SavingsAccountRequest,
   SavingsAccountRequestType,
+  SavingsDormantEntry,
   SavingsFreezeReason,
+  SavingsPolicy,
   SavingsProduct,
   SavingsProductFilters,
   SavingsProductSettings,
@@ -40,9 +42,25 @@ export const savingsAccountsApi = {
     http.post<Wrapped<SavingsAccount>>(`/savings-accounts/${accountId}/dormant`, { reason }).then((response) => response.data),
   freeze: (accountId: number, reasonCode: SavingsFreezeReason, reason: string) =>
     http.post<Wrapped<SavingsAccount>>(`/savings-accounts/${accountId}/freeze`, { reason_code: reasonCode, reason }).then((response) => response.data),
+  /** Note that the member asked for a statement, which restarts the dormancy clock. */
+  logStatementRequest: (accountId: number) =>
+    http.post<Wrapped<SavingsAccount>>(`/savings-accounts/${accountId}/statement-requests`, {}).then((response) => response.data),
   /** Ask to close, reactivate or release the account; it takes effect once someone else approves. */
   requestChange: (accountId: number, type: SavingsAccountRequestType, reason: string) =>
     http.post<Wrapped<SavingsAccountRequest>>(`/savings-accounts/${accountId}/requests`, { type, reason }).then((response) => response.data),
+}
+
+export const savingsPolicyApi = {
+  show: () => http.get<Wrapped<SavingsPolicy>>('/savings-policy').then((response) => response.data),
+  update: (payload: Pick<SavingsPolicy, 'exit_notice_days' | 'dormant_accounts_earn_interest' | 'default_warning_months'>) =>
+    http.put<Wrapped<SavingsPolicy>>('/savings-policy', payload).then((response) => response.data),
+}
+
+export const savingsDormancyApi = {
+  candidates: () => http.get<{ data: SavingsAccount[] }>('/savings-dormancy/candidates').then((response) => response.data),
+  register: () => http.get<{ data: SavingsDormantEntry[] }>('/savings-dormancy/register').then((response) => response.data),
+  record: (entryId: number, kind: 'notice' | 'advert' | 'board-decision', payload: { date: string; reference: string; decision?: string }) =>
+    http.post<Wrapped<SavingsDormantEntry>>(`/savings-dormancy/${entryId}/${kind}`, payload).then((response) => response.data),
 }
 
 export const savingsAccountRequestsApi = {

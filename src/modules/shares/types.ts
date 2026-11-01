@@ -267,4 +267,7 @@ export interface ShareNominee {
   phone: string | null
   national_id: string | null
   percentage: Money | number
+  signed_on: string
+  first_witness: string
+  second_witness: string
 }

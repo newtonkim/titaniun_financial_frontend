@@ -9,6 +9,8 @@ import { Skeleton } from '@/core/components/ui/skeleton'
 import { formatDate, formatEnum } from '@/core/utils/format'
 import { useAuth } from '@/modules/auth/store'
 import PendingReversalsPanel from '@/modules/members/components/PendingReversalsPanel.vue'
+import { memberExitsApi } from '@/modules/members/api'
+import type { MemberExit } from '@/modules/members/types'
 import { savingsAccountRequestsApi, savingsReversalsApi } from '../api'
 import type { SavingsAccountRequest, SavingsReversal } from '../types'
 
@@ -17,6 +19,8 @@ const { can, user } = useAuth()
 
 const requests = ref<SavingsAccountRequest[]>([])
 const reversals = ref<SavingsReversal[]>([])
+const exits = ref<MemberExit[]>([])
+const rejectingExit = ref<number | null>(null)
 const loading = ref(true)
 const busy = ref<number | null>(null)
 const rejecting = ref<number | null>(null)
@@ -26,15 +30,20 @@ const notice = ref<string | null>(null)
 
 const canApprove = computed(() => can('savings.accounts.approve'))
 const currentUserId = computed(() => user.value?.id ?? null)
-const isEmpty = computed(() => !requests.value.length && !reversals.value.length)
+const isEmpty = computed(() => !requests.value.length && !reversals.value.length && !exits.value.length)
 const ownRequest = (request: SavingsAccountRequest) => request.requested_by_id === currentUserId.value
 
 async function load() {
   loading.value = true
   try {
-    const [accountRequests, pendingReversals] = await Promise.all([savingsAccountRequestsApi.list({ status: 'pending' }), savingsReversalsApi.list({ status: 'pending' })])
+    const [accountRequests, pendingReversals, waitingExits] = await Promise.all([
+      savingsAccountRequestsApi.list({ status: 'pending' }),
+      savingsReversalsApi.list({ status: 'pending' }),
+      memberExitsApi.list({ status: 'awaiting_approval' }),
+    ])
     requests.value = accountRequests
     reversals.value = pendingReversals
+    exits.value = waitingExits
   } catch (exception) {
     error.value = exception instanceof Error ? exception.message : 'Approvals could not be loaded.'
   } finally {
@@ -62,6 +71,26 @@ async function decide(request: SavingsAccountRequest, approve: boolean) {
   }
 }
 
+async function decideExit(exit: MemberExit, approve: boolean) {
+  busy.value = exit.id
+  error.value = null
+  try {
+    if (approve) {
+      await memberExitsApi.approve(exit.id)
+    } else {
+      await memberExitsApi.reject(exit.id, reason.value.trim())
+    }
+    notice.value = `Exit of ${exit.member_name} ${approve ? 'approved. Accounts are closed and the member is exited' : 'sent back to settle'}.`
+    rejectingExit.value = null
+    reason.value = ''
+    await load()
+  } catch (exception) {
+    error.value = exception instanceof Error ? exception.message : 'The exit could not be decided.'
+  } finally {
+    busy.value = null
+  }
+}
+
 function decided(message: string) {
   notice.value = message
   void load()
@@ -84,7 +113,7 @@ onMounted(load)
     <div v-else-if="isEmpty" class="flex flex-col items-center gap-2 rounded-lg border border-border bg-background px-4 py-14 text-center">
       <Inbox class="size-6 text-muted-foreground" aria-hidden="true" />
       <p class="font-medium">Nothing waiting for approval</p>
-      <p class="text-sm text-muted-foreground">Closures, reactivations, freeze releases and reversals appear here.</p>
+      <p class="text-sm text-muted-foreground">Closures, reactivations, freeze releases, reversals and member exits appear here.</p>
     </div>
 
     <DataPanel v-if="requests.length" label="Account requests">
@@ -108,6 +137,32 @@ onMounted(load)
           <form v-if="rejecting === request.id" class="mt-3 flex flex-col gap-2 sm:flex-row" @submit.prevent="decide(request, false)">
             <input v-model="reason" required minlength="3" maxlength="1000" placeholder="Why is it rejected?" aria-label="Rejection reason" class="flex-1" />
             <Button type="submit" variant="outline" size="sm" :disabled="busy === request.id">Reject request</Button>
+          </form>
+        </li>
+      </ul>
+    </DataPanel>
+
+    <DataPanel v-if="exits.length" label="Member exits">
+      <ul class="divide-y divide-border">
+        <li v-for="exit in exits" :key="exit.id" class="p-4">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="min-w-0 text-sm">
+              <p class="font-semibold text-foreground">
+                Member exit:
+                <RouterLink :to="{ name: 'members.show', params: { id: exit.member_id } }" class="text-brand hover:underline">{{ exit.member_name }}</RouterLink>
+                <span class="text-muted-foreground"> · {{ formatEnum(exit.type) }}</span>
+              </p>
+              <p class="mt-0.5 text-muted-foreground">{{ exit.reason }}</p>
+              <p class="mt-0.5 text-xs text-muted-foreground">Submitted by {{ exit.submitted_by }}. Approving closes every account and exits the member.</p>
+            </div>
+            <div v-if="canApprove" class="flex shrink-0 items-center gap-2">
+              <Button variant="outline" size="sm" :disabled="busy === exit.id" @click="rejectingExit = rejectingExit === exit.id ? null : exit.id"><X /> Send back</Button>
+              <Button size="sm" :disabled="busy === exit.id || exit.submitted_by_id === currentUserId" :title="exit.submitted_by_id === currentUserId ? 'Someone else must approve what you submitted' : undefined" @click="decideExit(exit, true)"><Check /> Approve</Button>
+            </div>
+          </div>
+          <form v-if="rejectingExit === exit.id" class="mt-3 flex flex-col gap-2 sm:flex-row" @submit.prevent="decideExit(exit, false)">
+            <input v-model="reason" required minlength="3" maxlength="1000" placeholder="What still needs settling?" aria-label="Reason for sending back" class="flex-1" />
+            <Button type="submit" variant="outline" size="sm" :disabled="busy === exit.id">Send back</Button>
           </form>
         </li>
       </ul>

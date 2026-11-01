@@ -6,6 +6,7 @@ import { formatMoney } from '@/core/utils/format'
 import { savingsProductsApi } from '../../api'
 import SavingsProductChargesModal from '../../components/SavingsProductChargesModal.vue'
 import SavingsProductDeleteDialog from '../../components/SavingsProductDeleteDialog.vue'
+import SavingsAccountRules from '../../components/SavingsAccountRules.vue'
 import SavingsProductFormDrawer from '../../components/SavingsProductFormDrawer.vue'
 import type { SavingsProduct } from '../../types'
 
@@ -173,6 +174,8 @@ function openChargesModal(product: SavingsProduct) {
     </div>
 
     <SavingsProductChargesModal :is-open="showChargesModal" :product="selectedProductForCharges" @close="showChargesModal = false" />
+    <SavingsAccountRules />
+
     <SavingsProductFormDrawer v-model:open="formOpen" :product-id="editingId" @saved="loadProducts" />
     <SavingsProductDeleteDialog :show="deleteTarget !== null" :product-name="deleteTarget?.name" :deleting="deleting" @confirm="deleteProduct" @cancel="deleteTarget = null" />
   </div>
