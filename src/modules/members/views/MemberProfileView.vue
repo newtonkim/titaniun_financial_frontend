@@ -15,6 +15,7 @@ import {
   MapPin,
   MinusCircle,
   Phone,
+  LogOut,
   Printer,
   RotateCcw,
   ShieldCheck,
@@ -30,6 +31,7 @@ import {
 import { ApiError } from '@/core/api/http'
 import { formatDate, formatEnum, formatMoney } from '@/core/utils/format'
 import { useAuth } from '@/modules/auth/store'
+import MemberExitPanel from '../components/MemberExitPanel.vue'
 import OpenSavingsAccountDrawer from '@/modules/savings/components/OpenSavingsAccountDrawer.vue'
 import SavingsTransactionDrawer from '@/modules/savings/components/SavingsTransactionDrawer.vue'
 import { savingsReversalsApi, savingsTransactionsApi } from '@/modules/savings/api'
@@ -47,7 +49,7 @@ import { genderPill, memberInitials } from '../utils'
 const props = defineProps<{ id: string }>()
 const { can, user } = useAuth()
 
-type Tab = 'profile' | 'transactions' | 'savings' | 'withdrawal' | 'loans' | 'shares' | 'statement'
+type Tab = 'profile' | 'transactions' | 'savings' | 'withdrawal' | 'loans' | 'shares' | 'statement' | 'exit'
 
 const CURRENCY = 'UGX'
 const member = ref<Member | null>(null)
@@ -107,6 +109,7 @@ const tabs = computed((): { id: Tab; label: string; icon: Component; count: numb
   { id: 'loans', label: 'Member Loans', icon: Wallet, count: member.value?.loans?.length ?? 0 },
   { id: 'shares', label: 'Member Shares', icon: BarChart3, count: transactions.value.filter((txn) => txn.source === 'shares').length },
   { id: 'statement', label: 'Member Statement', icon: Printer, count: null },
+  { id: 'exit', label: 'Member Exit', icon: LogOut, count: null },
 ])
 
 const sharesHeld = computed(() => (member.value?.share_accounts ?? []).reduce((sum, account) => sum + (account.shares_held ?? 0), 0))
@@ -557,6 +560,7 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
           <MemberLedger v-else-if="tab === 'withdrawal'" :transactions="transactions" mode="withdrawal" :can-reverse="can('savings.manage')" :printing="printing" @print="printReceipt" @reverse="startReversal" />
           <MemberLedger v-else-if="tab === 'shares'" :transactions="transactions" mode="shares" />
           <MemberStatement v-else-if="tab === 'statement'" :accounts="member.savings_accounts ?? []" />
+          <MemberExitPanel v-else-if="tab === 'exit'" :member-id="member.id" :member-status="member.status" @changed="load(true)" />
 
           <!-- Loans -->
           <div v-else class="overflow-x-auto">

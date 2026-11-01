@@ -64,6 +64,8 @@ export type AttentionKey =
   | 'pending_members'
   | 'savings_reversals'
   | 'savings_account_requests'
+  | 'member_exits'
+  | 'dormant_candidates'
   | 'draft_journals'
   | 'draft_dividends'
 

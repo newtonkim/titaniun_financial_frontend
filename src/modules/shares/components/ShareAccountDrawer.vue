@@ -115,7 +115,7 @@ async function issueCertificate() {
 }
 
 function addNominee() {
-  nominees.value.push({ name: '', relationship: '', phone: null, national_id: null, percentage: nominees.value.length ? Math.max(0, 100 - nomineeTotal.value) : 100 })
+  nominees.value.push({ name: '', relationship: '', phone: null, national_id: null, percentage: nominees.value.length ? Math.max(0, 100 - nomineeTotal.value) : 100, signed_on: '', first_witness: '', second_witness: '' })
 }
 
 async function saveNominees() {
@@ -127,7 +127,7 @@ async function saveNominees() {
 
 /** Server errors for one nominee row, in field order. */
 function rowErrors(index: number): string[] {
-  return ['name', 'relationship', 'phone', 'percentage'].flatMap((field) => errors.value[`nominees.${index}.${field}`] ?? [])
+  return ['name', 'relationship', 'phone', 'percentage', 'signed_on', 'first_witness', 'second_witness'].flatMap((field) => errors.value[`nominees.${index}.${field}`] ?? [])
 }
 
 watch(
@@ -303,6 +303,11 @@ watch(
                 <button v-if="canEditNominees" type="button" class="btn btn--icon remove" :aria-label="`Remove nominee ${index + 1}`" title="Remove" @click="nominees.splice(index, 1)">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
                 </button>
+              </div>
+              <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <input v-model="nominee.signed_on" :aria-label="`Nominee ${index + 1} date signed`" type="date" title="Date the member signed" required />
+                <input v-model="nominee.first_witness" :aria-label="`Nominee ${index + 1} first witness`" placeholder="First witness" required maxlength="255" />
+                <input v-model="nominee.second_witness" :aria-label="`Nominee ${index + 1} second witness`" placeholder="Second witness" required maxlength="255" />
               </div>
               <p v-for="message in rowErrors(index)" :key="message" class="field__error">{{ message }}</p>
             </div>

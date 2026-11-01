@@ -105,6 +105,15 @@ function startTransaction(type: 'deposit' | 'withdrawal') {
   transactionOpen.value = true
 }
 
+async function logStatementRequest() {
+  try {
+    await savingsAccountsApi.logStatementRequest(Number(props.id))
+    changed('Statement request logged. The dormancy clock has restarted.')
+  } catch (exception) {
+    error.value = exception instanceof Error ? exception.message : 'The request could not be logged.'
+  }
+}
+
 function changed(message: string) {
   notice.value = message
   void load()
@@ -128,6 +137,7 @@ watch(() => props.id, load, { immediate: true })
         <template v-if="!isClosed">
           <Button v-if="canManage" size="sm" @click="startTransaction('deposit')">Deposit</Button>
           <Button v-if="canManage" variant="outline" size="sm" :disabled="account.status !== 'active' || isFrozen" @click="startTransaction('withdrawal')">Withdraw</Button>
+          <Button v-if="canManage" variant="outline" size="sm" @click="logStatementRequest">Log statement request</Button>
           <Button v-if="canManage && !isFrozen" variant="outline" size="sm" @click="startAction('freeze')">Freeze</Button>
           <Button v-if="canManage && account.status === 'active'" variant="outline" size="sm" @click="startAction('dormant')">Mark dormant</Button>
           <Button v-if="canRequest && isFrozen" variant="outline" size="sm" @click="startAction('release_freeze')">Request release</Button>

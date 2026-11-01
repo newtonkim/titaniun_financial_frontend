@@ -14,6 +14,8 @@ const LABELS: Record<AttentionKey, { one: string; many: string; to: RouteLocatio
   pending_members: { one: 'member waiting for approval', many: 'members waiting for approval', to: { name: 'members.index' } },
   savings_reversals: { one: 'savings reversal to approve', many: 'savings reversals to approve', to: { name: 'savings.approvals' } },
   savings_account_requests: { one: 'savings account request to approve', many: 'savings account requests to approve', to: { name: 'savings.approvals' } },
+  member_exits: { one: 'member exit to approve', many: 'member exits to approve', to: { name: 'savings.approvals' } },
+  dormant_candidates: { one: 'account to review for dormancy', many: 'accounts to review for dormancy', to: { name: 'savings.dormant' } },
   draft_journals: { one: 'journal entry to post', many: 'journal entries to post', to: { name: 'accounting.journal-entries' } },
   draft_dividends: { one: 'draft dividend to approve', many: 'draft dividends to approve', to: { name: 'shares.dividends' } },
 }
