@@ -1,7 +1,7 @@
 import { download, http } from '@/core/api/http'
 import { createResourceApi } from '@/core/api/resource'
-import type { Collection, Wrapped } from '@/core/api/types'
-import type { Member, MemberExit, MemberExitType, MemberFilters, MemberImportResult, MemberTransaction, StoreMemberPayload, UpdateMemberPayload } from './types'
+import type { Wrapped } from '@/core/api/types'
+import type { Member, MemberExit, MemberExitType, MemberFilters, MemberImportResult, MemberLedgerResponse, MemberStatementData, StoreMemberPayload, UpdateMemberPayload } from './types'
 
 export const membersApi = {
   ...createResourceApi<Member, StoreMemberPayload, UpdateMemberPayload, MemberFilters>('/members'),
@@ -16,7 +16,8 @@ export const membersApi = {
   requeue: (id: number) => http.put<Wrapped<Member>>(`/members/${id}/requeue`).then((response) => response.data),
   markDormant: (id: number) => http.put<Wrapped<Member>>(`/members/${id}/dormant`).then((response) => response.data),
   activate: (id: number) => http.put<Wrapped<Member>>(`/members/${id}/activate`).then((response) => response.data),
-  transactions: (id: number) => http.get<Collection<MemberTransaction>>(`/members/${id}/transactions`).then((response) => response.data),
+  transactions: (id: number) => http.get<MemberLedgerResponse>(`/members/${id}/transactions`),
+  statement: (id: number, from: string, to: string) => http.get<Wrapped<MemberStatementData>>(`/members/${id}/statement`, { from, to }).then((response) => response.data),
   downloadTemplate: () => download('/members/import-template', 'member-import-template.xlsx'),
   import: (file: File) => {
     const body = new FormData()

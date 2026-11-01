@@ -130,8 +130,10 @@ export type MemberFilters = {
 
 export interface MemberTransaction {
   id: number
-  source: 'savings' | 'shares' | 'loans'
+  source: MemberAccountSource
   type: string
+  /** Read in the account's own direction: a repayment credits the loan. */
+  direction: 'credit' | 'debit'
   account_id: number
   account: string
   /** The account's product. */
@@ -147,6 +149,55 @@ export interface MemberTransaction {
   reversal_of_id: number | null
   reversed_at: ISODateTime | null
   is_reversible: boolean
+  /** This account's balance after the entry: savings held, loan principal owed, or the value of the shares held. */
+  balance_after: Money
+  /** Shares held after the entry, on share accounts. */
+  shares_after: number | null
+  /** Instalment money waiting to buy a whole share, on instalment rows. */
+  subscription_after: Money | null
+  principal_paid: Money | null
+  interest_paid: Money | null
+  fees_paid: Money | null
+}
+
+export type MemberAccountSource = 'savings' | 'shares' | 'loans'
+
+/** The member's balances, kept apart because savings, shares and loans cannot be added together. */
+export interface MemberBalances {
+  savings_balance: Money
+  available_to_withdraw: Money
+  shares_held: number
+  shares_value: Money
+  subscription_balance: Money
+  loans_outstanding: Money
+}
+
+export interface MemberLedgerResponse {
+  data: MemberTransaction[]
+  summary: MemberBalances
+}
+
+export interface MemberStatementSection {
+  source: MemberAccountSource
+  account_id: number
+  account: string
+  account_type: string | null
+  status: string
+  opening: Money
+  /** Left off share accounts, which are read in units. */
+  credits: Money | null
+  debits: Money | null
+  closing: Money
+  shares_opening: number | null
+  shares_closing: number | null
+  entries: MemberTransaction[]
+}
+
+export interface MemberStatementData {
+  member: { name: string; member_number: string; phone: string | null; address: string | null }
+  period: { from: ISODate; to: ISODate }
+  summary: Pick<MemberBalances, 'savings_balance' | 'shares_held' | 'shares_value' | 'loans_outstanding'>
+  sections: MemberStatementSection[]
 }
 
 export interface MemberImportResult {

@@ -43,7 +43,7 @@ import MemberAccountsTable from '../components/MemberAccountsTable.vue'
 import MemberLedger from '../components/MemberLedger.vue'
 import MemberStatement from '../components/MemberStatement.vue'
 import PendingReversalsPanel from '../components/PendingReversalsPanel.vue'
-import type { Member, MemberStatus, MemberTransaction } from '../types'
+import type { Member, MemberBalances, MemberStatus, MemberTransaction } from '../types'
 import { genderPill, memberInitials } from '../utils'
 
 const props = defineProps<{ id: string }>()
@@ -54,6 +54,7 @@ type Tab = 'profile' | 'transactions' | 'savings' | 'withdrawal' | 'loans' | 'sh
 const CURRENCY = 'UGX'
 const member = ref<Member | null>(null)
 const transactions = ref<MemberTransaction[]>([])
+const balances = ref<MemberBalances | null>(null)
 const reversals = ref<SavingsReversal[]>([])
 const printing = ref<number | null>(null)
 const reversing = ref<MemberTransaction | null>(null)
@@ -90,7 +91,8 @@ async function load(quiet = false): Promise<void> {
       savingsReversalsApi.list({ status: 'pending', member_id: memberId.value }),
     ])
     member.value = loaded
-    transactions.value = ledger
+    transactions.value = ledger.data
+    balances.value = ledger.summary
     reversals.value = pending
   } catch {
     error.value = 'Failed to load the member.'
@@ -555,11 +557,11 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
             </div>
           </div>
 
-          <MemberLedger v-else-if="tab === 'transactions'" :transactions="transactions" mode="all" :can-reverse="can('savings.manage')" :printing="printing" @print="printReceipt" @reverse="startReversal" />
-          <MemberLedger v-else-if="tab === 'savings'" :transactions="transactions" mode="deposit" :can-reverse="can('savings.manage')" :printing="printing" @print="printReceipt" @reverse="startReversal" />
-          <MemberLedger v-else-if="tab === 'withdrawal'" :transactions="transactions" mode="withdrawal" :can-reverse="can('savings.manage')" :printing="printing" @print="printReceipt" @reverse="startReversal" />
-          <MemberLedger v-else-if="tab === 'shares'" :transactions="transactions" mode="shares" />
-          <MemberStatement v-else-if="tab === 'statement'" :accounts="member.savings_accounts ?? []" />
+          <MemberLedger v-else-if="tab === 'transactions'" :transactions="transactions" :balances="balances" mode="all" :can-reverse="can('savings.manage')" :printing="printing" @print="printReceipt" @reverse="startReversal" />
+          <MemberLedger v-else-if="tab === 'savings'" :transactions="transactions" :balances="balances" mode="deposit" :can-reverse="can('savings.manage')" :printing="printing" @print="printReceipt" @reverse="startReversal" />
+          <MemberLedger v-else-if="tab === 'withdrawal'" :transactions="transactions" :balances="balances" mode="withdrawal" :can-reverse="can('savings.manage')" :printing="printing" @print="printReceipt" @reverse="startReversal" />
+          <MemberLedger v-else-if="tab === 'shares'" :transactions="transactions" :balances="balances" mode="shares" />
+          <MemberStatement v-else-if="tab === 'statement'" :member-id="member.id" :joined-at="member.joined_at" :accounts="member.savings_accounts ?? []" />
           <MemberExitPanel v-else-if="tab === 'exit'" :member-id="member.id" :member-status="member.status" @changed="load(true)" />
 
           <!-- Loans -->

@@ -1,4 +1,35 @@
-import type { MemberStatus } from './types'
+import { formatMoney } from '@/core/utils/format'
+import type { MemberStatus, MemberTransaction } from './types'
+
+const LEDGER_TYPE_LABELS: Record<string, string> = {
+  deposit: 'Deposit',
+  withdrawal: 'Withdrawal',
+  interest: 'Interest credit',
+  dividend: 'Dividend',
+  purchase: 'Share purchase',
+  redemption: 'Share buy-back',
+  transfer_in: 'Shares transferred in',
+  transfer_out: 'Shares transferred out',
+  subscription: 'Share instalment',
+  disbursement: 'Loan disbursement',
+  repayment: 'Loan repayment',
+  fee: 'Account fee',
+}
+
+export const ledgerTypeLabel = (entry: MemberTransaction): string =>
+  entry.reversal_of_id ? `Reversal of #${entry.reversal_of_id}` : (LEDGER_TYPE_LABELS[entry.type] ?? entry.type)
+
+/** What a repayment was made of. Only principal lowers the loan balance. */
+export function repaymentSplit(entry: MemberTransaction): string | null {
+  if (entry.principal_paid === null) return null
+  const parts = [`Principal ${formatMoney(entry.principal_paid)}`, `Interest ${formatMoney(entry.interest_paid ?? 0)}`]
+  if (Number(entry.fees_paid)) parts.push(`Fees ${formatMoney(entry.fees_paid ?? 0)}`)
+  return parts.join(' · ')
+}
+
+export const shareUnits = (shares: number): string => `${shares.toLocaleString('en-GB')} ${shares === 1 ? 'share' : 'shares'}`
+
+export const escapeHtml = (value: string | number | null | undefined): string => String(value ?? '').replace(/[&<>"']/g, (character) => `&#${character.charCodeAt(0)};`)
 
 export function memberInitials(name: string | null | undefined): string {
   return (name ?? '')

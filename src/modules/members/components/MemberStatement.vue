@@ -4,23 +4,27 @@ import { CalendarDays, Printer, Wallet } from 'lucide-vue-next'
 import { formatDate, formatMoney, today } from '@/core/utils/format'
 import { savingsAccountsApi } from '@/modules/savings/api'
 import type { SavingsAccount, SavingsStatement } from '@/modules/savings/types'
+import { escapeHtml as escape } from '../utils'
+import MemberConsolidatedStatement from './MemberConsolidatedStatement.vue'
 
-/** A printable savings account statement for a chosen period. */
-const props = defineProps<{ accounts: SavingsAccount[] }>()
+/** A printable statement for a chosen period: one savings account or, given a member, every account together. */
+const props = defineProps<{ memberId?: number; joinedAt?: string; accounts: SavingsAccount[] }>()
 
 const SACCO = 'Titaniun Financial'
-const accountId = ref<number | null>(props.accounts[0]?.id ?? null)
-const from = ref(props.accounts[0]?.opened_at ?? today())
+const accountId = ref<number | 'all'>(props.memberId ? 'all' : (props.accounts[0]?.id ?? 'all'))
+const from = ref(props.joinedAt?.slice(0, 10) ?? props.accounts[0]?.opened_at ?? today())
 const to = ref(today())
 const statement = ref<SavingsStatement | null>(null)
+const consolidated = ref<InstanceType<typeof MemberConsolidatedStatement> | null>(null)
 const loading = ref(false)
 const error = ref('')
 let sequence = 0
 
 const selected = computed(() => props.accounts.find((account) => account.id === accountId.value) ?? null)
+const canPrint = computed(() => (accountId.value === 'all' ? consolidated.value?.ready : statement.value !== null))
 
 async function load() {
-  if (!accountId.value) return
+  if (accountId.value === 'all') return
   const current = ++sequence
   loading.value = true
   error.value = ''
@@ -39,10 +43,12 @@ watch(accountId, () => {
 })
 watch([accountId, from, to], load, { immediate: true })
 
-const escape = (value: string | number | null | undefined) => String(value ?? '').replace(/[&<>"']/g, (character) => `&#${character.charCodeAt(0)};`)
-
 /** Open the statement on its own A4 page so the app's styles do not interfere with printing. */
 function print() {
+  if (accountId.value === 'all') {
+    consolidated.value?.print()
+    return
+  }
   const s = statement.value
   if (!s) return
   const page = window.open('', '_blank', 'width=980,height=720')
@@ -89,13 +95,13 @@ const input = 'h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 te
 
 <template>
   <div class="p-4 md:p-6">
-    <p v-if="!accounts.length" class="py-10 text-center text-sm text-neutral-500">This member has no savings account to report on.</p>
-    <template v-else>
+    <div>
       <div class="mb-5 flex flex-col gap-4 rounded-xl border border-neutral-200 bg-white p-4 sm:flex-row sm:items-end sm:justify-between dark:border-neutral-800 dark:bg-neutral-900">
         <div class="grid w-full grid-cols-1 gap-3 sm:max-w-2xl sm:grid-cols-3">
           <label class="block">
             <span :class="label"><Wallet :size="13" /> Account</span>
             <select id="statement-account" v-model="accountId" :class="input">
+              <option v-if="memberId" value="all">All accounts</option>
               <option v-for="account in accounts" :key="account.id" :value="account.id">{{ account.account_number }} · {{ account.product?.name }}</option>
             </select>
           </label>
@@ -108,14 +114,16 @@ const input = 'h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 te
             <input id="statement-to" v-model="to" type="date" :min="from" :max="today()" :class="input" />
           </label>
         </div>
-        <button type="button" :disabled="!statement" class="inline-flex h-9 shrink-0 items-center gap-2 rounded-md bg-brand px-4 text-sm font-medium text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-40" @click="print">
+        <button type="button" :disabled="!canPrint" class="inline-flex h-9 shrink-0 items-center gap-2 rounded-md bg-brand px-4 text-sm font-medium text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-40" @click="print">
           <Printer :size="15" /> Print statement
         </button>
       </div>
 
-      <p v-if="error" class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">{{ error }}</p>
+      <MemberConsolidatedStatement v-if="accountId === 'all' && memberId" ref="consolidated" :member-id="memberId" :from="from" :to="to" :sacco="SACCO" />
 
-      <div v-if="statement" class="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900" :aria-busy="loading">
+      <p v-else-if="error" class="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">{{ error }}</p>
+
+      <div v-else-if="statement" class="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900" :aria-busy="loading">
         <div class="flex flex-wrap items-start justify-between gap-4 border-b-[3px] border-navy px-6 py-5">
           <div>
             <h3 class="text-subsection text-heading">{{ SACCO }}</h3>
@@ -182,6 +190,6 @@ const input = 'h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 te
         </div>
       </div>
       <p v-else-if="loading" class="py-10 text-center text-sm text-neutral-500" role="status">Loading statement…</p>
-    </template>
+    </div>
   </div>
 </template>
