@@ -82,10 +82,55 @@ export interface SavingsAccount {
   custom_monthly_fee_type?: FeeMeasure | null
   custom_monthly_fee_amount?: Money | null
   balance?: Money
+  /** What could be withdrawn today, after the product minimum and any guarantee. */
+  available_balance?: Money
+  /** Savings the member has pledged to guarantee loans, across all their accounts. */
+  pledged_amount?: Money
+  last_member_activity_at?: ISODateTime | null
+  frozen_at: ISODateTime | null
+  freeze_reason_code: SavingsFreezeReason | null
+  freeze_reason: string | null
+  pending_request?: SavingsAccountRequest | null
   opened_at: ISODate
   closed_at: ISODate | null
   created_at: ISODateTime | null
   updated_at: ISODateTime | null
+}
+
+export type SavingsFreezeReason = 'court_order' | 'deceased_member' | 'dispute' | 'suspected_fraud' | 'other'
+export const SAVINGS_FREEZE_REASONS: SavingsFreezeReason[] = ['court_order', 'deceased_member', 'dispute', 'suspected_fraud', 'other']
+
+export type SavingsAccountRequestType = 'close' | 'reactivate' | 'release_freeze'
+
+/** A close, reactivate or freeze release that waits for a second person. */
+export interface SavingsAccountRequest {
+  id: number
+  savings_account_id: number
+  account_number?: string
+  member_name?: string | null
+  type: SavingsAccountRequestType
+  status: 'pending' | 'approved' | 'rejected'
+  reason: string
+  requested_by: string
+  requested_by_id: number | null
+  decided_by: string | null
+  decided_at: ISODateTime | null
+  rejection_reason: string | null
+  created_at: ISODateTime | null
+}
+
+export type SavingsAccountEventType = 'marked_dormant' | 'frozen' | 'request_submitted' | 'request_rejected' | 'closed' | 'reactivated' | 'freeze_released'
+
+/** A permanent entry in the account's history. */
+export interface SavingsAccountEvent {
+  id: number
+  event: SavingsAccountEventType
+  request_type: SavingsAccountRequestType | null
+  from_status: SavingsAccountStatus | null
+  to_status: SavingsAccountStatus | null
+  reason: string
+  actor: string
+  created_at: ISODateTime | null
 }
 
 export interface StoreSavingsAccountPayload {
@@ -95,14 +140,15 @@ export interface StoreSavingsAccountPayload {
   opened_at?: ISODate | null
 }
 
-export interface UpdateSavingsAccountPayload {
-  status: SavingsAccountStatus
-}
-
 export type SavingsAccountFilters = {
   status?: SavingsAccountStatus | ''
   member_id?: number
-  savings_product_id?: number
+  savings_product_id?: number | ''
+  opened_from?: ISODate
+  opened_to?: ISODate
+  closed_from?: ISODate
+  closed_to?: ISODate
+  quiet_months?: number | ''
 }
 
 export interface SavingsTransaction {

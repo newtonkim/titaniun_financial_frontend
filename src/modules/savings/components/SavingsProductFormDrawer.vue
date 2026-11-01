@@ -109,8 +109,9 @@ const step = 'rounded-full bg-navy px-2 py-0.5 text-[11px] font-semibold upperca
           </div>
 
           <div>
-            <label :class="label" for="sp-dormancy">Dormancy Period (Months)</label>
+            <label :class="label" for="sp-dormancy">Inactivity warning (months)</label>
             <input id="sp-dormancy" v-model.number="form.dormancy_period_months" type="number" min="0" :class="inputClass('dormancy_period_months')" />
+            <p class="mt-1 text-xs text-muted-foreground">For spotting quiet accounts. The legal dormancy test is 24 months with no member activity.</p>
             <p v-if="fieldError('dormancy_period_months')" class="mt-1 text-xs text-red-500">{{ fieldError('dormancy_period_months') }}</p>
           </div>
 

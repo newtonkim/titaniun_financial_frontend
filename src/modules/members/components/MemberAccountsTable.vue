@@ -69,7 +69,7 @@ const th = 'px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.
                 <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/10"><Landmark :size="16" class="text-brand" /></span>
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5">
-                    <span class="truncate font-mono text-[13px] font-bold text-foreground">{{ account.account_number }}</span>
+                    <RouterLink :to="{ name: 'savings.accounts.show', params: { id: account.id } }" class="truncate font-mono text-[13px] font-bold text-foreground hover:text-brand hover:underline">{{ account.account_number }}</RouterLink>
                     <button type="button" class="shrink-0 text-neutral-300 transition-colors hover:text-brand" title="Copy account number" @click="copy(account.account_number)">
                       <component :is="copied === account.account_number ? Check : Copy" :size="13" :class="copied === account.account_number ? 'text-emerald-500' : ''" />
                     </button>
