@@ -42,6 +42,9 @@ const flyoutTop = ref(0)
 const flyoutLeft = ref(0)
 const notchTop = ref(22)
 const flyout = ref<HTMLElement[]>([])
+const sidebarNav = ref<HTMLElement | null>(null)
+const hasMoreBelow = ref(false)
+let navResizeObserver: ResizeObserver | null = null
 
 /** Icons only: the desktop sidebar has been collapsed. On small screens the sidebar is a full-width drawer. */
 const iconOnly = computed(() => collapsed.value && !isCompact.value)
@@ -182,6 +185,30 @@ function onDocumentClick(event: MouseEvent): void {
   if (!target?.closest('.nav-menu')) closeFlyout()
 }
 
+/** Whether menu items sit below the fold, so the sidebar can say so instead of hiding them silently. */
+function measureNav(): void {
+  const nav = sidebarNav.value
+  hasMoreBelow.value = !!nav && nav.scrollHeight - nav.scrollTop - nav.clientHeight > 1
+}
+
+function onNavScroll(): void {
+  closeFlyout()
+  measureNav()
+}
+
+function observeNav(): void {
+  const nav = sidebarNav.value
+  navResizeObserver?.disconnect()
+  if (!nav || typeof ResizeObserver === 'undefined') return
+  navResizeObserver = new ResizeObserver(measureNav)
+  navResizeObserver.observe(nav)
+  for (const group of nav.children) navResizeObserver.observe(group)
+}
+
+function revealActiveNavItem(): void {
+  sidebarNav.value?.querySelector('.nav-item--active, .submenu__link--active')?.scrollIntoView({ block: 'nearest' })
+}
+
 function onCompactChange(event: MediaQueryListEvent): void {
   isCompact.value = event.matches
   closeMenu()
@@ -203,7 +230,12 @@ watch(iconOnly, () => {
   openActiveMenu()
 })
 
+watch(groups, () => nextTick(observeNav))
+watch(() => route.fullPath, () => nextTick(revealActiveNavItem))
+
 onMounted(() => {
+  observeNav()
+  revealActiveNavItem()
   openActiveMenu()
   window.addEventListener('keydown', onKeydown)
   window.addEventListener('click', onDocumentClick)
@@ -211,6 +243,7 @@ onMounted(() => {
   compactQuery.addEventListener('change', onCompactChange)
 })
 onBeforeUnmount(() => {
+  navResizeObserver?.disconnect()
   window.removeEventListener('keydown', onKeydown)
   window.removeEventListener('click', onDocumentClick)
   window.removeEventListener('resize', closeFlyout)
@@ -241,7 +274,7 @@ onBeforeUnmount(() => {
         </button>
       </div>
 
-      <nav class="sidebar__nav" @scroll.passive="closeFlyout">
+      <nav ref="sidebarNav" class="sidebar__nav" :class="{ 'sidebar__nav--more': hasMoreBelow && !iconOnly }" @scroll.passive="onNavScroll">
         <section v-for="group in groups" :key="group.id" class="nav-group" :aria-label="group.label">
           <h2 v-if="!iconOnly" class="nav-group__label">{{ group.label }}</h2>
           <hr v-else class="nav-group__rule" />
@@ -510,18 +543,46 @@ onBeforeUnmount(() => {
   flex-direction: column;
   min-height: 0;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgb(255 255 255 / 0.15) transparent;
+}
+
+/* The fade tells the reader more menu sits below. It is off in the icon-only sidebar, where it would clip the flyouts. */
+.sidebar__nav--more {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 3.5rem), transparent);
+}
+
+/* A drawn scrollbar stays visible; the system one vanishes on macOS and hides that the menu scrolls. */
+.sidebar__nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar__nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar__nav::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: rgb(255 255 255 / 0.22);
+}
+
+.sidebar__nav::-webkit-scrollbar-thumb:hover {
+  background: rgb(255 255 255 / 0.35);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .sidebar__nav {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.22) transparent;
+  }
 }
 
 .nav-group {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.125rem;
 }
 
 .nav-group__label {
-  margin: 1rem 0 0.25rem;
+  margin: 0.75rem 0 0.2rem;
   padding: 0 0.5rem;
   font-size: 0.75rem;
   font-weight: 700;
@@ -543,7 +604,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.85rem;
   width: 100%;
-  padding: 0.75rem 0.9rem;
+  padding: 0.55rem 0.9rem;
   border: 0;
   border-radius: 0.75rem;
   background: transparent;
@@ -553,6 +614,11 @@ onBeforeUnmount(() => {
   text-align: left;
   cursor: pointer;
   transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out);
+}
+
+.nav-item,
+.submenu__link {
+  scroll-margin-block: 3.5rem;
 }
 
 .shell--collapsed .nav-item {
