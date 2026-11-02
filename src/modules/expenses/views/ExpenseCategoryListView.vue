@@ -5,6 +5,7 @@ import { Pencil, Plus, Trash2 } from 'lucide-vue-next'
 import { ApiError } from '@/core/api/http'
 import ResourceTable, { type Column } from '@/core/components/ResourceTable.vue'
 import { Button } from '@/core/components/ui/button'
+import { formatEnum } from '@/core/utils/format'
 import { chartOfAccountsApi } from '@/modules/accounting/api'
 import { useAuth } from '@/modules/auth/store'
 import { expenseCategoriesApi } from '../api'
@@ -29,6 +30,8 @@ const columns: Column<ExpenseCategory>[] = [
   { key: 'name', label: 'Name', sortable: true, tone: 'strong' },
   { key: 'description', label: 'Description', sortable: true, truncate: true },
   { key: 'chart_of_account_id', label: 'GL account', value: (category) => (category.chart_of_account_id === null ? null : accountNames.value[category.chart_of_account_id] ?? null) },
+  { key: 'kind', label: 'Kind', tone: 'muted', value: (category) => formatEnum(category.kind) },
+  { key: 'is_active', label: 'Status', tone: 'muted', value: (category) => (category.is_active ? 'Active' : 'Inactive') },
 ]
 
 const fetchPage = (params: PageParams) => expenseCategoriesApi.list({ ...params })
@@ -71,7 +74,7 @@ async function confirmDelete() {
 }
 
 onMounted(async () => {
-  const accounts = await chartOfAccountsApi.list({ type: 'expense' }).catch(() => null)
+  const accounts = await chartOfAccountsApi.list().catch(() => null)
   accountNames.value = Object.fromEntries((accounts?.data ?? []).map((account) => [account.id, `${account.code} ${account.name}`]))
 })
 </script>
