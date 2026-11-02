@@ -6,7 +6,7 @@ import { Input } from '@/core/components/ui/input'
 import { useForm } from '@/core/composables/useForm'
 import { chartOfAccountsApi } from '@/modules/accounting/api'
 import { expenseCategoriesApi } from '../api'
-import type { ExpenseCategory } from '../types'
+import type { ExpenseCategory, ExpenseCategoryKind } from '../types'
 
 /** Add an expense category, or edit one. */
 const open = defineModel<boolean>('open', { required: true })
@@ -16,13 +16,13 @@ const emit = defineEmits<{ saved: [category: ExpenseCategory] }>()
 const accounts = ref<{ id: number; name: string }[]>([])
 const editing = computed(() => props.category !== null)
 
-const form = useForm({ name: '', description: '', chart_of_account_id: null as number | null }, (data) => {
+const form = useForm({ name: '', description: '', chart_of_account_id: null as number | null, kind: 'expense' as ExpenseCategoryKind, requires_resolution: false, is_active: true }, (data) => {
   const payload = { ...data, description: data.description || null }
   return props.category ? expenseCategoriesApi.update(props.category.id, payload) : expenseCategoriesApi.create(payload)
 })
 
 async function loadAccounts() {
-  const result = await chartOfAccountsApi.list({ is_active: true, type: 'expense', is_postable: true })
+  const result = await chartOfAccountsApi.list({ is_active: true, type: form.data.kind === 'capital' ? 'asset' : 'expense', is_postable: true })
   accounts.value = result.data.map((account) => ({ id: account.id, name: `${account.code} ${account.name}` }))
 }
 
@@ -39,12 +39,21 @@ watch(open, (isOpen) => {
   form.data.name = props.category?.name ?? ''
   form.data.description = props.category?.description ?? ''
   form.data.chart_of_account_id = props.category?.chart_of_account_id ?? null
+  form.data.kind = props.category?.kind ?? 'expense'
+  form.data.requires_resolution = props.category?.requires_resolution ?? false
+  form.data.is_active = props.category?.is_active ?? true
   form.errors.value = {}
   form.message.value = null
   void loadAccounts().catch(() => {
     form.message.value = 'The ledger accounts could not be loaded.'
   })
 })
+
+/** A capital category posts to an asset account, so changing the kind changes which accounts apply. */
+function kindChanged() {
+  form.data.chart_of_account_id = null
+  void loadAccounts()
+}
 </script>
 
 <template>
@@ -61,11 +70,28 @@ watch(open, (isOpen) => {
         <textarea v-model="form.data.description" rows="3" class="rounded-md border border-border bg-background px-3 py-2 text-sm font-normal" />
         <span v-if="form.error('description')" class="text-xs font-normal text-destructive">{{ form.error('description') }}</span>
       </label>
+      <label class="flex flex-col gap-1 text-sm font-medium">
+        Kind
+        <select v-model="form.data.kind" class="h-9 rounded-md border border-border bg-background px-3 text-sm font-normal" @change="kindChanged">
+          <option value="expense">Expense</option>
+          <option value="capital">Capital (an asset, not a cost)</option>
+          <option value="payroll_only">Payroll only (never a voucher)</option>
+        </select>
+        <span v-if="form.error('kind')" class="text-xs font-normal text-destructive">{{ form.error('kind') }}</span>
+      </label>
       <div class="flex flex-col gap-1 text-sm font-medium">
         <span>GL account</span>
         <SearchableSelect v-model="form.data.chart_of_account_id" :options="accounts" placeholder="Choose an expense account" :error="form.error('chart_of_account_id')" />
-        <span class="text-xs font-normal text-muted-foreground">Expenses in this category post to this account.</span>
+        <span class="text-xs font-normal text-muted-foreground">Vouchers in this category post to this account.</span>
       </div>
+      <label class="flex items-start gap-2 text-sm font-normal">
+        <input v-model="form.data.requires_resolution" type="checkbox" class="mt-0.5" />
+        <span>Needs a general meeting resolution <span class="block text-xs text-muted-foreground">For payments to officers. The voucher must quote the resolution.</span></span>
+      </label>
+      <label class="flex items-start gap-2 text-sm font-normal">
+        <input v-model="form.data.is_active" type="checkbox" class="mt-0.5" />
+        <span>Active <span class="block text-xs text-muted-foreground">A used category cannot be deleted, so switch it off instead.</span></span>
+      </label>
     </div>
   </AppDrawer>
 </template>

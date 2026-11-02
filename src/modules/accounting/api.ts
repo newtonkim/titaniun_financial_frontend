@@ -29,3 +29,13 @@ export const journalEntriesApi = {
   exportCsv: (filters: JournalEntryFilters) =>
     download('/journal-entries/export', `journal_entries_${new Date().toISOString().slice(0, 10)}.csv`, filters),
 }
+
+export interface AccountingSettings {
+  books_locked_through: string | null
+  expense_backdate_days: number
+}
+
+export const accountingSettingsApi = {
+  show: () => http.get<{ data: AccountingSettings }>('/accounting-settings').then((response) => response.data),
+  update: (payload: AccountingSettings) => http.put<{ data: AccountingSettings }>('/accounting-settings', payload).then((response) => response.data),
+}

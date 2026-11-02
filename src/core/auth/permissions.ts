@@ -8,7 +8,7 @@ export function permissionForRoute(name: string): string | undefined {
   if (name.startsWith('savings.products') || name === 'savings.settings') return 'savings.products.manage'
   if (name.startsWith('shares.products')) return 'shares.products.manage'
   if (name.startsWith('expenses.categories')) return 'expenses.categories.manage'
-  if (name === 'expenses.create') return 'expenses.manage'
+  if (name === 'expenses.create' || name === 'expenses.edit') return 'expenses.create'
   const area = name.split('.')[0]
   return ['members', 'loans', 'savings', 'shares', 'accounting', 'expenses', 'reports'].includes(area ?? '')
     ? `${area}.view`

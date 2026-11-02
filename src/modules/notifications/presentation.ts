@@ -1,6 +1,6 @@
 import type { Component } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
-import { Banknote, BellRing, Clock, FileText, Landmark, LogOut, RotateCcw, TriangleAlert, Unlock, UserCheck, XCircle } from 'lucide-vue-next'
+import { Banknote, BellRing, Clock, FileText, Landmark, LogOut, Receipt, RotateCcw, TriangleAlert, Unlock, UserCheck, XCircle } from 'lucide-vue-next'
 import { formatDate, formatMoney } from '@/core/utils/format'
 import type { StaffNotification } from './types'
 
@@ -25,6 +25,9 @@ const TYPES: Record<string, { title: string; icon: Component; tone: Tone; to: (i
   member_exit: { title: 'Member exit to approve', icon: LogOut, tone: 'approval', to: () => ({ name: 'savings.approvals' }) },
   dormant_review: { title: 'Accounts to review for dormancy', icon: Clock, tone: 'review', to: () => ({ name: 'savings.dormant' }), counted: ['account has no member activity', 'accounts have no member activity'] },
   journal_draft: { title: 'Journal entry to post', icon: FileText, tone: 'review', to: () => ({ name: 'accounting.journal-entries' }) },
+  expense_approval: { title: 'Expense voucher to approve', icon: Receipt, tone: 'approval', to: (id) => ({ name: 'expenses.show', params: { id } }) },
+  expense_payment: { title: 'Approved expense to pay', icon: Banknote, tone: 'money', to: (id) => ({ name: 'expenses.show', params: { id } }) },
+  expense_reversal: { title: 'Expense reversal to approve', icon: RotateCcw, tone: 'urgent', to: (id) => ({ name: 'expenses.show', params: { id } }) },
   dividend_draft: { title: 'Draft dividend to approve', icon: FileText, tone: 'review', to: () => ({ name: 'shares.dividends' }) },
 }
 
