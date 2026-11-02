@@ -5,7 +5,6 @@ import { Pencil, Plus, Trash2 } from 'lucide-vue-next'
 import { ApiError } from '@/core/api/http'
 import ResourceTable, { type Column } from '@/core/components/ResourceTable.vue'
 import { Button } from '@/core/components/ui/button'
-import { formatEnum } from '@/core/utils/format'
 import { chartOfAccountsApi } from '@/modules/accounting/api'
 import { useAuth } from '@/modules/auth/store'
 import { expenseCategoriesApi } from '../api'
@@ -29,8 +28,7 @@ const canManage = computed(() => can('expenses.categories.manage'))
 const columns: Column<ExpenseCategory>[] = [
   { key: 'name', label: 'Name', sortable: true, tone: 'strong' },
   { key: 'description', label: 'Description', sortable: true, truncate: true },
-  { key: 'chart_of_account_id', label: 'GL account', value: (category) => (category.chart_of_account_id === null ? null : accountNames.value[category.chart_of_account_id] ?? null) },
-  { key: 'kind', label: 'Kind', tone: 'muted', value: (category) => formatEnum(category.kind) },
+  { key: 'chart_of_account_id', label: 'Ledger account', tone: 'muted', value: (category) => (category.chart_of_account_id === null ? null : accountNames.value[category.chart_of_account_id] ?? null) },
   { key: 'is_active', label: 'Status', tone: 'muted', value: (category) => (category.is_active ? 'Active' : 'Inactive') },
 ]
 

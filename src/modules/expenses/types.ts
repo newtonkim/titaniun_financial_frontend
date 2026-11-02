@@ -1,6 +1,6 @@
 import type { ISODate, ISODateTime, Money } from '@/core/api/types'
 
-export type ExpenseCategoryKind = 'expense' | 'capital' | 'payroll_only'
+export type ExpenseCategoryKind = 'expense' | 'capital'
 
 export interface ExpenseCategory {
   id: number
@@ -23,24 +23,8 @@ export interface StoreExpenseCategoryPayload {
   is_active?: boolean
 }
 
+/** `posted` is a paid expense in the accounts; `approved` is one still to pay. */
 export type ExpenseStatus = 'draft' | 'pending_approval' | 'rejected' | 'approved' | 'posted' | 'reversed' | 'cancelled'
-
-export interface Supplier {
-  id: number
-  name: string
-  type: 'company' | 'individual' | 'government'
-  identifier_type: 'TIN' | 'NIN' | 'BRN' | null
-  identifier: string | null
-  is_resident: boolean
-  phone: string | null
-  mobile_money_number: string | null
-  bank_details: string | null
-  is_related_party: boolean
-  related_party_note: string | null
-  is_active: boolean
-}
-
-export type SupplierPayload = Omit<Supplier, 'id'>
 
 export interface ExpenseLine {
   id: number
@@ -58,7 +42,7 @@ export interface ExpenseAttachment {
   mime_type: string | null
   size: number
   uploaded_at: ISODateTime | null
-  /** Other vouchers holding the same file, which can mean one receipt claimed twice. */
+  /** Other expenses holding the same file, which can mean one receipt claimed twice. */
   also_on: string[]
 }
 
@@ -83,7 +67,6 @@ export interface ExpenseReversal {
 export interface Expense {
   id: number
   number: string | null
-  route: 'direct'
   status: ExpenseStatus
   amount: Money
   vat_amount: Money
@@ -92,29 +75,18 @@ export interface Expense {
   expense_date: ISODate
   description: string
   reference: string | null
-  supplier_id: number | null
   payee_name: string | null
   payee_user_id: number | null
   payee: string | null
-  supplier_invoice_no: string | null
-  no_receipt_reason: string | null
   resolution_reference: string | null
   paid_on: ISODate | null
   paid_from_account_id: number | null
   paid_from?: string | null
-  journal_entry_id: number | null
-  journal_voucher?: string | null
   recorded_by: number | null
   recorder_name?: string | null
-  submitted_by: number | null
-  submitted_at: ISODateTime | null
   approved_by: number | null
   approver_name?: string | null
-  approved_at: ISODateTime | null
-  posted_at: ISODateTime | null
   rejection_reason: string | null
-  cancellation_reason: string | null
-  is_legacy: boolean
   categories?: string[]
   lines?: ExpenseLine[]
   attachments?: ExpenseAttachment[]
@@ -123,27 +95,15 @@ export interface Expense {
   possible_duplicates?: { id: number; number: string | null; expense_date: ISODate }[]
 }
 
-export interface ExpenseLinePayload {
-  expense_category_id: number | null
-  description: string
-  amount: string
-  vat_amount: string
-  cost_centre: string
-}
-
 export interface StoreExpensePayload {
   expense_date: ISODate
   description: string
-  reference?: string | null
-  supplier_id?: number | null
   payee_name?: string | null
-  supplier_invoice_no?: string | null
+  reference?: string | null
   wht_amount?: string | null
-  no_receipt_reason?: string | null
   resolution_reference?: string | null
-  paid_on?: ISODate | null
   paid_from_account_id?: number | null
-  lines: ExpenseLinePayload[]
+  lines: { expense_category_id: number; amount: string }[]
 }
 
 export type ExpenseFilters = {
@@ -152,4 +112,45 @@ export type ExpenseFilters = {
   expense_category_id?: number
   from?: ISODate
   to?: ISODate
+}
+
+export interface ExpenseSummary {
+  spent_this_month: Money
+  petty_cash_balance: Money
+  petty_cash_account_id: number | null
+  unpaid_total: Money
+  waiting_approval: number
+  due_soon: number
+}
+
+export type RecurringFrequency = 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+export type RecurringStatus = 'overdue' | 'due_soon' | 'upcoming' | 'paused' | 'ended'
+
+export interface RecurringExpense {
+  id: number
+  name: string
+  expense_category_id: number
+  category: string | null
+  amount: Money
+  payee_name: string | null
+  paid_from_account_id: number | null
+  paid_from: string | null
+  frequency: RecurringFrequency
+  start_on: ISODate
+  end_on: ISODate | null
+  next_due_on: ISODate | null
+  is_active: boolean
+  status: RecurringStatus
+}
+
+export interface RecurringExpensePayload {
+  name: string
+  expense_category_id: number | null
+  amount: string
+  payee_name: string | null
+  paid_from_account_id: number | null
+  frequency: RecurringFrequency
+  start_on: ISODate
+  end_on: ISODate | null
+  is_active?: boolean
 }
