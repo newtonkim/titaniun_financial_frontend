@@ -45,6 +45,8 @@ const flyout = ref<HTMLElement[]>([])
 const sidebarNav = ref<HTMLElement | null>(null)
 const hasMoreBelow = ref(false)
 let navResizeObserver: ResizeObserver | null = null
+const PERMISSION_REFRESH_MS = 60_000
+let permissionsRefreshedAt = 0
 
 /** Icons only: the desktop sidebar has been collapsed. On small screens the sidebar is a full-width drawer. */
 const iconOnly = computed(() => collapsed.value && !isCompact.value)
@@ -113,7 +115,12 @@ function isActive(item: NavItem): boolean {
   if (target.name === 'dashboard') return route.name === 'dashboard'
   // Links that differ only by query (Members vs New member) match on the query too.
   const queryMatches = Object.entries(target.query).every(([key, value]) => route.query[key] === value)
-  return route.path.startsWith(target.path) && queryMatches
+  // A link deeper down the same path is the better match (Recurring expenses over All expenses).
+  const hasCloserMatch = navItems.some((other) => {
+    const path = router.resolve(other.to).path
+    return path.length > target.path.length && path.startsWith(target.path) && route.path.startsWith(path)
+  })
+  return route.path.startsWith(target.path) && queryMatches && !hasCloserMatch
 }
 
 function menuIsActive(entry: SidebarEntry): boolean {
@@ -209,6 +216,16 @@ function revealActiveNavItem(): void {
   sidebarNav.value?.querySelector('.nav-item--active, .submenu__link--active')?.scrollIntoView({ block: 'nearest' })
 }
 
+/**
+ * Permissions load once when the app starts, so a role change would otherwise wait for a page reload.
+ * Coming back to the tab picks up the current ones, at most once a minute.
+ */
+function refreshPermissions(): void {
+  if (Date.now() - permissionsRefreshedAt < PERMISSION_REFRESH_MS) return
+  permissionsRefreshedAt = Date.now()
+  auth.loadUser().catch(() => undefined)
+}
+
 function onCompactChange(event: MediaQueryListEvent): void {
   isCompact.value = event.matches
   closeMenu()
@@ -240,6 +257,7 @@ onMounted(() => {
   window.addEventListener('keydown', onKeydown)
   window.addEventListener('click', onDocumentClick)
   window.addEventListener('resize', closeFlyout)
+  window.addEventListener('focus', refreshPermissions)
   compactQuery.addEventListener('change', onCompactChange)
 })
 onBeforeUnmount(() => {
@@ -247,6 +265,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKeydown)
   window.removeEventListener('click', onDocumentClick)
   window.removeEventListener('resize', closeFlyout)
+  window.removeEventListener('focus', refreshPermissions)
   compactQuery.removeEventListener('change', onCompactChange)
 })
 </script>

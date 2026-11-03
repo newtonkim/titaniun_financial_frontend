@@ -25,9 +25,10 @@ const TYPES: Record<string, { title: string; icon: Component; tone: Tone; to: (i
   member_exit: { title: 'Member exit to approve', icon: LogOut, tone: 'approval', to: () => ({ name: 'savings.approvals' }) },
   dormant_review: { title: 'Accounts to review for dormancy', icon: Clock, tone: 'review', to: () => ({ name: 'savings.dormant' }), counted: ['account has no member activity', 'accounts have no member activity'] },
   journal_draft: { title: 'Journal entry to post', icon: FileText, tone: 'review', to: () => ({ name: 'accounting.journal-entries' }) },
-  expense_approval: { title: 'Expense voucher to approve', icon: Receipt, tone: 'approval', to: (id) => ({ name: 'expenses.show', params: { id } }) },
-  expense_payment: { title: 'Approved expense to pay', icon: Banknote, tone: 'money', to: (id) => ({ name: 'expenses.show', params: { id } }) },
-  expense_reversal: { title: 'Expense reversal to approve', icon: RotateCcw, tone: 'urgent', to: (id) => ({ name: 'expenses.show', params: { id } }) },
+  expense_approval: { title: 'Expense to approve', icon: Receipt, tone: 'approval', to: (id) => ({ name: 'expenses.show', params: { id } }) },
+  expense_payment: { title: 'Expense to pay', icon: Banknote, tone: 'money', to: (id) => ({ name: 'expenses.show', params: { id } }) },
+  expense_reversal: { title: 'Undo of an expense to approve', icon: RotateCcw, tone: 'urgent', to: (id) => ({ name: 'expenses.show', params: { id } }) },
+  recurring_due: { title: 'Recurring expense due', icon: Clock, tone: 'review', to: () => ({ name: 'expenses.recurring' }) },
   dividend_draft: { title: 'Draft dividend to approve', icon: FileText, tone: 'review', to: () => ({ name: 'shares.dividends' }) },
 }
 

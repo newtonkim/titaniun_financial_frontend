@@ -19,10 +19,10 @@ export function printExpenseVoucher(expense: Expense): void {
     td { padding: 7px 8px; border-bottom: 1px solid #eef1f6; } .num { text-align: right; font-variant-numeric: tabular-nums; } tfoot td { font-weight: 700; }
     .sign { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; } .sign div { border-top: 1px solid #1c2433; padding-top: 6px; font-size: 11px; }
   </style></head><body>
-    <header><div><h1>Titaniun Financial</h1><div class="tag">Payment voucher</div></div><div class="doc"><b>${escape(expense.number ?? `Draft #${expense.id}`)}</b>${escape(expense.status.replace('_', ' '))}</div></header>
-    <dl><div><dt>Paid to</dt><dd>${escape(expense.payee)}</dd></div><div><dt>Invoice date</dt><dd>${escape(formatDate(expense.expense_date))}</dd></div>
-      <div><dt>Purpose</dt><dd>${escape(expense.description)}</dd></div><div><dt>Paid on</dt><dd>${escape(formatDate(expense.paid_on))}</dd></div>
-      <div><dt>Paid from</dt><dd>${escape(expense.paid_from)}</dd></div><div><dt>Journal</dt><dd>${escape(expense.journal_voucher)}</dd></div></dl>
+    <header><div><h1>Titaniun Financial</h1><div class="tag">Expense voucher</div></div><div class="doc"><b>${escape(expense.number ?? `Draft #${expense.id}`)}</b>${escape(expense.status.replace('_', ' '))}</div></header>
+    <dl><div><dt>Paid to</dt><dd>${escape(expense.payee)}</dd></div><div><dt>Date</dt><dd>${escape(formatDate(expense.expense_date))}</dd></div>
+      <div><dt>Purpose</dt><dd>${escape(expense.description)}</dd></div><div><dt>Paid</dt><dd>${expense.paid_on ? 'Yes' : 'Not yet'}</dd></div>
+      <div><dt>Paid from</dt><dd>${escape(expense.paid_from)}</dd></div><div><dt>Reference</dt><dd>${escape(expense.reference)}</dd></div></dl>
     <table><thead><tr><th>Category</th><th>Detail</th><th class="num">UGX</th></tr></thead><tbody>${rows}</tbody>
       <tfoot><tr><td colspan="2">Total</td><td class="num">${escape(formatMoney(expense.amount))}</td></tr>${withheld}</tfoot></table>
     <div class="sign"><div>Prepared by: ${escape(expense.recorder_name)}</div><div>Approved by: ${escape(expense.approver_name)}</div><div>Received by (name, ID, signature)</div></div>

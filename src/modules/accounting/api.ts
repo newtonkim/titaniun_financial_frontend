@@ -33,6 +33,8 @@ export const journalEntriesApi = {
 export interface AccountingSettings {
   books_locked_through: string | null
   expense_backdate_days: number
+  /** Expenses over this need a second person. Empty means none do. */
+  expense_approval_above: string | null
 }
 
 export const accountingSettingsApi = {

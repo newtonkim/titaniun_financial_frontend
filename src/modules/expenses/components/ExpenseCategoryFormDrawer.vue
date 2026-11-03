@@ -70,27 +70,30 @@ function kindChanged() {
         <textarea v-model="form.data.description" rows="3" class="rounded-md border border-border bg-background px-3 py-2 text-sm font-normal" />
         <span v-if="form.error('description')" class="text-xs font-normal text-destructive">{{ form.error('description') }}</span>
       </label>
-      <label class="flex flex-col gap-1 text-sm font-medium">
-        Kind
-        <select v-model="form.data.kind" class="h-9 rounded-md border border-border bg-background px-3 text-sm font-normal" @change="kindChanged">
-          <option value="expense">Expense</option>
-          <option value="capital">Capital (an asset, not a cost)</option>
-          <option value="payroll_only">Payroll only (never a voucher)</option>
-        </select>
-        <span v-if="form.error('kind')" class="text-xs font-normal text-destructive">{{ form.error('kind') }}</span>
-      </label>
-      <div class="flex flex-col gap-1 text-sm font-medium">
-        <span>GL account</span>
-        <SearchableSelect v-model="form.data.chart_of_account_id" :options="accounts" placeholder="Choose an expense account" :error="form.error('chart_of_account_id')" />
-        <span class="text-xs font-normal text-muted-foreground">Vouchers in this category post to this account.</span>
-      </div>
-      <label class="flex items-start gap-2 text-sm font-normal">
-        <input v-model="form.data.requires_resolution" type="checkbox" class="mt-0.5" />
-        <span>Needs a general meeting resolution <span class="block text-xs text-muted-foreground">For payments to officers. The voucher must quote the resolution.</span></span>
-      </label>
+      <details class="rounded-md border border-border px-3 py-2">
+        <summary class="cursor-pointer text-sm font-medium">Advanced (accountants only)</summary>
+        <div class="mt-3 flex flex-col gap-4">
+          <p class="text-xs text-muted-foreground">You can ignore this. New categories are placed in the accounts automatically.</p>
+          <label class="flex flex-col gap-1 text-sm font-medium">
+            Kind
+            <select v-model="form.data.kind" class="h-9 rounded-md border border-border bg-background px-3 text-sm font-normal" @change="kindChanged">
+              <option value="expense">Running cost</option>
+              <option value="capital">Asset, such as furniture or a computer</option>
+            </select>
+          </label>
+          <div class="flex flex-col gap-1 text-sm font-medium">
+            <span>Ledger account</span>
+            <SearchableSelect v-model="form.data.chart_of_account_id" :options="accounts" placeholder="Choose automatically" :error="form.error('chart_of_account_id')" />
+          </div>
+          <label class="flex items-start gap-2 text-sm font-normal">
+            <input v-model="form.data.requires_resolution" type="checkbox" class="mt-0.5" />
+            <span>Needs a general meeting resolution <span class="block text-xs text-muted-foreground">For payments to board or committee members.</span></span>
+          </label>
+        </div>
+      </details>
       <label class="flex items-start gap-2 text-sm font-normal">
         <input v-model="form.data.is_active" type="checkbox" class="mt-0.5" />
-        <span>Active <span class="block text-xs text-muted-foreground">A used category cannot be deleted, so switch it off instead.</span></span>
+        <span>Active <span class="block text-xs text-muted-foreground">A category already in use cannot be deleted, so switch it off instead.</span></span>
       </label>
     </div>
   </AppDrawer>
