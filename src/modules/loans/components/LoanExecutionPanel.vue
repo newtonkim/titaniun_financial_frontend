@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { CheckCircle2, Circle, Download, FileCheck2, FileUp, PenLine, ShieldCheck } from 'lucide-vue-next'
 import { ApiError } from '@/core/api/http'
 import { formatDate, formatEnum } from '@/core/utils/format'
@@ -34,13 +34,21 @@ const signature = reactive({
 const defer = reactive({ notes: '', review_date: '' })
 const can = (permission: string) => permissions.value.includes(permission)
 const pendingChecks = computed(() => (props.loan.execution_checklist ?? []).filter((item) => !item.complete))
+const needsGuarantor = computed(() => ['guarantor', 'guarantor_witness'].includes(signature.signer_type))
+/** Only the signed copies the chosen signatory can sign against: a guarantor's own guarantee, or the application or facility agreement. */
 const currentDocuments = computed(() =>
   (props.loan.documents ?? []).filter(
     (item) =>
-      item.verification_status === 'verified' && item.agreement_revision === props.loan.agreement_revision,
+      item.verification_status === 'verified' &&
+      item.agreement_revision === props.loan.agreement_revision &&
+      (needsGuarantor.value
+        ? item.category === 'signed_guarantee' && item.guarantor_id === signature.guarantor_id
+        : ['signed_application', 'signed_agreement'].includes(item.category ?? '')),
   ),
 )
-const needsGuarantor = computed(() => ['guarantor', 'guarantor_witness'].includes(signature.signer_type))
+watch(currentDocuments, (documents) => {
+  if (!documents.some((item) => item.id === signature.document_id)) signature.document_id = 0
+})
 async function run(action: string, payload: Record<string, unknown>) {
   busy.value = true
   error.value = ''
@@ -366,7 +374,7 @@ onMounted(async () => {
               >Verification notes<textarea v-model="review.notes" required rows="2" />
             </label>
           </div>
-          <button type="submit" class="loan-button loan-button--outline" style="margin-top: 16px">
+          <button type="submit" class="loan-button loan-button--outline" style="margin-top: 16px" :disabled="!review.document_id">
             <FileCheck2 :size="16" />Record verification
           </button>
         </fieldset>
@@ -422,11 +430,14 @@ onMounted(async () => {
               </select></label
             ><label
               >Verified signed document<select v-model.number="signature.document_id" required>
-                <option :value="0" disabled>Select verified document</option>
+                <option :value="0" disabled>{{ currentDocuments.length ? 'Select verified document' : 'None available yet' }}</option>
                 <option v-for="item in currentDocuments" :key="item.id" :value="item.id">
                   {{ item.title }}
                 </option>
-              </select></label
+              </select>
+              <span v-if="!currentDocuments.length" class="loan-hint">
+                {{ needsGuarantor ? 'Upload this guarantor’s signed guarantee in Documents as “Signed guarantee agreement”, then verify it.' : 'Upload the signed copy in Documents as “Signed application & declaration” or “Signed facility agreement”, then verify it.' }}
+              </span></label
             ><label>Signed on<input v-model="signature.signed_at" type="date" required /></label
             ><label
               >Address<input
@@ -438,7 +449,7 @@ onMounted(async () => {
                 :required="signature.signer_type.includes('witness')" /></label
             ><label>Designation / title<input v-model="signature.details.designation" /></label>
           </div>
-          <button type="submit" class="loan-button loan-button--outline" style="margin-top: 16px">
+          <button type="submit" class="loan-button loan-button--outline" style="margin-top: 16px" :disabled="!signature.document_id">
             <PenLine :size="16" />Record signature
           </button>
         </fieldset>

@@ -42,6 +42,9 @@ const noticeError = ref(false)
 const errors = ref<Record<string, string[]>>({})
 const tab = ref('overview')
 const selectedAction = ref<LoanAction | ''>('')
+/** Release conditions still open. Disbursement is refused until there are none, so the form says so first. */
+const openConditions = computed(() => (loan.value?.execution_checklist ?? []).filter((item) => !item.complete))
+const disbursementBlocked = computed(() => selectedAction.value === 'disburse' && openConditions.value.length > 0)
 const consentId = ref<number | null>(null)
 const consentDecision = ref('accepted')
 const consentEvidence = ref('')
@@ -1030,6 +1033,12 @@ onBeforeUnmount(() => {
                       required
                     />
                   </label>
+                  <div v-if="disbursementBlocked" class="loan-hint" role="status" style="margin-bottom: 12px">
+                    <strong>{{ openConditions.length }} {{ openConditions.length === 1 ? 'condition' : 'conditions' }} left before disbursement.</strong>
+                    Finish them in the
+                    <button type="button" class="loan-link" @click="tab = 'execution'">Application pack</button>
+                    tab: upload and verify the signed documents, record the signatures, and have finance review the pricing.
+                  </div>
                   <template v-if="selectedAction === 'disburse'"
                     ><label for="disbursement-date"
                       >Disbursement date<input
@@ -1119,7 +1128,7 @@ onBeforeUnmount(() => {
                   type="submit"
                   class="loan-button loan-button--primary"
                   style="width: 100%; margin-top: 20px"
-                  :disabled="busy"
+                  :disabled="busy || disbursementBlocked"
                 >
                   <span v-if="busy" class="spinner" />{{
                     busy ? 'Processing…' : labels[selectedAction as LoanAction] || 'Continue'
