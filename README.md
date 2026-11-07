@@ -40,3 +40,20 @@ npm run dev
 ```sh
 npm run build
 ```
+
+### Vercel deployment
+
+Use this project directory as the Vercel Root Directory, with the Vite preset,
+`npm run build` as the build command, and `dist` as the output directory.
+
+Leave `VITE_API_BASE_URL` unset (it defaults to `/api/v1`) or set it to `/api/v1`
+in the Vercel environment settings. `vercel.json` forwards `/api/*` requests to
+`https://tfc-bizapi.titaniumfinancialconsultancy.com/api/*` before the Vue router
+fallback. For example, `/api/v1/login` is forwarded to the backend's
+`/api/v1/login`. The browser's Network tab will still show the frontend domain
+because the forwarding happens on Vercel.
+
+The local `.env` is ignored by Git, and `VITE_BACKEND_URL` controls only Vite's
+development server proxy. It does not configure production routing. Change
+the API destination in `vercel.json` when changing the deployed backend.
+Redeploy after changing this configuration or Vercel environment variables.
