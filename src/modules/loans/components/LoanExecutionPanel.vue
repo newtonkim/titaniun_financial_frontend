@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { CheckCircle2, Circle, Download, FileCheck2, FileUp, PenLine, ShieldCheck } from 'lucide-vue-next'
+import { CheckCircle2, Circle, Download, Eye, FileCheck2, FileUp, PenLine, ShieldCheck } from 'lucide-vue-next'
 import { ApiError } from '@/core/api/http'
 import { formatDate, formatEnum } from '@/core/utils/format'
 import { loanApplicationsApi, loansApi } from '../api'
 import { documentCategories } from '../application-policy'
 import { downloadApplicationPack } from '../application-pack'
 import { createRepaymentSchedule, downloadContinuingAgreement } from '../continuing-agreement'
-import type { Loan, LoanAgreementSnapshot } from '../types'
+import type { Loan, LoanAgreementSnapshot, LoanDocument } from '../types'
+import LoanDocumentPreview from './LoanDocumentPreview.vue'
 
 const props = defineProps<{ loan: Loan }>()
 const originalContinuingFormUrl = `${import.meta.env.BASE_URL}continuing-client-loan-v1.pdf`
@@ -20,6 +21,7 @@ const permissions = ref<string[]>([])
 const mode = ref('documents')
 const file = ref<File | null>(null)
 const fileInput = ref<HTMLInputElement>()
+const previewDocument = ref<LoanDocument | null>(null)
 const upload = reactive({ title: '', category: 'national_id', guarantor_id: null as number | null })
 const review = reactive({ document_id: 0, decision: 'verified', notes: '' })
 const pricing = reactive({ notes: '', acknowledged: false })
@@ -279,6 +281,7 @@ onMounted(async () => {
               <th>Document</th>
               <th>Type / revision</th>
               <th>Verification</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -287,7 +290,7 @@ onMounted(async () => {
                 <button
                   type="button"
                   class="loan-link"
-                  @click="downloadDocument(item.id, item.original_name)"
+                  @click="previewDocument = item"
                 >
                   {{ item.title }}</button
                 ><small class="execution-file-name">{{ item.original_name }}</small>
@@ -301,6 +304,10 @@ onMounted(async () => {
                 }}<small v-if="item.verification_notes" class="execution-file-name">{{
                   item.verification_notes
                 }}</small>
+              </td>
+              <td>
+                <button type="button" class="loan-icon-button" :aria-label="`Preview ${item.title}`" :title="`Preview ${item.title}`" @click="previewDocument = item"><Eye :size="16" /></button>
+                <button type="button" class="loan-icon-button" :aria-label="`Download ${item.title}`" :title="`Download ${item.title}`" @click="downloadDocument(item.id, item.original_name)"><Download :size="16" /></button>
               </td>
             </tr>
           </tbody>
@@ -501,5 +508,6 @@ onMounted(async () => {
       <p class="loan-hint">Manage responsibilities and access for your whole team in Settings.</p>
       <RouterLink class="loan-button loan-button--outline" :to="{ name: 'settings.roles' }">Open roles & permissions</RouterLink>
     </div>
+    <LoanDocumentPreview v-if="previewDocument" :loan-id="loan.id" :document="previewDocument" @close="previewDocument = null" />
   </section>
 </template>

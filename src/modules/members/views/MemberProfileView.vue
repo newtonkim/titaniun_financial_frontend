@@ -106,7 +106,7 @@ watch(memberId, () => load(), { immediate: true })
 const tabs = computed((): { id: Tab; label: string; icon: Component; count: number | null }[] => [
   { id: 'profile', label: 'Member Profile', icon: UserCircle2, count: null },
   { id: 'transactions', label: 'Member Transactions', icon: FileText, count: transactions.value.length },
-  { id: 'savings', label: 'Member Savings', icon: TrendingUp, count: transactions.value.filter((txn) => txn.source === 'savings' && txn.type === 'deposit').length },
+  { id: 'savings', label: 'Member Savings', icon: TrendingUp, count: transactions.value.filter((txn) => txn.source === 'savings' && ['deposit', 'loan_disbursement'].includes(txn.type)).length },
   { id: 'withdrawal', label: 'Member Withdrawal', icon: MinusCircle, count: transactions.value.filter((txn) => txn.source === 'savings' && txn.type === 'withdrawal').length },
   { id: 'loans', label: 'Member Loans', icon: Wallet, count: member.value?.loans?.length ?? 0 },
   { id: 'shares', label: 'Member Shares', icon: BarChart3, count: transactions.value.filter((txn) => txn.source === 'shares').length },

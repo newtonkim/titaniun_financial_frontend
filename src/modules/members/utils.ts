@@ -3,6 +3,7 @@ import type { MemberStatus, MemberTransaction } from './types'
 
 const LEDGER_TYPE_LABELS: Record<string, string> = {
   deposit: 'Deposit',
+  loan_disbursement: 'Loan credited to savings',
   withdrawal: 'Withdrawal',
   interest: 'Interest credit',
   dividend: 'Dividend',

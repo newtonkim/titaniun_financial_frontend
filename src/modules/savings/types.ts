@@ -2,7 +2,7 @@ import type { ISODate, ISODateTime, Money } from '@/core/api/types'
 import type { Member } from '@/modules/members/types'
 
 export type SavingsAccountStatus = 'active' | 'dormant' | 'closed'
-export type SavingsTransactionType = 'deposit' | 'withdrawal' | 'interest' | 'dividend' | 'fee'
+export type SavingsTransactionType = 'deposit' | 'loan_disbursement' | 'withdrawal' | 'interest' | 'dividend' | 'fee'
 
 export const SAVINGS_ACCOUNT_STATUSES: SavingsAccountStatus[] = ['active', 'dormant', 'closed']
 

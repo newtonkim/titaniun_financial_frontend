@@ -30,8 +30,9 @@ export function openSavingsReceipt(receipt: SavingsReceipt): void {
   const right = width - margin
   const currency = receipt.currency_code
   const sacco = receipt.branding.sacco_name
-  const kind = receipt.is_reversal ? 'reversal' : receipt.transaction_type
-  const deposit = receipt.transaction_type === 'deposit'
+  const loanCredit = receipt.transaction_type === 'loan_disbursement'
+  const kind = receipt.is_reversal ? 'reversal' : loanCredit ? 'loan credit' : receipt.transaction_type
+  const deposit = receipt.transaction_type === 'deposit' || loanCredit
   const amount = formatMoney(receipt.amount)
 
   const text = (color: Rgb) => doc.setTextColor(...color)
@@ -111,7 +112,7 @@ export function openSavingsReceipt(receipt: SavingsReceipt): void {
     ['Account type', receipt.account.product],
     ['Member number', receipt.member.member_number],
     ['Payment mode', receipt.payment_mode ?? '—'],
-    [deposit ? 'Deposited by' : 'Collected by', receipt.transacted_by ?? receipt.member.name],
+    [loanCredit ? 'Credited to' : deposit ? 'Deposited by' : 'Collected by', receipt.transacted_by ?? receipt.member.name],
     ['Reference', receipt.reference ?? '—'],
     ['Narration', receipt.narration ?? '—'],
     ['Balance after transaction', `${currency} ${formatMoney(receipt.balance_after)}`],
@@ -138,7 +139,7 @@ export function openSavingsReceipt(receipt: SavingsReceipt): void {
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(13)
-  doc.text(receipt.is_reversal ? 'REVERSED' : deposit ? 'DEPOSITED' : 'PAID OUT', margin + 12, y + 11)
+  doc.text(receipt.is_reversal ? 'REVERSED' : loanCredit ? 'CREDITED' : deposit ? 'DEPOSITED' : 'PAID OUT', margin + 12, y + 11)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.text(deposit ? 'Amount credited to account' : 'Amount paid to the member', margin + 12, y + 17)

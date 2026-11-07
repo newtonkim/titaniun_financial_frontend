@@ -77,22 +77,28 @@ export async function request<T>(method: Method, path: string, options: RequestO
   return payload as T
 }
 
-/** Fetch a file the API serves (e.g. an Excel template) and hand it to the browser as a download. */
-export async function download(path: string, filename: string, query?: Query): Promise<void> {
+/** Fetch a private file with the same authentication used by JSON requests. */
+export async function fetchFile(path: string, query?: Query, signal?: AbortSignal): Promise<Blob> {
   const headers: Record<string, string> = {}
   const token = getToken()
   if (token) headers.Authorization = `Bearer ${token}`
 
-  const response = await fetch(buildUrl(path, query), { headers })
+  const response = await fetch(buildUrl(path, query), { headers, signal })
   if (!response.ok) {
     if (response.status === 401) {
       clearToken()
       unauthorizedHandler()
     }
-    throw new ApiError(response.status, response.statusText)
+    const payload = await response.json().catch(() => null)
+    throw new ApiError(response.status, payload?.message ?? response.statusText)
   }
 
-  const url = URL.createObjectURL(await response.blob())
+  return response.blob()
+}
+
+/** Fetch a file the API serves (e.g. an Excel template) and hand it to the browser as a download. */
+export async function download(path: string, filename: string, query?: Query): Promise<void> {
+  const url = URL.createObjectURL(await fetchFile(path, query))
   const link = document.createElement('a')
   link.href = url
   link.download = filename

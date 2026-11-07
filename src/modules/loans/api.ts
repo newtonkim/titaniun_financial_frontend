@@ -3,9 +3,11 @@ import {
   applicationPack,
   applicationStaff,
   applicationPreview,
+  workflow,
 } from '@/generated/routes/api/v1/loans'
 import { index as commissionIndex, pay as commissionPay } from '@/generated/routes/api/v1/loan-commissions'
-import { download, http } from '@/core/api/http'
+import { download as documentDownload } from '@/generated/routes/api/v1/loans/documents'
+import { download, fetchFile, http } from '@/core/api/http'
 import { createResourceApi, type PageParams } from '@/core/api/resource'
 import type { ISODateTime, Paginated, Wrapped } from '@/core/api/types'
 import type {
@@ -55,7 +57,7 @@ export const loansApi = {
   eligibility: (payload: Omit<StoreLoanPayload, 'loan_number'>) =>
     http.post<Wrapped<LoanEligibility>>('/loans/eligibility', payload).then((response) => response.data),
   workflow: (id: number, action: LoanAction, payload: Record<string, unknown> = {}) =>
-    http.post<Wrapped<Loan>>(`/loans/${id}/workflow/${action}`, payload).then((response) => response.data),
+    http.post<Wrapped<Loan>>(workflow.url({ loan: id, action }).replace(/^\/api\/v1/, ''), payload).then((response) => response.data),
   uploadDocument: (
     id: number,
     title: string,
@@ -71,7 +73,9 @@ export const loansApi = {
     return http.post<Wrapped<Loan>>(`/loans/${id}/documents`, body).then((response) => response.data)
   },
   downloadDocument: (id: number, documentId: number, filename: string) =>
-    download(`/loans/${id}/documents/${documentId}`, filename),
+    download(documentDownload.url({ loan: id, document: documentId }).replace(/^\/api\/v1/, ''), filename),
+  documentFile: (id: number, documentId: number, signal?: AbortSignal) =>
+    fetchFile(documentDownload.url({ loan: id, document: documentId }).replace(/^\/api\/v1/, ''), undefined, signal),
   ...createResourceApi<Loan, StoreLoanPayload, UpdateLoanPayload, LoanFilters>('/loans'),
   approve: (loanId: number) => transition(loanId, 'approval'),
   reject: (loanId: number) => transition(loanId, 'rejection'),

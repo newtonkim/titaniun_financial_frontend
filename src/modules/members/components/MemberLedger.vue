@@ -53,7 +53,7 @@ const key = (txn: MemberTransaction) => `${txn.source}-${txn.type}-${txn.id}`
 
 const inMode = computed(() =>
   props.transactions.filter((txn) => {
-    if (props.mode === 'deposit') return txn.source === 'savings' && txn.type === 'deposit'
+    if (props.mode === 'deposit') return txn.source === 'savings' && ['deposit', 'loan_disbursement'].includes(txn.type)
     if (props.mode === 'withdrawal') return txn.source === 'savings' && txn.type === 'withdrawal'
     if (props.mode === 'shares') return txn.source === 'shares'
     return true

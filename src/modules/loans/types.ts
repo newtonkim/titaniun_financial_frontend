@@ -221,6 +221,7 @@ export interface Loan {
   submitted_at: ISODateTime | null
   disbursement_method: string | null
   disbursement_reference: string | null
+  disbursement_savings_accounts?: { id: number; account_number: string; product_name: string }[]
   processing_fee_amount?: Money
   net_disbursed_amount?: Money | null
   commission_rate: Money

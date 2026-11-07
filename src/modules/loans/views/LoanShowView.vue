@@ -8,6 +8,7 @@ import {
   Check,
   Clock3,
   Download,
+  Eye,
   FileText,
   HandCoins,
   Pencil,
@@ -20,10 +21,11 @@ import { ApiError } from '@/core/api/http'
 import { formatDate, formatEnum, formatMoney } from '@/core/utils/format'
 import { loansApi } from '../api'
 import LoanExecutionPanel from '../components/LoanExecutionPanel.vue'
+import LoanDocumentPreview from '../components/LoanDocumentPreview.vue'
 import '../loan-application.css'
 import LoanCommissionLedger from '../components/LoanCommissionLedger.vue'
 import LoanPreviewCard from '../components/LoanPreviewCard.vue'
-import type { Loan, LoanAction, LoanRepayment, LoanStatus } from '../types'
+import type { Loan, LoanAction, LoanDocument, LoanRepayment, LoanStatus } from '../types'
 import '../loan-workflow.css'
 
 const route = useRoute()
@@ -51,6 +53,7 @@ const consentEvidence = ref('')
 const documentTitle = ref('')
 const documentFile = ref<File | null>(null)
 const fileInput = ref<HTMLInputElement>()
+const previewDocument = ref<LoanDocument | null>(null)
 const localToday = new Date().toLocaleDateString('en-CA')
 const actionForm = reactive({
   notes: '',
@@ -63,6 +66,7 @@ const actionForm = reactive({
   disbursed_at: localToday,
   disbursement_method: 'bank_transfer',
   disbursement_reference: '',
+  savings_account_id: null as number | null,
   amount: '',
   paid_at: localToday,
   reference: '',
@@ -138,6 +142,7 @@ async function loadPayments(page = 1): Promise<void> {
   paymentLastPage.value = result.meta.last_page
 }
 async function load(): Promise<void> {
+  previewDocument.value = null
   const current = ++sequence
   loading.value = true
   loadError.value = ''
@@ -184,6 +189,9 @@ watch(loan, (current) => {
       'flat',
     risk_rating: current.risk_rating ?? 'low',
     disbursement_method: current.application_type === 'continuing' ? 'cash' : 'bank_transfer',
+    savings_account_id: current.disbursement_savings_accounts?.length === 1
+      ? current.disbursement_savings_accounts[0]!.id
+      : null,
     disbursed_at:
       current.application_type === 'continuing' ? (current.agreement_date ?? localToday) : localToday,
   })
@@ -256,6 +264,9 @@ async function perform(): Promise<void> {
                   disbursed_at: actionForm.disbursed_at,
                   disbursement_method: actionForm.disbursement_method,
                   disbursement_reference: actionForm.disbursement_reference.trim(),
+                  ...(actionForm.disbursement_method === 'savings_account'
+                    ? { savings_account_id: actionForm.savings_account_id }
+                    : {}),
                 }
               : { notes: actionForm.notes.trim() }
       loan.value = await loansApi.workflow(loan.value.id, action, payload)
@@ -709,6 +720,15 @@ onBeforeUnmount(() => {
                     <button
                       type="button"
                       class="loan-icon-button"
+                      :aria-label="`Preview ${item.title}`"
+                      :title="`Preview ${item.title}`"
+                      @click="previewDocument = item"
+                    >
+                      <Eye :size="17" />
+                    </button>
+                    <button
+                      type="button"
+                      class="loan-icon-button"
                       :aria-label="`Download ${item.title}`"
                       @click="downloadDocument(item.id, item.original_name)"
                     >
@@ -1059,7 +1079,24 @@ onBeforeUnmount(() => {
                           Mobile money
                         </option>
                         <option value="cash">Cash</option>
+                        <option v-if="loan.application_type !== 'continuing'" value="savings_account">
+                          Savings account
+                        </option>
                       </select></label
+                    ><label v-if="actionForm.disbursement_method === 'savings_account'" for="disbursement-savings-account"
+                      >Savings account<select
+                        id="disbursement-savings-account"
+                        v-model.number="actionForm.savings_account_id"
+                        required
+                      >
+                        <option :value="null" disabled>Select the borrower’s savings account</option>
+                        <option v-for="account in loan.disbursement_savings_accounts" :key="account.id" :value="account.id">
+                          {{ account.account_number }} · {{ account.product_name }}
+                        </option>
+                      </select>
+                      <span v-if="!loan.disbursement_savings_accounts?.length" class="loan-hint">
+                        No eligible savings account is available for this borrower. Check their savings account setup.
+                      </span></label
                     ><label for="disbursement-reference"
                       >Disbursement reference<input
                         id="disbursement-reference"
@@ -1072,7 +1109,11 @@ onBeforeUnmount(() => {
                       Processing fee:
                       {{ formatMoney(loan.repayment_preview.processing_fee) }}
                     </p>
-                    <p class="loan-hint">
+                    <p v-if="actionForm.disbursement_method === 'savings_account'" class="loan-hint">
+                      The net disbursement will be credited to the selected savings account. This action posts
+                      accounting entries and creates the repayment schedule.
+                    </p>
+                    <p v-else class="loan-hint">
                       Confirm that funds have been released before recording disbursement. This action posts
                       accounting entries and creates the repayment schedule.
                     </p></template
@@ -1190,5 +1231,6 @@ onBeforeUnmount(() => {
         </aside>
       </div>
     </template>
+    <LoanDocumentPreview v-if="previewDocument && loan" :loan-id="loan.id" :document="previewDocument" @close="previewDocument = null" />
   </div>
 </template>
