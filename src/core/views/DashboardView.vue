@@ -51,7 +51,7 @@ interface Headline {
   value: string
   note: string
   to: RouteLocationRaw
-  /** A fixed Titaniun colour per card, so each figure keeps its place in the eye. */
+  /** A fixed Titanium colour per card, so each figure keeps its place in the eye. */
   color: string
   /** Why this figure needs a look, when it does. */
   alert?: string

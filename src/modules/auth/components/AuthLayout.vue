@@ -18,7 +18,7 @@ const services = [
       <div class="auth__identity">
         <BrandLogo :size="72" />
         <span class="auth__lockup">
-          <span class="auth__name">Titaniun Financial</span>
+          <span class="auth__name">Titanium Financial</span>
           <span class="auth__company">Consultancy Co. Ltd</span>
         </span>
       </div>
@@ -27,7 +27,7 @@ const services = [
         <h2 class="auth__statement">
           Your journey to <span class="auth__highlight">financial freedom</span> starts here.
         </h2>
-        <p class="auth__lede">Track your books, audits and tax filings with the Titaniun team, all in one place.</p>
+        <p class="auth__lede">Track your books, audits and tax filings with the Titanium team, all in one place.</p>
       </div>
 
       <section class="auth__services" aria-labelledby="auth-services">

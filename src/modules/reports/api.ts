@@ -20,7 +20,7 @@ import type {
 import type { DashboardSummary } from './types'
 
 /** The reporting entity named on statements and exports. */
-export const REPORT_ENTITY = 'Titaniun Financial'
+export const REPORT_ENTITY = 'Titanium Financial'
 
 /** The message to show for a failed report request. */
 export function errorMessage(error: unknown, fallback: string): string {

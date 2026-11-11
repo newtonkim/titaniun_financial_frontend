@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * Titaniun Financial mark: a red outer crescent with a blue band, a blue-to-red inner
+ * Titanium Financial mark: a red outer crescent with a blue band, a blue-to-red inner
  * crescent, and a stacked serif "T" and "i" in the centre.
  */
 withDefaults(defineProps<{ size?: number; plate?: boolean }>(), { size: 56, plate: true })
@@ -9,7 +9,7 @@ const uid = `logo-${Math.random().toString(36).slice(2, 8)}`
 </script>
 
 <template>
-  <svg :width="size" :height="size" viewBox="0 0 100 100" role="img" aria-label="Titaniun Financial logo">
+  <svg :width="size" :height="size" viewBox="0 0 100 100" role="img" aria-label="Titanium Financial logo">
     <defs>
       <linearGradient :id="`${uid}-outer`" gradientUnits="userSpaceOnUse" x1="0" y1="12" x2="0" y2="88">
         <stop offset="0" stop-color="#c62a30" />
