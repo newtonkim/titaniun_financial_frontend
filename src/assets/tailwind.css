@@ -47,7 +47,7 @@
 }
 
 @theme {
-  /* Titaniun brand: crimson for actions and accents, navy for totals and headings. */
+  /* Titanium brand: crimson for actions and accents, navy for totals and headings. */
   --color-brand: #b83236;
   --color-brand-dark: #9e272b;
   --color-navy: #1f2a5c;
@@ -69,7 +69,7 @@
   --text-subsection--font-weight: 600;
 }
 
-/* The shared UI primitives' palette, read from the Titaniun tokens in main.css so both themes follow. */
+/* The shared UI primitives' palette, read from the Titanium tokens in main.css so both themes follow. */
 @theme inline {
   --color-background: var(--surface);
   --color-foreground: var(--text);

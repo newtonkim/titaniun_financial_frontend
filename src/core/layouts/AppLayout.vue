@@ -274,9 +274,9 @@ onBeforeUnmount(() => {
   <div class="shell" :class="{ 'shell--collapsed': iconOnly, 'shell--nav-open': sidebarOpen }">
     <aside class="sidebar" aria-label="Main navigation">
       <div class="sidebar__head">
-        <RouterLink class="sidebar__brand" :to="{ name: 'dashboard' }" aria-label="Titaniun Financial home">
+        <RouterLink class="sidebar__brand" :to="{ name: 'dashboard' }" aria-label="Titanium Financial home">
           <span class="sidebar__logo"><BrandLogo :size="iconOnly ? 30 : 36" /></span>
-          <span v-if="!iconOnly" class="sidebar__name">Titaniun Financial</span>
+          <span v-if="!iconOnly" class="sidebar__name">Titanium Financial</span>
         </RouterLink>
         <button
           v-if="!isCompact"
@@ -410,7 +410,7 @@ onBeforeUnmount(() => {
           <button class="icon-button" type="button" aria-label="Go forward" @click="router.forward()"><AppIcon name="arrow-right" :size="18" /></button>
         </div>
         <nav class="breadcrumb" aria-label="Breadcrumb">
-          <RouterLink :to="{ name: 'dashboard' }">Titaniun Financial</RouterLink>
+          <RouterLink :to="{ name: 'dashboard' }">Titanium Financial</RouterLink>
           <template v-if="pageTitle">
             <AppIcon name="chevron-right" :size="16" />
             <span aria-current="page">{{ pageTitle }}</span>

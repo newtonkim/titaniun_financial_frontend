@@ -108,7 +108,7 @@ async function toggleRecoveryCode(): Promise<void> {
         {{ form.processing.value ? 'Signing in…' : needsTwoFactor ? 'Verify and sign in' : 'Sign in' }}
       </button>
 
-      <p class="auth-form__divider">New to Titaniun?</p>
+      <p class="auth-form__divider">New to Titanium?</p>
       <RouterLink class="auth-form__secondary" :to="{ name: 'register', query: $route.query }">Create an account</RouterLink>
 
       <p v-if="support.phone || support.email" class="auth-form__help">

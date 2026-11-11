@@ -10,8 +10,10 @@ import StatusBadge from '@/core/components/StatusBadge.vue'
 import { Button } from '@/core/components/ui/button'
 import { Input } from '@/core/components/ui/input'
 import { formatDate, formatEnum } from '@/core/utils/format'
+import { useAuth } from '@/modules/auth/store'
 import { membersApi } from '../api'
 import MemberFormDrawer from '../components/MemberFormDrawer.vue'
+import MemberDeleteDialog from '../components/MemberDeleteDialog.vue'
 import MemberImportDrawer from '../components/MemberImportDrawer.vue'
 import type { Member, MemberFilters, MemberStatus } from '../types'
 import { memberInitials } from '../utils'
@@ -28,6 +30,10 @@ const filters = reactive<Required<Pick<MemberFilters, 'search' | 'status' | 'mem
 const table = ref<{ reload: () => Promise<void>; load: (page: number) => Promise<void> } | null>(null)
 const error = ref('')
 const busyId = ref<number | null>(null)
+const deleting = ref<Member | null>(null)
+const removing = ref(false)
+const deleteError = ref<string | null>(null)
+const { can } = useAuth()
 
 const formOpen = ref(false)
 const editingId = ref<number | null>(null)
@@ -66,6 +72,29 @@ async function copyCode(member: Member): Promise<void> {
   copiedId.value = member.id
   clearTimeout(copyTimer)
   copyTimer = setTimeout(() => (copiedId.value = null), 1500)
+}
+
+async function confirmDelete(): Promise<void> {
+  const member = deleting.value
+  if (!member) return
+  removing.value = true
+  deleteError.value = null
+  try {
+    await membersApi.remove(member.id)
+    deleting.value = null
+    await table.value?.reload()
+  } catch (e) {
+    deleteError.value = e instanceof ApiError && e.status === 409
+      ? `${member.name} has accounts or history on record, so they cannot be deleted. Make them dormant, or start a member exit from their profile.`
+      : e instanceof Error ? e.message : 'The member could not be deleted.'
+  } finally {
+    removing.value = false
+  }
+}
+
+function askToDelete(member: Member): void {
+  deleting.value = member
+  deleteError.value = null
 }
 
 async function toggleDormant(member: Member): Promise<void> {
@@ -133,6 +162,7 @@ async function toggleDormant(member: Member): Promise<void> {
         <Button v-if="row.status !== 'dormant'" variant="outline" size="xs" @click="openForm(row)">Edit</Button>
         <Button v-if="row.status === 'active'" variant="outline" size="xs" :disabled="busyId === row.id" @click="toggleDormant(row)">Make dormant</Button>
         <Button v-else-if="['dormant', 'suspended', 'inactive'].includes(row.status)" variant="outline" size="xs" :disabled="busyId === row.id" @click="toggleDormant(row)">Activate</Button>
+        <Button v-if="can('members.manage')" variant="outline" size="xs" class="text-destructive hover:text-destructive" @click="askToDelete(row)">Delete</Button>
       </template>
 
       <template #empty>
@@ -144,5 +174,6 @@ async function toggleDormant(member: Member): Promise<void> {
 
     <MemberFormDrawer v-model:open="formOpen" :member-id="editingId" @saved="table?.reload()" />
     <MemberImportDrawer v-model:open="importOpen" @imported="table?.load(1)" />
+    <MemberDeleteDialog v-if="deleting" :name="deleting.name" :deleting="removing" :error="deleteError" @confirm="confirmDelete" @cancel="deleting = null" />
   </div>
 </template>

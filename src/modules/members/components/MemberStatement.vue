@@ -10,7 +10,7 @@ import MemberConsolidatedStatement from './MemberConsolidatedStatement.vue'
 /** A printable statement for a chosen period: one savings account or, given a member, every account together. */
 const props = defineProps<{ memberId?: number; joinedAt?: string; accounts: SavingsAccount[] }>()
 
-const SACCO = 'Titaniun Financial'
+const SACCO = 'Titanium Financial'
 const accountId = ref<number | 'all'>(props.memberId ? 'all' : (props.accounts[0]?.id ?? 'all'))
 const from = ref(props.joinedAt?.slice(0, 10) ?? props.accounts[0]?.opened_at ?? today())
 const to = ref(today())
