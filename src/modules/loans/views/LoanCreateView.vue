@@ -125,7 +125,7 @@ const termUnits: Record<RepaymentFrequency, string> = {
               <div class="loan-fields loan-fields--single">
                 <div>
                   <label class="loan-field-label">Borrower <span aria-hidden="true">*</span></label
-                  ><LoanMemberPicker v-model="member" label="Borrower" :disabled="!!editingId" />
+                  ><LoanMemberPicker v-model="member" label="Borrower" category="member" :disabled="!!editingId" />
                   <p v-if="errors.member_id" class="loan-field-error">{{ errors.member_id[0] }}</p>
                   <p class="loan-hint">Only active members can apply for a loan.</p>
                 </div>

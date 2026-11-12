@@ -2,9 +2,9 @@
 import { computed, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 import { Check, Search, X } from 'lucide-vue-next'
 import { membersApi } from '@/modules/members/api'
-import type { Member } from '@/modules/members/types'
+import type { Member, MemberCategory } from '@/modules/members/types'
 
-const props = withDefaults(defineProps<{ label?: string; disabled?: boolean; excludeId?: number | null }>(), {
+const props = withDefaults(defineProps<{ label?: string; disabled?: boolean; excludeId?: number | null; category?: MemberCategory }>(), {
   label: 'Member',
 })
 const selected = defineModel<Member | null>({ required: true })
@@ -26,7 +26,7 @@ async function search(): Promise<void> {
   loading.value = true
   error.value = ''
   try {
-    const result = await membersApi.list({ search: query.value.trim(), status: 'active', per_page: 30 })
+    const result = await membersApi.list({ search: query.value.trim(), status: 'active', category: props.category, per_page: 30 })
     if (request === sequence) {
       options.value = result.data
       highlighted.value = 0

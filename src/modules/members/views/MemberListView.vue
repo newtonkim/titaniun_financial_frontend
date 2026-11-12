@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PageParams } from '@/core/api/resource'
-import { onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Check, Copy, Plus, Search, Upload } from 'lucide-vue-next'
 import { ApiError } from '@/core/api/http'
@@ -15,8 +15,12 @@ import { membersApi } from '../api'
 import MemberFormDrawer from '../components/MemberFormDrawer.vue'
 import MemberDeleteDialog from '../components/MemberDeleteDialog.vue'
 import MemberImportDrawer from '../components/MemberImportDrawer.vue'
-import type { Member, MemberFilters, MemberStatus } from '../types'
+import type { Member, MemberCategory, MemberFilters, MemberStatus } from '../types'
 import { memberInitials } from '../utils'
+
+/** Members borrow and save; the Free agents page lists the people who only save. */
+const props = withDefaults(defineProps<{ category?: MemberCategory }>(), { category: 'member' })
+const isFreeAgents = computed(() => props.category === 'free_agent')
 
 const route = useRoute()
 const router = useRouter()
@@ -52,7 +56,7 @@ const columns: Column<Member>[] = [
   { key: 'status', label: 'Status', sortable: true },
 ]
 
-const fetchPage = (params: PageParams) => membersApi.list({ ...filters, ...params })
+const fetchPage = (params: PageParams) => membersApi.list({ ...filters, ...params, category: props.category })
 
 function openForm(member: Member | null = null): void {
   editingId.value = member?.id ?? null
@@ -65,6 +69,8 @@ watch(() => route.query.create, (create) => {
   openForm()
   void router.replace({ query: {} })
 }, { immediate: true })
+// Members and Free agents share this view, so switching between them keeps the instance.
+watch(() => props.category, () => void table.value?.load(1))
 onBeforeUnmount(() => clearTimeout(copyTimer))
 
 async function copyCode(member: Member): Promise<void> {
@@ -113,10 +119,17 @@ async function toggleDormant(member: Member): Promise<void> {
 
 <template>
   <div>
-    <ResourceTable ref="table" title="Members" description="Everyone registered with the SACCO, and their status." :columns="columns" :filters="filters" :fetch="fetchPage">
+    <ResourceTable
+      ref="table"
+      :title="isFreeAgents ? 'Free agents' : 'Members'"
+      :description="isFreeAgents ? 'People who only save with the SACCO. Change one to a member before they borrow.' : 'Members who save and borrow, and their status.'"
+      :columns="columns"
+      :filters="filters"
+      :fetch="fetchPage"
+    >
       <template #actions>
-        <Button variant="outline" size="sm" @click="importOpen = true"><Upload /> Import members</Button>
-        <Button size="sm" @click="openForm()"><Plus /> Add member</Button>
+        <Button v-if="!isFreeAgents" variant="outline" size="sm" @click="importOpen = true"><Upload /> Import members</Button>
+        <Button size="sm" @click="openForm()"><Plus /> {{ isFreeAgents ? 'Add free agent' : 'Add member' }}</Button>
       </template>
 
       <template #messages>
@@ -166,13 +179,13 @@ async function toggleDormant(member: Member): Promise<void> {
       </template>
 
       <template #empty>
-        <p class="font-medium">No members yet</p>
-        <p class="mt-1 text-muted-foreground">Members you add will appear here.</p>
-        <Button size="sm" class="mt-3" @click="openForm()"><Plus /> Add member</Button>
+        <p class="font-medium">{{ isFreeAgents ? 'No free agents yet' : 'No members yet' }}</p>
+        <p class="mt-1 text-muted-foreground">{{ isFreeAgents ? 'Savers who do not borrow will appear here.' : 'Members you add will appear here.' }}</p>
+        <Button size="sm" class="mt-3" @click="openForm()"><Plus /> {{ isFreeAgents ? 'Add free agent' : 'Add member' }}</Button>
       </template>
     </ResourceTable>
 
-    <MemberFormDrawer v-model:open="formOpen" :member-id="editingId" @saved="table?.reload()" />
+    <MemberFormDrawer v-model:open="formOpen" :member-id="editingId" :category="category" @saved="table?.reload()" />
     <MemberImportDrawer v-model:open="importOpen" @imported="table?.load(1)" />
     <MemberDeleteDialog v-if="deleting" :name="deleting.name" :deleting="removing" :error="deleteError" @confirm="confirmDelete" @cancel="deleting = null" />
   </div>

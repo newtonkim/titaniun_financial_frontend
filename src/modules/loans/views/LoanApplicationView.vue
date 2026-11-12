@@ -400,7 +400,7 @@ onMounted(async () => {
                   separate.
                 </p>
                 <div class="application-client-row">
-                  <LoanMemberPicker v-model="member" label="Select client" /><button
+                  <LoanMemberPicker v-model="member" label="Select client" category="member" /><button
                     v-if="!continuing"
                     class="loan-button loan-button--outline"
                     type="button"
