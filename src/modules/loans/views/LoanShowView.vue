@@ -11,6 +11,7 @@ import {
   FileText,
   HandCoins,
   Pencil,
+  Printer,
   RefreshCw,
   ShieldCheck,
   Upload,
@@ -18,7 +19,10 @@ import {
 } from 'lucide-vue-next'
 import { ApiError } from '@/core/api/http'
 import { formatDate, formatEnum, formatMoney } from '@/core/utils/format'
+import { letterheadApi, PAYMENT_METHODS, printReceipt, receiptNumber } from '@/modules/accounting/receipts'
+import { useAuth } from '@/modules/auth/store'
 import { loansApi } from '../api'
+import { INVOICE_STATUS, invoiceNumber, loanInvoicesApi, printLoanInvoice, printLoanStatement, type LoanInvoice } from '../invoices'
 import LoanExecutionPanel from '../components/LoanExecutionPanel.vue'
 import '../loan-application.css'
 import LoanCommissionLedger from '../components/LoanCommissionLedger.vue'
@@ -32,6 +36,10 @@ const loan = ref<Loan | null>(null)
 const pageRoot = ref<HTMLElement>()
 const noticeElement = ref<HTMLElement>()
 const repayments = ref<LoanRepayment[]>([])
+const invoices = ref<LoanInvoice[]>([])
+const lastReceipt = ref<{ id: number; number: number } | null>(null)
+const printError = ref('')
+const { can } = useAuth()
 const paymentPage = ref(1)
 const paymentLastPage = ref(1)
 const loading = ref(true)
@@ -66,6 +74,7 @@ const actionForm = reactive({
   amount: '',
   paid_at: localToday,
   reference: '',
+  payment_method: 'cash',
   principal_paid: '',
   interest_paid: '',
 })
@@ -137,6 +146,34 @@ async function loadPayments(page = 1): Promise<void> {
   paymentPage.value = result.meta.current_page
   paymentLastPage.value = result.meta.last_page
 }
+
+async function loadInvoices(): Promise<void> {
+  invoices.value = (await loanInvoicesApi.list({ loan_id: Number(route.params.id), per_page: 100 })).data
+}
+
+/** Print a document, keeping any failure on screen instead of losing it in the console. */
+async function printing(task: () => Promise<void>): Promise<void> {
+  printError.value = ''
+  try {
+    await task()
+  } catch (failure) {
+    printError.value = failure instanceof Error ? failure.message : 'The document could not be printed.'
+  }
+}
+
+async function issueInvoice(): Promise<void> {
+  if (!loan.value) return
+  await printing(async () => {
+    const invoice = await loanInvoicesApi.issue((loan.value as Loan).id)
+    await loadInvoices()
+    await printLoanInvoice(invoice.id)
+  })
+}
+
+const printStatement = () =>
+  printing(async () => {
+    if (loan.value) printLoanStatement(loan.value, repayments.value, await letterheadApi.show())
+  })
 async function load(): Promise<void> {
   const current = ++sequence
   loading.value = true
@@ -146,6 +183,7 @@ async function load(): Promise<void> {
     if (current !== sequence) return
     loan.value = result
     await loadPayments()
+    void loadInvoices().catch(() => undefined)
   } catch (error) {
     if (current === sequence)
       loadError.value = error instanceof Error ? error.message : 'Could not load this loan.'
@@ -211,21 +249,25 @@ async function perform(): Promise<void> {
   try {
     const action = selectedAction.value
     if (action === 'repay') {
-      await loansApi.recordRepayment(
+      const repayment = await loansApi.recordRepayment(
         loan.value.id,
         loan.value.uses_workflow
           ? {
               amount: String(actionForm.amount),
               paid_at: actionForm.paid_at,
               reference: actionForm.reference.trim(),
+              payment_method: actionForm.payment_method,
             }
           : {
               principal_paid: String(actionForm.principal_paid),
               interest_paid: String(actionForm.interest_paid),
               paid_at: actionForm.paid_at,
               reference: actionForm.reference.trim(),
+              payment_method: actionForm.payment_method,
             },
       )
+      lastReceipt.value = repayment.receipt ?? null
+      void loadInvoices()
       loan.value = await loansApi.show(loan.value.id)
       await loadPayments()
       Object.assign(actionForm, {
@@ -379,6 +421,7 @@ onBeforeUnmount(() => {
             : 'Application saved and submitted. Guarantor consent is required before appraisal when guarantees are included.'
         }}
       </p>
+      <p v-if="printError" class="loan-alert loan-alert--error" role="alert">{{ printError }}</p>
       <div
         v-if="message"
         ref="noticeElement"
@@ -388,6 +431,10 @@ onBeforeUnmount(() => {
         :role="noticeError ? 'alert' : 'status'"
       >
         <p>{{ message }}</p>
+        <p v-if="lastReceipt && !noticeError" style="margin-top: 6px">
+          Receipt No. {{ receiptNumber(lastReceipt.number) }} issued.
+          <button type="button" class="loan-link" @click="printing(() => printReceipt(lastReceipt!.id))">Print receipt</button>
+        </p>
         <ul v-if="Object.keys(errors).length">
           <li v-for="(messages, field) in errors" :key="field">
             {{ formatEnum(String(field)) }}: {{ messages[0] }}
@@ -456,6 +503,7 @@ onBeforeUnmount(() => {
                 <span v-if="loan.documents?.length">({{ loan.documents.length }})</span></TabsTrigger
               ><TabsTrigger value="schedule">Schedule</TabsTrigger
               ><TabsTrigger value="repayments">Repayments</TabsTrigger
+              ><TabsTrigger v-if="['disbursed', 'closed'].includes(loan.status)" value="invoices">Invoices ({{ invoices.length }})</TabsTrigger
               ><TabsTrigger value="commissions">Commissions</TabsTrigger
               ><TabsTrigger value="activity">Activity</TabsTrigger></TabsList
             >
@@ -761,6 +809,9 @@ onBeforeUnmount(() => {
                 <div class="loan-card-heading">
                   <Clock3 :size="18" />
                   <h2>Repayment schedule</h2>
+                  <button v-if="loan.installments?.length" type="button" class="loan-button loan-button--outline" style="margin-left: auto" @click="printStatement">
+                    <Printer :size="15" />Print loan statement
+                  </button>
                 </div>
                 <template v-if="loan.installments?.length"
                   ><div class="loan-table-wrap">
@@ -870,6 +921,7 @@ onBeforeUnmount(() => {
                     <thead>
                       <tr>
                         <th>Date</th>
+                        <th>Receipt</th>
                         <th>Reference</th>
                         <th class="num">Amount</th>
                         <th class="num">Principal</th>
@@ -882,10 +934,17 @@ onBeforeUnmount(() => {
                     <tbody>
                       <tr v-for="item in repayments" :key="item.id">
                         <td>{{ formatDate(item.paid_at) }}</td>
+                        <td>
+                          <button v-if="item.receipt" type="button" class="loan-link" :title="`Print receipt ${receiptNumber(item.receipt.number)}`" @click="printing(() => printReceipt(item.receipt!.id))">
+                            No. {{ receiptNumber(item.receipt.number) }}
+                          </button>
+                          <span v-else>—</span>
+                        </td>
                         <td>{{ item.reference || '—' }}</td>
                         <td class="num">{{ formatMoney(item.amount) }}</td>
                         <td class="num">{{ formatMoney(item.principal_paid) }}</td>
                         <td class="num">{{ formatMoney(item.interest_paid) }}</td>
+                        <td class="num">{{ formatMoney(item.fees_paid) }}</td>
                         <td class="num">
                           {{ item.company_interest === null ? '—' : formatMoney(item.company_interest) }}
                         </td>
@@ -915,6 +974,36 @@ onBeforeUnmount(() => {
                     Next
                   </button>
                 </div>
+              </section></TabsContent
+            >
+            <TabsContent value="invoices"
+              ><section class="loan-card">
+                <div class="loan-card-heading">
+                  <FileText :size="18" />
+                  <h2>Repayment invoices</h2>
+                  <button v-if="loan.status === 'disbursed' && can('loans.repay')" type="button" class="loan-button loan-button--primary" style="margin-left: auto" @click="issueInvoice">
+                    Issue invoice for next instalment
+                  </button>
+                </div>
+                <p class="loan-hint">An invoice is issued when the loan is disbursed. Issue another before each instalment falls due, or as a reminder of arrears. Each one prints with the full schedule.</p>
+                <div v-if="invoices.length" class="loan-table-wrap">
+                  <table class="loan-table">
+                    <thead>
+                      <tr><th>Invoice</th><th>Issued</th><th>Due</th><th class="num">Amount due</th><th>Status</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="item in invoices" :key="item.id">
+                        <td>{{ invoiceNumber(item.number) }}</td>
+                        <td>{{ formatDate(item.issued_on) }}</td>
+                        <td>{{ formatDate(item.due_on) }}</td>
+                        <td class="num">{{ formatMoney(item.total_due) }}</td>
+                        <td><span class="badge" :class="`badge--${INVOICE_STATUS[item.status].badge}`">{{ INVOICE_STATUS[item.status].label }}</span></td>
+                        <td><button type="button" class="loan-link" @click="printing(() => printLoanInvoice(item.id))">Print</button></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p v-else class="loan-empty">No invoices yet.</p>
               </section></TabsContent
             >
             <TabsContent value="commissions"><LoanCommissionLedger :loan-id="loan.id" /></TabsContent>
@@ -1111,8 +1200,12 @@ onBeforeUnmount(() => {
                         type="date"
                         :max="localToday"
                         required /></label
+                    ><label for="repayment-method"
+                      >Paid by<select id="repayment-method" v-model="actionForm.payment_method">
+                        <option v-for="method in PAYMENT_METHODS" :key="method.value" :value="method.value">{{ method.label }}</option>
+                      </select></label
                     ><label for="repayment-reference"
-                      >Receipt / transaction reference<input
+                      >Transaction reference<input
                         id="repayment-reference"
                         v-model="actionForm.reference"
                         maxlength="100"
