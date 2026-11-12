@@ -35,6 +35,16 @@ export interface AccountingSettings {
   expense_backdate_days: number
   /** Expenses over this need a second person. Empty means none do. */
   expense_approval_above: string | null
+  business_name?: string
+  business_tagline?: string | null
+  business_address?: string | null
+  business_phone?: string | null
+  business_email?: string | null
+  payment_instructions?: string | null
+  invoice_notes?: string | null
+  authorised_signatory?: string | null
+  receipt_numbers_start_at?: number
+  invoice_numbers_start_at?: number
 }
 
 export const accountingSettingsApi = {

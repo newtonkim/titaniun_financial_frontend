@@ -312,6 +312,8 @@ export interface LoanRepayment {
   commission?: LoanCommission | null
   paid_at: ISODateTime
   reference: string | null
+  /** The receipt issued for this payment. */
+  receipt?: { id: number; number: number } | null
   created_at: ISODateTime | null
 }
 
@@ -320,6 +322,7 @@ export interface StoreLoanRepaymentPayload {
   interest_paid: Money
   paid_at?: ISODateTime | null
   reference?: string | null
+  payment_method?: string | null
 }
 
 export type LoanAction =
@@ -422,6 +425,7 @@ export interface LoanPaymentPayload {
   amount: Money
   paid_at: string
   reference: string
+  payment_method?: string | null
 }
 
 export interface LoanCommission {

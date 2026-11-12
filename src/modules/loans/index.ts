@@ -1,9 +1,16 @@
 import { defineModule } from '@/core/module'
+import { billingMenu } from '@/modules/accounting'
 
 export default defineModule({
   name: 'Loans',
   label: 'Loans',
   routes: [
+    {
+      path: 'loan-invoices',
+      name: 'loans.invoices',
+      meta: { title: 'Loan invoices' },
+      component: () => import('./views/LoanInvoiceListView.vue'),
+    },
     {
       path: 'loan-commissions',
       name: 'loans.commissions',
@@ -42,6 +49,7 @@ export default defineModule({
     },
   ],
   nav: [
+    { label: 'Loan invoices', to: { name: 'loans.invoices' }, icon: 'receipt', group: 'financials', menu: billingMenu },
     {
       label: 'Commissions',
       to: { name: 'loans.commissions' },
