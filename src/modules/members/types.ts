@@ -5,6 +5,8 @@ import type { ShareAccount } from '@/modules/shares/types'
 
 export type MemberStatus = 'pending' | 'active' | 'dormant' | 'suspended' | 'rejected' | 'inactive' | 'exited'
 export type MemberType = 'new_member' | 'existing_member'
+/** Members save and borrow; free agents only save. */
+export type MemberCategory = 'member' | 'free_agent'
 export type Gender = 'male' | 'female' | 'other'
 export type MaritalStatus = 'single' | 'married' | 'divorced' | 'widowed'
 
@@ -45,6 +47,7 @@ export interface Member extends ClientApplicationDetails {
   member_number: string
   name: string
   member_type: MemberType
+  category: MemberCategory
   salutation: string | null
   gender: Gender | null
   date_of_birth: ISODate | null
@@ -105,6 +108,7 @@ export interface MemberDetailsPayload extends ClientApplicationDetails {
   next_of_kin_contact?: string | null
   is_shareholder?: boolean
   joined_at?: ISODate | null
+  category?: MemberCategory
 }
 
 export interface StoreMemberPayload extends MemberDetailsPayload {
@@ -123,6 +127,7 @@ export interface UpdateMemberPayload extends Partial<MemberDetailsPayload> {
 
 export type MemberFilters = {
   search?: string
+  category?: MemberCategory
   status?: MemberStatus | ''
   member_type?: MemberType | ''
   per_page?: number

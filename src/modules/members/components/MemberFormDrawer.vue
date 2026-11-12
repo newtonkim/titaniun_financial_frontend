@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
-import { ImagePlus, UserPlus, UserRound } from 'lucide-vue-next'
+import { ImagePlus, PiggyBank, UserPlus, UserRound, Users } from 'lucide-vue-next'
 import { ApiError, type ValidationErrors } from '@/core/api/http'
 import AppDrawer from '@/core/components/AppDrawer.vue'
 import SearchableSelect from '@/core/components/SearchableSelect.vue'
@@ -17,12 +17,13 @@ import {
   type Gender,
   type MaritalStatus,
   type Member,
+  type MemberCategory,
   type MemberStatus,
   type MemberType,
 } from '../types'
 
 /** Register (`memberId` null) or edit a member in a right-hand drawer. */
-const props = defineProps<{ memberId: number | null }>()
+const props = withDefaults(defineProps<{ memberId: number | null; category?: MemberCategory }>(), { category: 'member' })
 const open = defineModel<boolean>('open', { required: true })
 const emit = defineEmits<{ saved: [member: Member] }>()
 
@@ -46,6 +47,7 @@ const blank = () => ({
   signatory_title: '',
   signatory_national_id: '',
   member_type: 'new_member' as MemberType,
+  category: props.category,
   name: '',
   member_number: '',
   salutation: '',
@@ -72,6 +74,10 @@ const blank = () => ({
 })
 
 const form = reactive(blank())
+const CATEGORIES = [
+  { value: 'member', label: 'Member', hint: 'Saves and can take loans', icon: Users },
+  { value: 'free_agent', label: 'Free agent', hint: 'Only saves, no loans', icon: PiggyBank },
+] as const
 const businessFields = [
   { key: 'business_registration_number', label: 'Registration / incorporation number' },
   { key: 'business_activity', label: 'Nature of business' },
@@ -116,6 +122,7 @@ async function load(): Promise<void> {
         signatory_title: member.signatory_title ?? '',
         signatory_national_id: member.signatory_national_id ?? '',
         member_type: member.member_type,
+        category: member.category,
         name: member.name,
         member_number: member.member_number,
         salutation: member.salutation ?? '',
@@ -195,6 +202,7 @@ function detailsPayload() {
     next_of_kin_contact: nullable(form.next_of_kin_contact),
     is_shareholder: form.is_shareholder,
     joined_at: nullable(form.joined_at),
+    category: form.category,
   }
 }
 
@@ -251,7 +259,7 @@ const errorText = 'mt-1 text-xs text-red-500'
 <template>
   <AppDrawer
     v-model:open="open"
-    :title="isEditing ? 'Edit member' : 'Add a member'"
+    :title="isEditing ? (form.category === 'free_agent' ? 'Edit free agent' : 'Edit member') : (form.category === 'free_agent' ? 'Add a free agent' : 'Add a member')"
     width="w-full lg:w-2/3"
     :loading="saving"
     :save-disabled="loading"
@@ -304,6 +312,31 @@ const errorText = 'mt-1 text-xs text-red-500'
                 </span>
               </button>
             </div>
+          </div>
+
+          <div class="sm:col-span-2">
+            <p :class="label">Category <span class="text-red-500">*</span></p>
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                v-for="option in CATEGORIES"
+                :key="option.value"
+                type="button"
+                :class="[
+                  'flex items-center gap-3 rounded-lg border p-3 text-left text-sm transition-colors',
+                  form.category === option.value
+                    ? 'border-brand bg-brand/5 font-semibold text-brand'
+                    : 'border-border text-neutral-600 hover:border-neutral-300 dark:text-neutral-300',
+                ]"
+                @click="form.category = option.value"
+              >
+                <component :is="option.icon" class="h-5 w-5 shrink-0" />
+                <span>
+                  {{ option.label }}
+                  <span class="block text-xs font-normal text-muted-foreground">{{ option.hint }}</span>
+                </span>
+              </button>
+            </div>
+            <p v-if="fieldError('category')" :class="errorText">{{ fieldError('category') }}</p>
           </div>
 
           <div class="sm:col-span-2">
