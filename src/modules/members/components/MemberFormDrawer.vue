@@ -38,18 +38,21 @@ const savingsProducts = ref<{ id: number; name: string }[]>([])
 const shareProducts = ref<ShareProduct[]>([])
 /**
  * Adding a free agent, or changing a member into one, takes a new code with a fixed prefix;
- * `form.member_number` then holds only what staff type after it.
+ * `form.member_number` then holds only what staff type after it. Someone whose code already marks
+ * a free agent (FA525, from an earlier time as one) keeps it when they switch back.
  */
-const codeSettings = ref<MemberSettings>({ code_prefix: 'FA', code_length: 8, savings_product_id: null })
+const codeSettings = ref<MemberSettings>({ code_prefix: 'FA', code_length: 8, savings_product_id: null, member_savings_product_id: null })
 const codePrefix = computed(() => `${codeSettings.value.code_prefix}-`)
 const savedCategory = ref<MemberCategory | null>(null)
 const savedCode = ref('')
 const becomesFreeAgent = computed(() => isEditing.value && savedCategory.value === 'member' && form.category === 'free_agent')
-const typesFreeAgentCode = computed(() => form.category === 'free_agent' && (!isEditing.value || becomesFreeAgent.value))
+const becomesMember = computed(() => isEditing.value && savedCategory.value === 'free_agent' && form.category === 'member')
+const keepsFreeAgentCode = computed(() => savedCode.value.toUpperCase().startsWith(codeSettings.value.code_prefix.toUpperCase()))
+const typesFreeAgentCode = computed(() => form.category === 'free_agent' && (!isEditing.value || (becomesFreeAgent.value && !keepsFreeAgentCode.value)))
 
 // Switching an existing member to free agent swaps their old code for the new prefix; switching back restores it.
-watch(becomesFreeAgent, (becomes) => {
-  form.member_number = becomes ? '' : savedCode.value
+watch(() => isEditing.value && typesFreeAgentCode.value, (types) => {
+  form.member_number = types ? '' : savedCode.value
 })
 
 const blank = () => ({
@@ -552,7 +555,13 @@ const errorText = 'mt-1 text-xs text-red-500'
             />
             <p v-if="typesFreeAgentCode && !fieldError('member_number')" class="mt-1 text-xs text-muted-foreground">Type {{ codeSettings.code_length }} letters or digits after {{ codePrefix }}</p>
             <p v-if="becomesFreeAgent" class="mt-1 text-xs text-muted-foreground">
-              Their accounts are renumbered from the new code<template v-if="codeSettings.savings_product_id">, and their open savings accounts move to the free agent savings product</template>.
+              <template v-if="keepsFreeAgentCode">They keep their free agent code {{ savedCode }}</template>
+              <template v-else>Their accounts are renumbered from the new code</template>
+              <template v-if="codeSettings.savings_product_id">, and their open savings accounts move to the free agent savings product</template>.
+            </p>
+            <p v-if="becomesMember" class="mt-1 text-xs text-muted-foreground">
+              They can apply for loans once saved as a member.
+              <template v-if="codeSettings.savings_product_id && codeSettings.member_savings_product_id">Their savings accounts on the free agent product move to the member savings product.</template>
             </p>
             <p v-if="fieldError('member_number')" :class="errorText">{{ fieldError('member_number') }}</p>
           </div>

@@ -48,6 +48,8 @@ export interface MemberSettings {
   code_length: number
   /** A member's open savings accounts move to this product when they become a free agent. */
   savings_product_id: number | null
+  /** A free agent's accounts on the free agent product move to this one when they become a member. */
+  member_savings_product_id: number | null
 }
 
 export interface Member extends ClientApplicationDetails {

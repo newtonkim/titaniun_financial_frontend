@@ -14,8 +14,8 @@ const loadError = ref('')
 const canManage = computed(() => can('access.manage'))
 const savingsProducts = ref<{ id: number; name: string }[]>([])
 
-const form = useForm({ code_prefix: 'FA', code_length: 8, savings_product_id: null as number | null }, async (data) => {
-  await memberSettingsApi.update({ code_prefix: data.code_prefix.trim().toUpperCase(), code_length: data.code_length, savings_product_id: data.savings_product_id })
+const form = useForm({ code_prefix: 'FA', code_length: 8, savings_product_id: null as number | null, member_savings_product_id: null as number | null }, async (data) => {
+  await memberSettingsApi.update({ code_prefix: data.code_prefix.trim().toUpperCase(), code_length: data.code_length, savings_product_id: data.savings_product_id, member_savings_product_id: data.member_savings_product_id })
   saved.value = true
 })
 
@@ -28,6 +28,7 @@ onMounted(async () => {
     form.data.code_prefix = settings.code_prefix
     form.data.code_length = settings.code_length
     form.data.savings_product_id = settings.savings_product_id
+    form.data.member_savings_product_id = settings.member_savings_product_id
   } catch {
     loadError.value = 'The settings could not be loaded.'
   }
@@ -60,6 +61,15 @@ onMounted(async () => {
         </select>
         <span class="text-xs font-normal text-muted-foreground">Free agents' open savings accounts are kept on this product: saving here moves existing free agents onto it, and anyone who becomes a free agent moves too. A balance moves between the products' liability accounts with a journal entry.</span>
         <span v-if="form.error('savings_product_id')" class="text-xs font-normal text-destructive">{{ form.error('savings_product_id') }}</span>
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium">
+        Member savings product
+        <select v-model="form.data.member_savings_product_id" :disabled="!canManage" class="h-9 rounded-md border border-border bg-background px-3 text-sm font-normal">
+          <option :value="null">— keep their current product —</option>
+          <option v-for="product in savingsProducts" :key="product.id" :value="product.id" :disabled="product.id === form.data.savings_product_id">{{ product.name }}</option>
+        </select>
+        <span class="text-xs font-normal text-muted-foreground">When a free agent becomes a member, their savings accounts on the free agent product move to this product, with any balance moved by a journal entry. Saving here also moves members still on the free agent product.</span>
+        <span v-if="form.error('member_savings_product_id')" class="text-xs font-normal text-destructive">{{ form.error('member_savings_product_id') }}</span>
       </label>
       <div v-if="canManage" class="flex justify-end"><Button type="submit" :disabled="form.processing.value">{{ form.processing.value ? 'Saving…' : 'Save' }}</Button></div>
     </form>
