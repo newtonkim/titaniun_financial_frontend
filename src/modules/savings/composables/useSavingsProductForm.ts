@@ -3,7 +3,7 @@ import { ApiError } from '@/core/api/http'
 import { chartOfAccountsApi } from '@/modules/accounting/api'
 import type { ChartOfAccount } from '@/modules/accounting/types'
 import { savingsPolicyApi, savingsProductsApi } from '../api'
-import type { ChargeTrigger, SavingsProduct, SavingsProductCharge, SavingsProductSettings } from '../types'
+import type { ChargeTrigger, SavingsProduct, SavingsProductCharge, SavingsProductSettings, SavingsProductType } from '../types'
 import { useMonthlyFeeSummary } from './useMonthlyFeeSummary'
 
 type NumberLike = number | string
@@ -41,6 +41,18 @@ function createDefaultForm(): SavingsProductForm {
     is_active: true,
     charges: [],
   }
+}
+
+/**
+ * The ledger accounts a new product posts to unless staff pick others, by chart code: member deposits
+ * credit the savings liability for the product type, cash lands in the operating bank account, and
+ * interest is expensed and accrued until it is paid.
+ */
+const DEFAULT_ACCOUNT_CODES = {
+  liability: { standard: '21102', fixed: '21103' } satisfies Record<SavingsProductType, string>,
+  cash: '11102',
+  interestExpense: '51100',
+  interestPayable: '21300',
 }
 
 /** Strips thousands separators typed into a money field. */
@@ -95,6 +107,25 @@ export function useSavingsProductForm(productId: Ref<number | null>, onSaved: (p
     }
   }
 
+  const accountIdFor = (code: string): number | null => chartAccounts.value.find((a) => a.code === code)?.id ?? null
+
+  /** Pre-select the usual accounts on a new product; staff can still choose any other. */
+  function applyDefaultAccounts() {
+    if (productId.value !== null) return
+    form.value.liability_account_id ??= accountIdFor(DEFAULT_ACCOUNT_CODES.liability[form.value.type])
+    form.value.cash_account_id ??= accountIdFor(DEFAULT_ACCOUNT_CODES.cash)
+    form.value.interest_expense_account_id ??= accountIdFor(DEFAULT_ACCOUNT_CODES.interestExpense)
+    form.value.interest_payable_account_id ??= accountIdFor(DEFAULT_ACCOUNT_CODES.interestPayable)
+  }
+
+  // Switching type moves the liability to that type's account, unless staff already chose a different one.
+  watch(() => form.value.type, (type, previous) => {
+    if (productId.value !== null || !previous) return
+    if (form.value.liability_account_id === accountIdFor(DEFAULT_ACCOUNT_CODES.liability[previous])) {
+      form.value.liability_account_id = accountIdFor(DEFAULT_ACCOUNT_CODES.liability[type])
+    }
+  })
+
   async function loadProduct() {
     if (productId.value === null) return
     loading.value = true
@@ -122,6 +153,7 @@ export function useSavingsProductForm(productId: Ref<number | null>, onSaved: (p
     message.value = ''
     selectedChargeTab.value = 'deposit'
     await Promise.all([loadProduct(), loadSupportingData(), loadDefaultWarning()])
+    applyDefaultAccounts()
   }
 
   function fieldError(field: string): string | null {
