@@ -808,6 +808,10 @@
   color: var(--loan-muted);
   font-size: 12px;
 }
+.loan-pipeline__back {
+  margin-left: auto;
+  align-self: center;
+}
 .loan-pipeline > span.is-active {
   background: var(--loan-soft);
   color: var(--loan-accent-text);
