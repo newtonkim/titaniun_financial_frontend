@@ -128,6 +128,15 @@ const ranks: Partial<Record<LoanStatus, number>> = {
   disbursed: 6,
   closed: 6,
 }
+/** Returning a loan sends it back to the Application step for correction and resubmission; it needs a reason. */
+const canGoBack = computed(() => !!loan.value && actions.value.includes('return') && (ranks[loan.value.status] ?? 0) > 0)
+async function backToApplication() {
+  selectedAction.value = 'return'
+  await nextTick()
+  const notes = document.getElementById('action-notes')
+  notes?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  notes?.focus({ preventScroll: true })
+}
 const outstanding = computed(
   () =>
     Number(loan.value?.outstanding_principal ?? loan.value?.principal ?? 0) +
@@ -450,6 +459,15 @@ onBeforeUnmount(() => {
           ><Check v-if="(ranks[loan.status] ?? -1) > index" :size="14" /><span v-else>{{ index + 1 }}.</span
           >{{ stage }}<ArrowRight v-if="index < pipeline.length - 1" :size="12" aria-hidden="true"
         /></span>
+        <button
+          v-if="canGoBack"
+          type="button"
+          class="loan-button loan-button--outline loan-pipeline__back"
+          title="Return the application to the Application step for correction"
+          @click="backToApplication"
+        >
+          <ArrowLeft :size="14" />Back to Application
+        </button>
       </div>
       <dl class="loan-kpis">
         <div class="loan-card">
