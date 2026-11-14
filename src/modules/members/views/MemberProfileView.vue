@@ -77,6 +77,7 @@ const openAccountOpen = ref(false)
 const rejectOpen = ref(false)
 const rejectionReason = ref('')
 const avatarInput = ref<HTMLInputElement | null>(null)
+const avatarBroken = ref(false)
 
 const memberId = computed(() => Number(props.id))
 
@@ -327,13 +328,17 @@ async function confirmStatusChange(): Promise<void> {
 }
 
 async function uploadAvatar(event: Event): Promise<void> {
-  const file = (event.target as HTMLInputElement).files?.[0]
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  // Clear the picker so choosing the same file again still fires a change.
+  input.value = ''
   if (!file) return
   uploading.value = true
   error.value = ''
   try {
     const updated = await membersApi.uploadAvatar(memberId.value, file)
     if (member.value) member.value.avatar_url = updated.avatar_url
+    avatarBroken.value = false
   } catch (e) {
     error.value = e instanceof ApiError ? (e.errors.avatar?.[0] ?? e.message) : 'Failed to upload the photo.'
   } finally {
@@ -379,7 +384,7 @@ const td = 'whitespace-nowrap px-5 py-3 text-neutral-700 dark:text-neutral-200'
           </div>
           <div class="relative z-10 -mt-12 flex justify-center px-4">
             <button type="button" title="Change photo" class="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-[3px] border-brand bg-background shadow-sm" @click="avatarInput?.click()">
-              <img v-if="member.avatar_url" :src="member.avatar_url" :alt="member.name" class="h-full w-full object-cover" />
+              <img v-if="member.avatar_url && !avatarBroken" :src="member.avatar_url" :alt="member.name" class="h-full w-full object-cover" @error="avatarBroken = true" />
               <span v-else class="text-2xl font-bold text-brand">{{ memberInitials(member.name) }}</span>
               <span v-if="uploading" class="absolute inset-0 flex items-center justify-center bg-black/60">
                 <span class="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-white" />
