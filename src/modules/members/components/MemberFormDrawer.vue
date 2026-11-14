@@ -82,6 +82,10 @@ const blank = () => ({
   email: '',
   next_of_kin: '',
   next_of_kin_contact: '',
+  guarantor_name: '',
+  guarantor_nin: '',
+  guarantor_phone: '',
+  guarantor_address: '',
   is_shareholder: false,
   joined_at: today(),
   status: 'active' as MemberStatus,
@@ -161,6 +165,10 @@ async function load(): Promise<void> {
         email: member.email ?? '',
         next_of_kin: member.next_of_kin ?? '',
         next_of_kin_contact: member.next_of_kin_contact ?? '',
+        guarantor_name: member.guarantor_name ?? '',
+        guarantor_nin: member.guarantor_nin ?? '',
+        guarantor_phone: member.guarantor_phone ?? '',
+        guarantor_address: member.guarantor_address ?? '',
         is_shareholder: member.is_shareholder,
         joined_at: member.joined_at,
         status: member.status,
@@ -223,6 +231,10 @@ function detailsPayload() {
     email: nullable(form.email),
     next_of_kin: nullable(form.next_of_kin),
     next_of_kin_contact: nullable(form.next_of_kin_contact),
+    guarantor_name: nullable(form.guarantor_name),
+    guarantor_nin: nullable(form.guarantor_nin),
+    guarantor_phone: nullable(form.guarantor_phone),
+    guarantor_address: nullable(form.guarantor_address),
     is_shareholder: form.is_shareholder,
     joined_at: nullable(form.joined_at),
     category: form.category,
@@ -723,6 +735,33 @@ const errorText = 'mt-1 text-xs text-red-500'
             <label :class="label" for="m-joined">Joined Date</label>
             <input id="m-joined" v-model="form.joined_at" type="date" :class="inputClass('joined_at')" />
             <p v-if="fieldError('joined_at')" :class="errorText">{{ fieldError('joined_at') }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Guarantor -->
+      <div :class="card">
+        <h2 :class="heading">Guarantor</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label :class="label" for="m-guarantor-name">Name</label>
+            <input id="m-guarantor-name" v-model="form.guarantor_name" type="text" maxlength="255" :class="inputClass('guarantor_name')" />
+            <p v-if="fieldError('guarantor_name')" :class="errorText">{{ fieldError('guarantor_name') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="m-guarantor-nin">NIN Number</label>
+            <input id="m-guarantor-nin" v-model="form.guarantor_nin" type="text" maxlength="50" :class="inputClass('guarantor_nin')" />
+            <p v-if="fieldError('guarantor_nin')" :class="errorText">{{ fieldError('guarantor_nin') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="m-guarantor-phone">Phone Number</label>
+            <input id="m-guarantor-phone" v-model="form.guarantor_phone" type="tel" maxlength="20" :class="inputClass('guarantor_phone')" />
+            <p v-if="fieldError('guarantor_phone')" :class="errorText">{{ fieldError('guarantor_phone') }}</p>
+          </div>
+          <div>
+            <label :class="label" for="m-guarantor-address">Address</label>
+            <input id="m-guarantor-address" v-model="form.guarantor_address" type="text" maxlength="500" :class="inputClass('guarantor_address')" />
+            <p v-if="fieldError('guarantor_address')" :class="errorText">{{ fieldError('guarantor_address') }}</p>
           </div>
         </div>
       </div>

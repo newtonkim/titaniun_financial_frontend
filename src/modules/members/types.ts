@@ -75,6 +75,10 @@ export interface Member extends ClientApplicationDetails {
   next_of_kin: string | null
   next_of_kin_contact: string | null
   next_of_kin_contact_country: string | null
+  guarantor_name: string | null
+  guarantor_nin: string | null
+  guarantor_phone: string | null
+  guarantor_address: string | null
   is_shareholder: boolean
   initial_deposit: Money | null
   opening_balance: Money | null
@@ -116,6 +120,10 @@ export interface MemberDetailsPayload extends ClientApplicationDetails {
   email?: string | null
   next_of_kin?: string | null
   next_of_kin_contact?: string | null
+  guarantor_name?: string | null
+  guarantor_nin?: string | null
+  guarantor_phone?: string | null
+  guarantor_address?: string | null
   is_shareholder?: boolean
   joined_at?: ISODate | null
   category?: MemberCategory

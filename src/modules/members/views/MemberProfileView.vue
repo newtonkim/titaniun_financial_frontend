@@ -181,6 +181,16 @@ const profileSections = computed((): { title: string; icon: Component; fields: P
       ],
     },
     {
+      title: 'Guarantor',
+      icon: ShieldCheck,
+      fields: [
+        { label: 'Name', icon: User, value: m.guarantor_name },
+        { label: 'NIN Number', icon: CreditCard, value: m.guarantor_nin },
+        { label: 'Phone Number', icon: Phone, value: m.guarantor_phone },
+        { label: 'Address', icon: MapPin, value: m.guarantor_address },
+      ],
+    },
+    {
       title: 'Membership',
       icon: ShieldCheck,
       fields: [
