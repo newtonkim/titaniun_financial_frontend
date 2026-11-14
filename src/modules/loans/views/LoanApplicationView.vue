@@ -17,7 +17,9 @@ import {
 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { chartOfAccountsApi } from '@/modules/accounting/api'
+import ChartOfAccountFormDrawer from '@/modules/accounting/components/ChartOfAccountFormDrawer.vue'
 import type { ChartOfAccount } from '@/modules/accounting/types'
+import { useAuth } from '@/modules/auth/store'
 import type { Member } from '@/modules/members/types'
 import { membersApi } from '@/modules/members/api'
 import MemberFormDrawer from '@/modules/members/components/MemberFormDrawer.vue'
@@ -91,7 +93,39 @@ const pendingClient = ref<Member | null>(null)
 const checkingClient = ref(false)
 const localError = ref('')
 const formHeading = ref<HTMLElement>()
-const accounts = ref<ChartOfAccount[]>([])
+const allAccounts = ref<ChartOfAccount[]>([])
+/** The header fee income accounts sit under: 42000 Fee Income in the standard chart. */
+const feeIncomeHeader = computed(
+  () =>
+    allAccounts.value.find((item) => item.code === '42000') ??
+    allAccounts.value.find((item) => item.type === 'income' && !item.is_postable && /fee/i.test(item.name)) ??
+    null,
+)
+function isFeeIncome(account: ChartOfAccount): boolean {
+  if (account.type !== 'income' || !account.is_postable) return false
+  if (account.subtype === 'Fee Income') return true
+  for (let parentId = account.parent_id; parentId !== null; ) {
+    if (parentId === feeIncomeHeader.value?.id) return true
+    parentId = allAccounts.value.find((item) => item.id === parentId)?.parent_id ?? null
+  }
+  return false
+}
+/** Charges post to fee income; an account a charge already uses stays listed so it is not lost. */
+const accounts = computed(() =>
+  allAccounts.value.filter(
+    (item) =>
+      isFeeIncome(item) ||
+      item.id === charge.value.chart_of_account_id ||
+      form.charges.some((added) => added.chart_of_account_id === item.id),
+  ),
+)
+const { can } = useAuth()
+const canCreateLedger = computed(() => can('accounting.manage'))
+const ledgerOpen = ref(false)
+function useNewLedger(account: ChartOfAccount): void {
+  allAccounts.value.push(account)
+  charge.value.chart_of_account_id = account.id
+}
 const charge = ref<LoanChargeInput>({
   name: 'Monitoring fee',
   amount: '',
@@ -241,9 +275,7 @@ async function checkClientApproval() {
 onMounted(async () => {
   try {
     const result = await chartOfAccountsApi.list({ is_active: true })
-    accounts.value = result.data.filter(
-      (item) => item.is_postable && ['income', 'liability'].includes(item.type),
-    )
+    allAccounts.value = result.data
   } catch {
     localError.value = 'Accounting accounts could not be loaded. Retry before adding charges.'
   }
@@ -614,14 +646,20 @@ onMounted(async () => {
                         Deduct at disbursement
                       </option>
                     </select></label
-                  ><label class="loan-span-all"
-                    >Accounting account<select v-model.number="charge.chart_of_account_id">
-                      <option :value="0" disabled>Select fee income or recovery account</option>
+                  ><div class="loan-field-label loan-span-all">
+                    <div class="application-charge-account">
+                      <label for="application-charge-account">Accounting account</label>
+                      <button v-if="canCreateLedger" type="button" class="loan-link" @click="ledgerOpen = true">
+                        <Plus :size="14" />New ledger account
+                      </button>
+                    </div>
+                    <select id="application-charge-account" v-model.number="charge.chart_of_account_id">
+                      <option :value="0" disabled>Select fee income account</option>
                       <option v-for="account in accounts" :key="account.id" :value="account.id">
                         {{ account.code }} · {{ account.name }}
                       </option>
-                    </select></label
-                  >
+                    </select>
+                  </div>
                 </div>
                 <button class="loan-button loan-button--outline" type="button" @click="addCharge">
                   <Plus :size="16" />Add charge
@@ -850,5 +888,12 @@ onMounted(async () => {
       </div>
     </template>
     <MemberFormDrawer v-model:open="registerOpen" :member-id="null" @saved="registered" />
+    <ChartOfAccountFormDrawer
+      v-model:open="ledgerOpen"
+      :account="null"
+      :accounts="allAccounts"
+      :preset="{ type: 'income', parentId: feeIncomeHeader?.id ?? null }"
+      @saved="useNewLedger"
+    />
   </div>
 </template>

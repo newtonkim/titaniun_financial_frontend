@@ -16,9 +16,12 @@ import {
   type StoreChartOfAccountPayload,
 } from '../types'
 
-/** Create or edit a ledger account. New accounts get the next free code under their parent. */
+/**
+ * Create or edit a ledger account. New accounts get the next free code under their parent; `preset`
+ * starts a new one already placed, e.g. an income account under Fee Income.
+ */
 const open = defineModel<boolean>('open', { required: true })
-const props = defineProps<{ account: ChartOfAccount | null; accounts: ChartOfAccount[] }>()
+const props = defineProps<{ account: ChartOfAccount | null; accounts: ChartOfAccount[]; preset?: { type: AccountType; parentId: number | null } }>()
 const emit = defineEmits<{ saved: [account: ChartOfAccount] }>()
 
 const blank = (): Required<StoreChartOfAccountPayload> => ({
@@ -87,16 +90,25 @@ watch(open, (isOpen) => {
   if (!isOpen) return
   filling.value = true
   const account = props.account
-  Object.assign(
-    form.data,
-    account
-      ? { ...blank(), ...account, subtype: account.subtype ?? '', description: account.description ?? '' }
-      : { ...blank(), code: nextGlCode('asset', null, props.accounts) },
-  )
+  Object.assign(form.data, account ? { ...blank(), ...account, subtype: account.subtype ?? '', description: account.description ?? '' } : newAccount())
   form.errors.value = {}
   form.message.value = null
   queueMicrotask(() => (filling.value = false))
 })
+
+function newAccount(): Required<StoreChartOfAccountPayload> {
+  const type = props.preset?.type ?? 'asset'
+  const parent = props.accounts.find((item) => item.id === props.preset?.parentId) ?? null
+
+  return {
+    ...blank(),
+    type,
+    normal_balance: NORMAL_BALANCE_BY_TYPE[type],
+    parent_id: parent?.id ?? null,
+    subtype: siblingSubtype(parent, props.accounts),
+    code: nextGlCode(type, parent, props.accounts),
+  }
+}
 
 async function save() {
   const account = await form.submit()

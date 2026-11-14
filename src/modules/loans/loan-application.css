@@ -30,6 +30,9 @@
 .application-divider { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:27px; margin:27px 0 17px; border-top:1px solid var(--loan-border); }
 .application-divider span { font-size: 12px; color:var(--application-muted); }
 .application-charge-editor { background:var(--loan-soft); padding:18px; border-radius:8px; margin:16px 0; }
+.application-charge-account { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.application-charge-account label { font-size:12px; font-weight:550; color:var(--loan-text); }
+.application-charge-account .loan-link { font-size:12px; }
 .application-info { display:flex; align-items:flex-start; gap:12px; padding:15px; border:1px solid var(--loan-border); border-radius:8px; background:var(--loan-soft); margin:20px 0; color:var(--application-muted); font-size:12px; line-height:1.7; }
 .application-info svg { flex-shrink:0; margin-top:2px; color:var(--application-navy); }
 .application-declaration { padding:23px; background:var(--loan-soft); border-radius:8px; }
