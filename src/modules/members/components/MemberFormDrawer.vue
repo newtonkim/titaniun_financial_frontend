@@ -8,7 +8,7 @@ import { formatEnum, formatMoney, today } from '@/core/utils/format'
 import { savingsProductsApi } from '@/modules/savings/api'
 import { shareProductsApi } from '@/modules/shares/api'
 import type { ShareProduct } from '@/modules/shares/types'
-import { membersApi } from '../api'
+import { memberSettingsApi, membersApi } from '../api'
 import {
   EDITABLE_STATUSES,
   GENDERS,
@@ -18,6 +18,7 @@ import {
   type MaritalStatus,
   type Member,
   type MemberCategory,
+  type MemberSettings,
   type MemberStatus,
   type MemberType,
 } from '../types'
@@ -35,6 +36,10 @@ const errors = ref<ValidationErrors>({})
 
 const savingsProducts = ref<{ id: number; name: string }[]>([])
 const shareProducts = ref<ShareProduct[]>([])
+/** A new free agent's code prefix is fixed; `form.member_number` then holds only what staff type after it. */
+const codeSettings = ref<MemberSettings>({ code_prefix: 'FA', code_length: 8 })
+const codePrefix = computed(() => `${codeSettings.value.code_prefix}-`)
+const typesFreeAgentCode = computed(() => !isEditing.value && form.category === 'free_agent')
 
 const blank = () => ({
   applicant_type: 'individual' as 'individual' | 'business',
@@ -144,10 +149,12 @@ async function load(): Promise<void> {
       })
       avatarPreview.value = member.avatar_url
     } else {
-      const [savings, shares] = await Promise.all([
+      const [savings, shares, settings] = await Promise.all([
         savingsProductsApi.list({ active: true, per_page: 100 }),
         shareProductsApi.list({ active: true }),
+        memberSettingsApi.show(),
       ])
+      codeSettings.value = settings
       savingsProducts.value = savings.data.map((product) => ({ id: product.id, name: product.name }))
       shareProducts.value = shares.data
     }
@@ -221,6 +228,7 @@ async function save(): Promise<void> {
           })
         : await membersApi.create({
             ...detailsPayload(),
+            ...(typesFreeAgentCode.value ? { member_number: codePrefix.value + form.member_number.trim().toUpperCase() } : {}),
             member_type: form.member_type,
             savings_product_id: form.savings_product_id,
             initial_deposit: form.member_type === 'new_member' ? form.initial_deposit : null,
@@ -503,14 +511,32 @@ const errorText = 'mt-1 text-xs text-red-500'
         <h2 :class="heading">Membership details</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div>
-            <label :class="label" for="m-number">Member Code</label>
+            <label :class="label" for="m-number">Member Code<template v-if="typesFreeAgentCode"> *</template></label>
+            <div v-if="typesFreeAgentCode" class="flex">
+              <span class="inline-flex items-center rounded-l-lg border border-r-0 border-border bg-muted px-3 font-mono text-sm text-muted-foreground">{{ codePrefix }}</span>
+              <input
+                id="m-number"
+                v-model="form.member_number"
+                type="text"
+                required
+                :minlength="codeSettings.code_length"
+                :maxlength="codeSettings.code_length"
+                pattern="[A-Za-z0-9]+"
+                :title="`${codeSettings.code_length} letters or digits`"
+                :class="[inputClass('member_number'), 'rounded-l-none font-mono uppercase']"
+                :placeholder="'X'.repeat(codeSettings.code_length)"
+                autocomplete="off"
+              />
+            </div>
             <input
+              v-else
               id="m-number"
               v-model="form.member_number"
               type="text"
               :class="inputClass('member_number')"
               placeholder="Generated when left blank"
             />
+            <p v-if="typesFreeAgentCode && !fieldError('member_number')" class="mt-1 text-xs text-muted-foreground">Type {{ codeSettings.code_length }} letters or digits after {{ codePrefix }}</p>
             <p v-if="fieldError('member_number')" :class="errorText">{{ fieldError('member_number') }}</p>
           </div>
           <div>
