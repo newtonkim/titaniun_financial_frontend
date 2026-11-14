@@ -32,20 +32,22 @@ async function load() {
   if (props.productId === null) return
   loading.value = true
   message.value = ''
-  try {
-    const [chargeList, penaltyList, accounts] = await Promise.all([
-      loanProductChargesApi.list(props.productId),
-      loanProductPenaltiesApi.list(props.productId),
-      chartOfAccountsApi.list({ is_active: true }),
-    ])
-    charges.value = chargeList
-    penalties.value = penaltyList
-    incomeAccounts.value = accounts.data.filter((account) => account.type === 'income' && account.is_postable)
-  } catch {
-    message.value = 'Charges and penalties could not be loaded.'
-  } finally {
-    loading.value = false
-  }
+  // Each part loads on its own, so the income accounts still fill the form if a list fails.
+  const [chargeList, penaltyList, accounts] = await Promise.allSettled([
+    loanProductChargesApi.list(props.productId),
+    loanProductPenaltiesApi.list(props.productId),
+    chartOfAccountsApi.list({ is_active: true }),
+  ])
+  if (chargeList.status === 'fulfilled') charges.value = chargeList.value
+  if (penaltyList.status === 'fulfilled') penalties.value = penaltyList.value
+  if (accounts.status === 'fulfilled') incomeAccounts.value = accounts.value.data.filter((account) => account.type === 'income' && account.is_postable)
+  const failed = [
+    chargeList.status === 'rejected' && 'charges',
+    penaltyList.status === 'rejected' && 'penalties',
+    accounts.status === 'rejected' && 'income accounts',
+  ].filter((part): part is string => typeof part === 'string')
+  if (failed.length) message.value = `The ${new Intl.ListFormat('en', { type: 'conjunction' }).format(failed)} could not be loaded. Refresh the page; if it persists, the server may need its route cache cleared.`
+  loading.value = false
 }
 
 watch(() => props.productId, () => void load(), { immediate: true })
@@ -74,9 +76,12 @@ function editPenalty(penalty: LoanProductPenalty | null) {
   }
 }
 
-// A monthly charge can only be collected with repayments.
+// A charge deducted at disbursement is taken once; a monthly one is collected with repayments.
 watch(() => chargeEdit.value?.data.frequency, (frequency) => {
   if (chargeEdit.value && frequency === 'monthly') chargeEdit.value.data.collection = 'repayment'
+})
+watch(() => chargeEdit.value?.data.collection, (collection) => {
+  if (chargeEdit.value && collection === 'upfront') chargeEdit.value.data.frequency = 'once'
 })
 
 async function saveCharge() {
@@ -197,7 +202,7 @@ const secondaryButton = 'rounded-lg border border-border px-3 py-1.5 text-xs fon
             <div><label :class="label" for="lpc-calc">Calculation</label><select id="lpc-calc" v-model="chargeEdit.data.calculation" :class="input"><option value="flat">Flat amount</option><option value="percentage">Percentage of principal</option></select></div>
             <div><label :class="label" for="lpc-value">{{ chargeEdit.data.calculation === 'percentage' ? 'Rate (%)' : 'Amount' }}</label><input id="lpc-value" v-model.number="chargeEdit.data.value" type="number" min="0" step="0.01" :class="input" /><p v-if="fieldError(chargeEdit.errors, 'value')" class="mt-1 text-xs text-red-500">{{ fieldError(chargeEdit.errors, 'value') }}</p></div>
             <div><label :class="label" for="lpc-frequency">Frequency</label><select id="lpc-frequency" v-model="chargeEdit.data.frequency" :class="input"><option value="once">One time</option><option value="monthly">Monthly</option></select></div>
-            <div><label :class="label" for="lpc-collection">Collection</label><select id="lpc-collection" v-model="chargeEdit.data.collection" :class="input"><option value="upfront" :disabled="chargeEdit.data.frequency === 'monthly'">Deduct at disbursement</option><option value="repayment">With repayments</option></select><p v-if="fieldError(chargeEdit.errors, 'collection')" class="mt-1 text-xs text-red-500">{{ fieldError(chargeEdit.errors, 'collection') }}</p></div>
+            <div><label :class="label" for="lpc-collection">Collection</label><select id="lpc-collection" v-model="chargeEdit.data.collection" :class="input"><option value="upfront">Deduct at disbursement (one time)</option><option value="repayment">With repayments</option></select><p v-if="fieldError(chargeEdit.errors, 'collection')" class="mt-1 text-xs text-red-500">{{ fieldError(chargeEdit.errors, 'collection') }}</p></div>
             <div class="sm:col-span-2"><label :class="label" for="lpc-account">Income account</label><select id="lpc-account" v-model.number="chargeEdit.data.chart_of_account_id" :class="input"><option v-for="account in incomeAccounts" :key="account.id" :value="account.id">{{ account.code }} · {{ account.name }}</option></select><p v-if="fieldError(chargeEdit.errors, 'chart_of_account_id')" class="mt-1 text-xs text-red-500">{{ fieldError(chargeEdit.errors, 'chart_of_account_id') }}</p></div>
             <label class="flex items-center gap-2 text-xs sm:col-span-2"><input v-model="chargeEdit.data.is_active" type="checkbox" />Active: add it to new applications</label>
           </div>

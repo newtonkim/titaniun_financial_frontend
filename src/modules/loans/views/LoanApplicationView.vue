@@ -236,6 +236,19 @@ function next() {
     localError.value = 'Record the applicant’s declaration and signatory name.'
   if (!localError.value) stage.value = Math.min(stage.value + 1, 4)
 }
+// A charge deducted at disbursement is taken once; a monthly one is collected with repayments.
+watch(
+  () => charge.value.frequency,
+  (frequency) => {
+    if (frequency === 'monthly') charge.value.collection = 'repayment'
+  },
+)
+watch(
+  () => charge.value.collection,
+  (collection) => {
+    if (collection === 'upfront') charge.value.frequency = 'once'
+  },
+)
 function addCharge() {
   if (!charge.value.name.trim() || !(Number(charge.value.amount) > 0) || !charge.value.chart_of_account_id) {
     localError.value = 'Enter the charge name, a positive amount, and its accounting account.'
@@ -642,9 +655,7 @@ onMounted(async () => {
                   ><label
                     >Collection<select v-model="charge.collection">
                       <option value="repayment">With repayments</option>
-                      <option value="upfront" :disabled="charge.frequency === 'monthly'">
-                        Deduct at disbursement
-                      </option>
+                      <option value="upfront">Deduct at disbursement (one time)</option>
                     </select></label
                   ><div class="loan-field-label loan-span-all">
                     <div class="application-charge-account">
