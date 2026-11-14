@@ -36,10 +36,21 @@ const errors = ref<ValidationErrors>({})
 
 const savingsProducts = ref<{ id: number; name: string }[]>([])
 const shareProducts = ref<ShareProduct[]>([])
-/** A new free agent's code prefix is fixed; `form.member_number` then holds only what staff type after it. */
-const codeSettings = ref<MemberSettings>({ code_prefix: 'FA', code_length: 8 })
+/**
+ * Adding a free agent, or changing a member into one, takes a new code with a fixed prefix;
+ * `form.member_number` then holds only what staff type after it.
+ */
+const codeSettings = ref<MemberSettings>({ code_prefix: 'FA', code_length: 8, savings_product_id: null })
 const codePrefix = computed(() => `${codeSettings.value.code_prefix}-`)
-const typesFreeAgentCode = computed(() => !isEditing.value && form.category === 'free_agent')
+const savedCategory = ref<MemberCategory | null>(null)
+const savedCode = ref('')
+const becomesFreeAgent = computed(() => isEditing.value && savedCategory.value === 'member' && form.category === 'free_agent')
+const typesFreeAgentCode = computed(() => form.category === 'free_agent' && (!isEditing.value || becomesFreeAgent.value))
+
+// Switching an existing member to free agent swaps their old code for the new prefix; switching back restores it.
+watch(becomesFreeAgent, (becomes) => {
+  form.member_number = becomes ? '' : savedCode.value
+})
 
 const blank = () => ({
   applicant_type: 'individual' as 'individual' | 'business',
@@ -106,6 +117,7 @@ const maxBirthDate = computed(() => {
 const fieldError = (field: string): string | undefined => errors.value[field]?.[0]
 
 async function load(): Promise<void> {
+  savedCategory.value = null
   Object.assign(form, blank())
   avatar.value = null
   avatarPreview.value = null
@@ -114,8 +126,11 @@ async function load(): Promise<void> {
   loading.value = true
 
   try {
+    codeSettings.value = await memberSettingsApi.show()
     if (props.memberId !== null) {
       const member = await membersApi.show(props.memberId)
+      savedCategory.value = member.category
+      savedCode.value = member.member_number
       Object.assign(form, {
         applicant_type: member.applicant_type ?? 'individual',
         employer: member.employer ?? '',
@@ -149,12 +164,10 @@ async function load(): Promise<void> {
       })
       avatarPreview.value = member.avatar_url
     } else {
-      const [savings, shares, settings] = await Promise.all([
+      const [savings, shares] = await Promise.all([
         savingsProductsApi.list({ active: true, per_page: 100 }),
         shareProductsApi.list({ active: true }),
-        memberSettingsApi.show(),
       ])
-      codeSettings.value = settings
       savingsProducts.value = savings.data.map((product) => ({ id: product.id, name: product.name }))
       shareProducts.value = shares.data
     }
@@ -223,6 +236,7 @@ async function save(): Promise<void> {
       props.memberId !== null
         ? await membersApi.update(props.memberId, {
             ...detailsPayload(),
+            ...(typesFreeAgentCode.value ? { member_number: codePrefix.value + form.member_number.trim().toUpperCase() } : {}),
             member_type: form.member_type,
             status: form.status,
           })
@@ -537,6 +551,9 @@ const errorText = 'mt-1 text-xs text-red-500'
               placeholder="Generated when left blank"
             />
             <p v-if="typesFreeAgentCode && !fieldError('member_number')" class="mt-1 text-xs text-muted-foreground">Type {{ codeSettings.code_length }} letters or digits after {{ codePrefix }}</p>
+            <p v-if="becomesFreeAgent" class="mt-1 text-xs text-muted-foreground">
+              Their accounts are renumbered from the new code<template v-if="codeSettings.savings_product_id">, and their open savings accounts move to the free agent savings product</template>.
+            </p>
             <p v-if="fieldError('member_number')" :class="errorText">{{ fieldError('member_number') }}</p>
           </div>
           <div>
