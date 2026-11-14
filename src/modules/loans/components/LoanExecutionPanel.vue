@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { CheckCircle2, Circle, Download, FileCheck2, FileUp, PenLine, ShieldCheck } from 'lucide-vue-next'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { CheckCircle2, Circle, Download, FileCheck2, FileUp, PenLine, Pencil, ShieldCheck } from 'lucide-vue-next'
 import { ApiError } from '@/core/api/http'
 import { formatDate, formatEnum } from '@/core/utils/format'
 import { loanApplicationsApi, loansApi } from '../api'
@@ -22,6 +22,16 @@ const file = ref<File | null>(null)
 const fileInput = ref<HTMLInputElement>()
 const upload = reactive({ title: '', category: 'national_id', guarantor_id: null as number | null })
 const review = reactive({ document_id: 0, decision: 'verified', notes: '' })
+/** Open the verification form on one document, its current decision preselected, ready for notes. */
+async function editVerification(documentId: number, status: string | undefined) {
+  review.document_id = documentId
+  review.decision = status === 'rejected' ? 'rejected' : 'verified'
+  review.notes = ''
+  await nextTick()
+  const notes = document.getElementById('verify-notes')
+  notes?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  notes?.focus({ preventScroll: true })
+}
 const pricing = reactive({ notes: '', acknowledged: false })
 const signature = reactive({
   document_id: 0,
@@ -297,8 +307,19 @@ onMounted(async () => {
                 }}<small class="execution-file-name">Revision {{ item.agreement_revision }}</small>
               </td>
               <td>
-                {{ formatEnum(item.verification_status)
-                }}<small v-if="item.verification_notes" class="execution-file-name">{{
+                <span class="execution-verification">
+                  {{ formatEnum(item.verification_status) }}
+                  <button
+                    v-if="can('loans.documents.verify') && !['disbursed', 'closed'].includes(loan.status)"
+                    type="button"
+                    class="execution-verify-edit"
+                    :aria-label="`Edit verification of ${item.title}`"
+                    :title="item.verification_status === 'pending' ? 'Verify or reject this document' : 'Change this verification'"
+                    @click="editVerification(item.id, item.verification_status)"
+                  >
+                    <Pencil :size="12" />Edit
+                  </button></span
+                ><small v-if="item.verification_notes" class="execution-file-name">{{
                   item.verification_notes
                 }}</small>
               </td>
@@ -371,7 +392,7 @@ onMounted(async () => {
                 <option value="rejected">Rejected / replacement required</option>
               </select></label
             ><label class="loan-span-all"
-              >Verification notes<textarea v-model="review.notes" required rows="2" />
+              >Verification notes<textarea id="verify-notes" v-model="review.notes" required rows="2" />
             </label>
           </div>
           <button type="submit" class="loan-button loan-button--outline" style="margin-top: 16px" :disabled="!review.document_id">
