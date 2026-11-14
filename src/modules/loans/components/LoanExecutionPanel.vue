@@ -7,7 +7,7 @@ import { loanApplicationsApi, loansApi } from '../api'
 import { documentCategories } from '../application-policy'
 import { downloadApplicationPack } from '../application-pack'
 import { createRepaymentSchedule, downloadContinuingAgreement } from '../continuing-agreement'
-import type { Loan, LoanAgreementSnapshot } from '../types'
+import type { Loan, LoanAgreementSnapshot, LoanSignature } from '../types'
 
 const props = defineProps<{ loan: Loan }>()
 const originalContinuingFormUrl = `${import.meta.env.BASE_URL}continuing-client-loan-v1.pdf`
@@ -34,6 +34,7 @@ async function editVerification(documentId: number, status: string | undefined) 
 }
 const pricing = reactive({ notes: '', acknowledged: false })
 const signature = reactive({
+  signature_id: null as number | null,
   document_id: 0,
   guarantor_id: null as number | null,
   signer_type: 'applicant',
@@ -59,6 +60,40 @@ const currentDocuments = computed(() =>
 watch(currentDocuments, (documents) => {
   if (!documents.some((item) => item.id === signature.document_id)) signature.document_id = 0
 })
+const guarantorName = (id: number | null) => props.loan.guarantors?.find((item) => item.id === id)?.member.name ?? null
+let loadingSignature = false
+// A guarantor signs in their own name; choosing the guarantor fills it in (still editable).
+watch(
+  () => signature.guarantor_id,
+  (id) => {
+    if (signature.signer_type === 'guarantor' && !loadingSignature) signature.signer_name = guarantorName(id) ?? signature.signer_name
+  },
+)
+/** Load a recorded signature into the form to correct it. */
+async function editSignature(item: LoanSignature) {
+  loadingSignature = true
+  Object.assign(signature, {
+    signature_id: item.id,
+    signer_type: item.signer_type,
+    guarantor_id: item.guarantor_id,
+    signer_name: item.signer_name,
+    signed_at: item.signed_at.slice(0, 10),
+    details: { address: '', occupation: '', designation: '', national_id: '', ...(item.details ?? {}) },
+  })
+  await nextTick()
+  signature.document_id = item.loan_document_id
+  loadingSignature = false
+  const name = document.getElementById('signature-name')
+  name?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  name?.focus({ preventScroll: true })
+}
+function resetSignature() {
+  Object.assign(signature, { signature_id: null, document_id: 0, guarantor_id: null, signer_type: 'applicant', signer_name: '', details: { address: '', occupation: '', designation: '', national_id: '' } })
+}
+async function saveSignature() {
+  await run('signature', { ...signature, guarantor_id: needsGuarantor.value ? signature.guarantor_id : null })
+  if (!error.value) resetSignature()
+}
 async function run(action: string, payload: Record<string, unknown>) {
   busy.value = true
   error.value = ''
@@ -409,13 +444,28 @@ onMounted(async () => {
               <th>Signatory</th>
               <th>Capacity</th>
               <th>Date / revision</th>
+              <th v-if="loan.status === 'approved'"><span class="loan-sr-only">Edit</span></th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="item in loan.signatures" :key="item.id">
               <td>{{ item.signer_name }}</td>
-              <td>{{ formatEnum(item.signer_type) }}</td>
+              <td>
+                {{ formatEnum(item.signer_type)
+                }}<small v-if="item.guarantor_id" class="execution-file-name">for {{ guarantorName(item.guarantor_id) ?? 'a guarantor' }}</small>
+              </td>
               <td>{{ formatDate(item.signed_at) }} · r{{ item.agreement_revision }}</td>
+              <td v-if="loan.status === 'approved'">
+                <button
+                  v-if="item.agreement_revision === loan.agreement_revision"
+                  type="button"
+                  class="execution-verify-edit"
+                  :aria-label="`Edit ${item.signer_name}'s ${formatEnum(item.signer_type).toLowerCase()} signature`"
+                  @click="editSignature(item)"
+                >
+                  <Pencil :size="12" />Edit
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -423,11 +473,9 @@ onMounted(async () => {
       <form
         v-if="loan.status === 'approved'"
         class="loan-subform"
-        @submit.prevent="
-          run('signature', { ...signature, guarantor_id: needsGuarantor ? signature.guarantor_id : null })
-        "
+        @submit.prevent="saveSignature"
       >
-        <h3>Record a verified paper signature</h3>
+        <h3>{{ signature.signature_id ? 'Correct a signature' : 'Record a verified paper signature' }}</h3>
         <p class="loan-hint">
           Signatures reference a verified signed copy. Upload and verify that document first.
         </p>
@@ -441,7 +489,7 @@ onMounted(async () => {
                 <option value="guarantor_witness">Guarantor witness</option>
                 <option value="lender">Lender representative</option>
               </select></label
-            ><label>Signatory name<input v-model="signature.signer_name" required /></label
+            ><label>Signatory name<input id="signature-name" v-model="signature.signer_name" required /></label
             ><label v-if="needsGuarantor"
               >Guarantor<select v-model.number="signature.guarantor_id" required>
                 <option :value="null" disabled>Select guarantor</option>
@@ -471,7 +519,10 @@ onMounted(async () => {
             ><label>Designation / title<input v-model="signature.details.designation" /></label>
           </div>
           <button type="submit" class="loan-button loan-button--outline" style="margin-top: 16px" :disabled="!signature.document_id">
-            <PenLine :size="16" />Record signature
+            <PenLine :size="16" />{{ signature.signature_id ? 'Save correction' : 'Record signature' }}
+          </button>
+          <button v-if="signature.signature_id" type="button" class="loan-link" style="margin: 16px 0 0 14px" @click="resetSignature">
+            Cancel
           </button>
         </fieldset>
       </form>
