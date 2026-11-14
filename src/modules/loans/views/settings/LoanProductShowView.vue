@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { ArrowLeft, CreditCard, Pencil, ToggleLeft, ToggleRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import { formatMoney } from '@/core/utils/format'
+import { formatMoney, formatPercent } from '@/core/utils/format'
 import LoanProductFormDrawer from '../../components/LoanProductFormDrawer.vue'
 import { ACCOUNT_FIELDS } from '../../composables/useLoanProductForm'
 import { interestMethodLabel, interestPeriodLabel } from '../../composables/useLoanProducts'
@@ -120,7 +120,7 @@ function account(p: LoanProduct, field: string): AccountSummary | null | undefin
 
       <div :class="card">
         <h2 class="mb-3 text-section text-heading">Interest distribution</h2>
-        <p :class="detail">{{ 100 - Number(product.commission_rate) }}% company · {{ product.commission_rate }}% commission</p>
+        <p :class="detail">{{ formatPercent(product.company_interest_rate) }}% company · {{ formatPercent(product.commission_interest_rate) }}% commission, of {{ formatPercent(product.interest_rate) }}% interest {{ product.interest_period === 'per_year' ? 'per year' : 'per month' }}</p>
         <p class="mt-2 text-sm text-muted-foreground">The selected officer or referring guarantor earns commission on collected interest. Payout is held until the client fully clears the loan, then included in a quarter-end distribution. The borrower’s rate and principal are unaffected.</p>
       </div>
 

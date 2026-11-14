@@ -6,12 +6,20 @@ const moneyFormatter = new Intl.NumberFormat(undefined, {
   ...(currency ? { style: 'currency', currency, currencyDisplay: 'code' } : {}),
 })
 const compactFormatter = new Intl.NumberFormat(undefined, { notation: 'compact', maximumFractionDigits: 1 })
+const percentFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 })
 const dateFormatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' })
 
 export function formatMoney(value: string | number | null | undefined): string {
   if (value === null || value === undefined || value === '') return '—'
   const amount = Number(value)
   return Number.isNaN(amount) ? String(value) : moneyFormatter.format(amount)
+}
+
+/** A percentage held to more places than people read, e.g. 16.66666667 as 16.67. */
+export function formatPercent(value: string | number | null | undefined): string {
+  if (value === null || value === undefined || value === '') return '—'
+  const amount = Number(value)
+  return Number.isNaN(amount) ? String(value) : percentFormatter.format(amount)
 }
 
 /** Short axis label: 12.5K, 3M. */

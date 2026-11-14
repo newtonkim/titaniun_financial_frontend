@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Calculator, RefreshCw } from 'lucide-vue-next'
-import { formatMoney } from '@/core/utils/format'
+import { formatMoney, formatPercent } from '@/core/utils/format'
 import type { LoanProductPreview } from '../types'
 defineProps<{ preview: LoanProductPreview | null; loading?: boolean; error?: string }>()
 defineEmits<{ retry: [] }>()
@@ -33,7 +33,7 @@ defineEmits<{ retry: [] }>()
           <dd>{{ formatMoney(preview.company_interest) }}</dd>
         </div>
         <div v-if="preview.commission_amount !== undefined">
-          <dt>Commission ({{ preview.commission_rate }}%)</dt>
+          <dt>Commission ({{ formatPercent(preview.commission_rate) }}% of interest)</dt>
           <dd>{{ formatMoney(preview.commission_amount) }}</dd>
         </div>
         <div v-if="preview.charges_with_repayment"><dt>Charges with repayment</dt><dd>{{ formatMoney(preview.charges_with_repayment) }}</dd></div>

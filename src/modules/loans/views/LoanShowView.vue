@@ -18,7 +18,7 @@ import {
   UsersRound,
 } from 'lucide-vue-next'
 import { ApiError } from '@/core/api/http'
-import { formatDate, formatEnum, formatMoney } from '@/core/utils/format'
+import { formatDate, formatEnum, formatMoney, formatPercent } from '@/core/utils/format'
 import { letterheadApi, PAYMENT_METHODS, printReceipt, receiptNumber } from '@/modules/accounting/receipts'
 import { useAuth } from '@/modules/auth/store'
 import { loansApi } from '../api'
@@ -568,8 +568,8 @@ onBeforeUnmount(() => {
                   <div>
                     <dt>Interest distribution</dt>
                     <dd>
-                      {{ 100 - Number(loan.commission_rate) }}% company / {{ loan.commission_rate }}%
-                      commission
+                      {{ formatPercent(100 - Number(loan.commission_rate)) }}% company / {{ formatPercent(loan.commission_rate) }}%
+                      commission of interest
                     </dd>
                   </div>
                   <div>

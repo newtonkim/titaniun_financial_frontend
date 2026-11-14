@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, watch } from 'vue'
 import { ApiError } from '@/core/api/http'
-import { formatDate, formatMoney } from '@/core/utils/format'
+import { formatDate, formatMoney, formatPercent } from '@/core/utils/format'
 import { chartOfAccountsApi, journalEntriesApi } from '@/modules/accounting/api'
 import type { ChartOfAccount, JournalEntry } from '@/modules/accounting/types'
 import { useAuth } from '@/modules/auth/store'
@@ -218,7 +218,7 @@ onMounted(() => load())
             </td>
             <td>{{ formatMoney(item.interest_amount) }}</td>
             <td>
-              {{ formatMoney(item.amount) }}<br /><small>{{ item.commission_rate }}% of interest</small>
+              {{ formatMoney(item.amount) }}<br /><small>{{ formatPercent(item.commission_rate) }}% of interest</small>
             </td>
             <td>
               <template v-if="item.eligible_on"

@@ -28,7 +28,7 @@ import { loansApi } from '../api'
 import { useLoanApplication } from '../composables/useLoanApplication'
 import { applicationSteps } from '../application-policy'
 import applicationWording from '../application-guarantee.json'
-import { formatEnum, formatMoney } from '@/core/utils/format'
+import { formatEnum, formatMoney, formatPercent } from '@/core/utils/format'
 import type { Loan, LoanApplicationData, LoanChargeInput } from '../types'
 import '../loan-workflow.css'
 import '../loan-application.css'
@@ -653,7 +653,7 @@ onMounted(async () => {
                   </select></label
                 >
                 <p class="loan-hint">
-                  {{ product?.commission_rate ?? 20 }}% of collected interest is recorded as commission, held
+                  {{ product ? `${formatPercent(product.commission_interest_rate)}% of the ${formatPercent(product.interest_rate)}%` : 'A share of' }} collected interest is recorded as commission, held
                   until full clearance, and paid at an eligible quarter-end.
                 </p></template
               >

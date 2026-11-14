@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { Calculator, ChevronDown, ChevronUp } from 'lucide-vue-next'
 import AppDrawer from '@/core/components/AppDrawer.vue'
 import SearchableSelect from '@/core/components/SearchableSelect.vue'
-import { formatMoney } from '@/core/utils/format'
+import { formatMoney, formatPercent } from '@/core/utils/format'
 import { ACCOUNT_FIELDS, useLoanProductForm } from '../composables/useLoanProductForm'
 import type { LoanProduct } from '../types'
 
@@ -39,6 +39,7 @@ const inputClass = (field: string) => [input, fieldError(field) ? 'border-red-40
 const card = 'rounded-lg border border-border bg-background p-6'
 const label = 'mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300'
 const hint = 'mt-1 text-xs text-muted-foreground'
+const companyRate = computed(() => Math.max(0, Number(form.value.interest_rate ?? 0) - Number(form.value.commission_interest_rate ?? 0)))
 const money = (value: number | string | null | undefined) => formatMoney(value ?? 0)
 </script>
 
@@ -219,10 +220,10 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
 
       <div :class="card">
         <h2 class="mb-3 text-section text-heading">Interest distribution</h2>
-        <label :class="label" for="lp-commission">Commission share of collected interest (%)</label>
-        <input id="lp-commission" v-model.number="form.commission_rate" type="number" min="0" max="100" step="0.01" :class="inputClass('commission_rate')" />
-        <p v-if="fieldError('commission_rate')" class="mt-1 text-xs text-red-500">{{ fieldError('commission_rate') }}</p>
-        <p :class="hint">Company retains {{ 100 - Number(form.commission_rate) }}%; the selected officer or referring guarantor earns {{ form.commission_rate }}%. Only collected interest qualifies. Payout is at quarter-end after the client fully clears the loan; unpaid commission carries forward. Principal and fees do not earn commission.</p>
+        <label :class="label" for="lp-commission">Commission rate (% {{ form.interest_period === 'per_year' ? 'per year' : 'per month' }})</label>
+        <input id="lp-commission" v-model.number="form.commission_interest_rate" type="number" min="0" :max="Number(form.interest_rate) || undefined" step="0.01" :class="inputClass('commission_interest_rate')" />
+        <p v-if="fieldError('commission_interest_rate')" class="mt-1 text-xs text-red-500">{{ fieldError('commission_interest_rate') }}</p>
+        <p :class="hint">Of the {{ formatPercent(form.interest_rate) }}% interest rate, the company keeps {{ formatPercent(companyRate) }}% and the selected officer or referring guarantor earns {{ formatPercent(form.commission_interest_rate) }}%. Only collected interest qualifies. Payout is at quarter-end after the client fully clears the loan; unpaid commission carries forward. Principal and fees do not earn commission.</p>
       </div>
 
       <!-- Workflow and eligibility -->
