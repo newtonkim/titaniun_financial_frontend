@@ -46,6 +46,8 @@ export interface ClientApplicationDetails {
 export interface MemberSettings {
   code_prefix: string
   code_length: number
+  /** A member's open savings accounts move to this product when they become a free agent. */
+  savings_product_id: number | null
 }
 
 export interface Member extends ClientApplicationDetails {
