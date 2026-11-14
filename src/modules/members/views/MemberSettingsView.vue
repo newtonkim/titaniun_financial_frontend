@@ -58,7 +58,7 @@ onMounted(async () => {
           <option :value="null">— keep their current product —</option>
           <option v-for="product in savingsProducts" :key="product.id" :value="product.id">{{ product.name }}</option>
         </select>
-        <span class="text-xs font-normal text-muted-foreground">When a member becomes a free agent, their open savings accounts move to this product. A balance moves between the products' liability accounts with a journal entry.</span>
+        <span class="text-xs font-normal text-muted-foreground">Free agents' open savings accounts are kept on this product: saving here moves existing free agents onto it, and anyone who becomes a free agent moves too. A balance moves between the products' liability accounts with a journal entry.</span>
         <span v-if="form.error('savings_product_id')" class="text-xs font-normal text-destructive">{{ form.error('savings_product_id') }}</span>
       </label>
       <div v-if="canManage" class="flex justify-end"><Button type="submit" :disabled="form.processing.value">{{ form.processing.value ? 'Saving…' : 'Save' }}</Button></div>
