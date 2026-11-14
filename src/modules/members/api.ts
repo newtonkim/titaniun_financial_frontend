@@ -1,7 +1,7 @@
 import { download, http } from '@/core/api/http'
 import { createResourceApi } from '@/core/api/resource'
 import type { Wrapped } from '@/core/api/types'
-import type { Member, MemberExit, MemberExitType, MemberFilters, MemberImportResult, MemberLedgerResponse, MemberStatementData, StoreMemberPayload, UpdateMemberPayload } from './types'
+import type { Member, MemberExit, MemberExitType, MemberFilters, MemberImportResult, MemberLedgerResponse, MemberSettings, MemberStatementData, StoreMemberPayload, UpdateMemberPayload } from './types'
 
 export const membersApi = {
   ...createResourceApi<Member, StoreMemberPayload, UpdateMemberPayload, MemberFilters>('/members'),
@@ -36,4 +36,9 @@ export const memberExitsApi = {
   cancel: (id: number) => http.post<Wrapped<MemberExit>>(`/member-exits/${id}/cancel`, {}).then((response) => response.data),
   approve: (id: number) => http.post<Wrapped<MemberExit>>(`/member-exits/${id}/approve`, {}).then((response) => response.data),
   reject: (id: number, reason: string) => http.post<Wrapped<MemberExit>>(`/member-exits/${id}/reject`, { reason }).then((response) => response.data),
+}
+
+export const memberSettingsApi = {
+  show: () => http.get<{ data: MemberSettings }>('/member-settings').then((response) => response.data),
+  update: (payload: MemberSettings) => http.put<{ data: MemberSettings }>('/member-settings', payload).then((response) => response.data),
 }

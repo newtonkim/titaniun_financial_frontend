@@ -13,4 +13,12 @@ export default defineModule({
     { label: 'New member', to: { name: 'members.index', query: { create: '1' } }, icon: 'plus', group: 'members', menu: { label: 'Members', icon: 'members', heading: 'Sacco members' } },
     { label: 'Free agents', to: { name: 'members.free-agents' }, icon: 'wallet', group: 'members' },
   ],
+  settings: [
+    {
+      label: 'Free agent settings',
+      description: 'The prefix every free agent code starts with and how many characters staff type after it.',
+      icon: 'tag',
+      route: { path: 'free-agents', name: 'members.settings', meta: { title: 'Free agent settings' }, component: () => import('./views/MemberSettingsView.vue') },
+    },
+  ],
 })

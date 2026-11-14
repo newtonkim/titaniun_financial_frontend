@@ -42,6 +42,12 @@ export interface ClientApplicationDetails {
   signatory_national_id?: string | null
 }
 
+/** Free agent settings: a free agent code is the prefix, a dash, then exactly `code_length` letters or digits. */
+export interface MemberSettings {
+  code_prefix: string
+  code_length: number
+}
+
 export interface Member extends ClientApplicationDetails {
   id: number
   member_number: string
