@@ -1280,7 +1280,7 @@ onBeforeUnmount(() => {
             </div>
             <p class="loan-hint">
               {{ votesFor }} approve · {{ votesAgainst }} decline ·
-              {{ loan.committee_votes_required }} matching independent votes required.
+              {{ loan.committee_votes_required === 1 ? 'One committee vote decides.' : `${loan.committee_votes_required} matching independent votes required.` }}
             </p>
             <div v-for="vote in loan.votes" :key="vote.id" class="loan-vote">
               <div>

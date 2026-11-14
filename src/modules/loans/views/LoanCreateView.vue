@@ -214,7 +214,9 @@ const termUnits: Record<RepaymentFrequency, string> = {
                   Your application will move through guarantor consent, officer appraisal, manager recommendation, and
                   independent committee voting before funds are released.
                 </p>
-                <p>{{ options.committee_votes_required }} independent committee votes are required for a decision.</p>
+                <p>
+                  {{ options.committee_votes_required === 1 ? 'One independent committee vote decides the application.' : `${options.committee_votes_required} independent committee votes are required for a decision.` }}
+                </p>
               </section>
             </aside>
           </div>

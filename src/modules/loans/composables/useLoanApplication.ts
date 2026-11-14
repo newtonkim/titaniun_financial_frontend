@@ -28,7 +28,7 @@ export function useLoanApplication() {
   const errors = ref<Record<string, string[]>>({})
   const member = ref<Member | null>(null)
   const products = ref<LoanProduct[]>([])
-  const options = ref<LoanOptions>({ officers: [], committee_votes_required: 2 })
+  const options = ref<LoanOptions>({ officers: [], committee_votes_required: 1 })
   const blankApplication = (): LoanApplicationData => ({
     applicant_type: 'individual',
     display_name: '',
