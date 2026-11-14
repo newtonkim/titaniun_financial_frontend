@@ -69,7 +69,8 @@ export interface LoanProductSettings extends Record<LoanProductAccountField, num
   name: string
   code: string
   description: string | null
-  commission_rate: Money | number
+  /** Commission as a rate beside the interest rate, e.g. 2 of 12 per month; the company keeps the rest. */
+  commission_interest_rate: Money | number | null
   interest_rate: Money | number | null
   interest_method: InterestMethod | null
   interest_period: InterestPeriod
@@ -95,6 +96,10 @@ export interface LoanProductSettings extends Record<LoanProductAccountField, num
 
 export interface LoanProduct extends LoanProductSettings {
   id: number
+  /** Share of collected interest paid as commission, e.g. 16.66666667 for 2% of 12%. */
+  commission_rate: Money
+  /** What the company keeps of the interest rate, e.g. 10.00 of 12.00. */
+  company_interest_rate: Money
   interest_rate: Money
   interest_method: InterestMethod
   min_amount: Money

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft, CreditCard, Eye, Pencil, Plus, Search, ToggleLeft, ToggleRight, Trash2 } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import { formatPercent } from '@/core/utils/format'
 import LoanProductDeleteDialog from '../../components/LoanProductDeleteDialog.vue'
 import LoanProductFormDrawer from '../../components/LoanProductFormDrawer.vue'
 import { interestPeriodLabel, useLoanProducts } from '../../composables/useLoanProducts'
@@ -98,7 +99,8 @@ const {
                 {{ product.interest_rate != null ? `${product.interest_rate}% ${interestPeriodLabel(product.interest_period)}` : '—' }}
               </td>
               <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">
-                {{ 100 - Number(product.commission_rate) }}% company / {{ product.commission_rate }}% commission
+                {{ formatPercent(product.company_interest_rate) }}% company / {{ formatPercent(product.commission_interest_rate) }}% commission
+                <span class="block text-xs">{{ interestPeriodLabel(product.interest_period) }}</span>
               </td>
               <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">
                 {{ product.max_term != null ? `${product.max_term} ${product.duration_type ?? ''}` : '—' }}

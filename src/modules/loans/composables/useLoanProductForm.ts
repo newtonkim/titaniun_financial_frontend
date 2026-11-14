@@ -53,7 +53,7 @@ function createDefaultForm(): LoanProductSettings {
     repayment_structure: 'equal_installment',
     min_term: 1,
     max_term: null,
-    commission_rate: 20,
+    commission_interest_rate: 0,
     commission_expense_account_id: null,
     commission_payable_account_id: null,
     duration_type: 'months',
@@ -231,7 +231,7 @@ export function useLoanProductForm(productId: Ref<number | null>, onSaved: (prod
     [
       () => form.value.min_amount,
       () => form.value.interest_rate,
-      () => form.value.commission_rate,
+      () => form.value.commission_interest_rate,
       () => form.value.interest_method,
       () => form.value.repayment_structure,
       () => form.value.interest_period,

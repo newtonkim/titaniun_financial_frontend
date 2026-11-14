@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue'
 import { ArrowLeft, ArrowRight, Check, FileText, HandCoins, Save, Send, ShieldCheck, UserRound } from 'lucide-vue-next'
-import { formatEnum, formatMoney } from '@/core/utils/format'
+import { formatEnum, formatMoney, formatPercent } from '@/core/utils/format'
 import LoanMemberPicker from '../components/LoanMemberPicker.vue'
 import LoanPreviewCard from '../components/LoanPreviewCard.vue'
 import LoanSecurityFields from '../components/LoanSecurityFields.vue'
@@ -286,7 +286,7 @@ const termUnits: Record<RepaymentFrequency, string> = {
                       </option></select
                     ><span class="loan-hint"
                       >Choose a referring guarantor after adding them under security. The selected recipient earns the
-                      entire {{ product?.commission_rate }}% commission share.</span
+                      entire {{ formatPercent(product?.commission_interest_rate) }}% commission.</span
                     ><span v-if="errors.commission_member_id" class="loan-field-error">{{
                       errors.commission_member_id[0]
                     }}</span></label
