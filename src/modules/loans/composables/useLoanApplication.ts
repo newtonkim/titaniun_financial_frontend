@@ -84,7 +84,7 @@ export function useLoanApplication() {
       first_repayment_date: form.application_type === 'continuing' ? form.first_repayment_date || null : null,
       member_id: member.value?.id ?? 0,
       application_data: { ...form.application_data },
-      charges: form.charges,
+      charges: form.charges.map(({ from_product: _fromProduct, ...charge }) => charge),
       loan_product_id: form.loan_product_id ?? 0,
       loan_officer_id: form.loan_officer_id,
       commission_member_id: form.commission_member_id,
@@ -168,6 +168,47 @@ export function useLoanApplication() {
     () => form.loan_product_id,
     () => {
       if (!editingId.value && !loading.value && product.value) form.term = product.value.max_term
+      if (!editingId.value && !loading.value) applyProductCharges()
+    },
+  )
+
+  /** The product's active charges, worked out for the amount requested. */
+  function productChargeAmount(calculation: 'flat' | 'percentage', value: string): string {
+    if (calculation === 'flat') return Number(value).toFixed(2)
+    const principal = Number(form.principal)
+    return Number.isFinite(principal) && principal > 0 ? ((principal * Number(value)) / 100).toFixed(2) : ''
+  }
+
+  /** A new application starts with its product's charges; changing product swaps them for the new one's. */
+  function applyProductCharges() {
+    form.charges = [
+      ...form.charges.filter((charge) => !charge.from_product),
+      ...(product.value?.charges ?? [])
+        .filter((charge) => charge.is_active !== false)
+        .map((charge): LoanChargeInput => {
+          const amount = productChargeAmount(charge.calculation, charge.value)
+          return {
+            name: charge.name,
+            amount,
+            frequency: charge.frequency,
+            collection: charge.collection,
+            chart_of_account_id: charge.chart_of_account_id,
+            from_product: { id: charge.id, calculation: charge.calculation, value: charge.value, amount },
+          }
+        }),
+    ]
+  }
+
+  // Percentage charges follow the amount requested, unless staff have set their own figure.
+  watch(
+    () => form.principal,
+    () => {
+      for (const charge of form.charges) {
+        const source = charge.from_product
+        if (source?.calculation !== 'percentage' || charge.amount !== source.amount) continue
+        charge.amount = productChargeAmount('percentage', source.value)
+        source.amount = charge.amount
+      }
     },
   )
   function validate(target: number): boolean {

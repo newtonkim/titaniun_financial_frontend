@@ -5,6 +5,7 @@ import AppDrawer from '@/core/components/AppDrawer.vue'
 import SearchableSelect from '@/core/components/SearchableSelect.vue'
 import { formatMoney, formatPercent } from '@/core/utils/format'
 import { ACCOUNT_FIELDS, useLoanProductForm } from '../composables/useLoanProductForm'
+import LoanProductFeesPanel from './LoanProductFeesPanel.vue'
 import type { LoanProduct } from '../types'
 
 /** Create (`productId` null) or edit a loan product in a right-hand drawer. */
@@ -260,7 +261,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
       <!-- Fees and penalties -->
       <div :class="card">
         <div class="mb-5 flex items-center justify-between">
-          <h2 class="text-section text-heading">Fees and Penalties</h2>
+          <h2 class="text-section text-heading">Charges and Penalties</h2>
           <button
             type="button"
             class="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
@@ -272,49 +273,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
           </button>
         </div>
         <template v-if="showFeesAndPenalties">
-          <div class="mb-5 rounded-lg border border-border bg-neutral-50/70 p-3.5 text-xs text-neutral-600 dark:bg-neutral-800/60 dark:text-neutral-300">
-            <p class="font-medium text-neutral-700 dark:text-neutral-200">Set the fees and penalties that apply to this loan product.</p>
-            <ul class="mt-2 list-disc space-y-1.5 pl-4">
-              <li><strong class="font-semibold">Processing fees:</strong> deducted at disbursement.</li>
-              <li><strong class="font-semibold">Penalties:</strong> applied when members miss repayment deadlines.</li>
-            </ul>
-          </div>
-          <div class="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label :class="label" for="lp-fee-type">Processing Fee</label>
-              <select id="lp-fee-type" v-model="form.processing_fee_type" :class="inputClass('processing_fee_type')">
-                <option value="none">None</option>
-                <option value="percentage">Percentage of principal</option>
-                <option value="flat">Flat amount</option>
-              </select>
-            </div>
-            <div v-if="form.processing_fee_type !== 'none'">
-              <label :class="label" for="lp-fee-value">{{ form.processing_fee_type === 'percentage' ? 'Fee (%)' : 'Fee Amount' }}</label>
-              <input id="lp-fee-value" v-model.number="form.processing_fee_value" type="number" min="0" step="0.01" :class="inputClass('processing_fee_value')" />
-              <p v-if="fieldError('processing_fee_value')" class="mt-1 text-xs text-red-500">{{ fieldError('processing_fee_value') }}</p>
-            </div>
-            <div>
-              <label :class="label" for="lp-penalty-type">Penalty</label>
-              <select id="lp-penalty-type" v-model="form.penalty_type" :class="inputClass('penalty_type')">
-                <option value="none">None</option>
-                <option value="percentage">Percentage of overdue amount</option>
-                <option value="percentage_per_day">Percentage per day overdue</option>
-                <option value="flat">Flat amount</option>
-              </select>
-            </div>
-            <div v-if="form.penalty_type !== 'none'">
-              <label :class="label" for="lp-penalty-rate">{{ form.penalty_type === 'flat' ? 'Penalty Amount' : 'Penalty Rate (%)' }}</label>
-              <input id="lp-penalty-rate" v-model.number="form.penalty_rate" type="number" min="0" step="0.01" :class="inputClass('penalty_rate')" />
-              <p v-if="fieldError('penalty_rate')" class="mt-1 text-xs text-red-500">{{ fieldError('penalty_rate') }}</p>
-            </div>
-          </div>
-          <div v-if="form.penalty_type !== 'none'" class="mt-5 rounded-lg border border-border p-4">
-            <label :class="label" for="lp-penalty-grace">Penalty Grace Period (days)</label>
-            <input id="lp-penalty-grace" v-model.number="form.penalty_grace_days" type="number" min="0" placeholder="0" :class="inputClass('penalty_grace_days')" />
-            <p class="mt-1 text-xs text-muted-foreground">
-              Number of days after a repayment due date before penalties begin. Set to 0 for immediate application.
-            </p>
-          </div>
+          <LoanProductFeesPanel :product-id="productId" />
         </template>
       </div>
 
