@@ -25,9 +25,10 @@ export default defineModule({
       label: 'Savings products',
       description: 'Standard and fixed deposit products: fees, charges, maturity and accounts.',
       icon: 'wallet',
-      route: { path: 'savings', name: 'savings.settings', meta: { title: 'Savings products' }, component: () => import('./views/settings/SavingsSettingsView.vue') },
+      route: { path: 'savings', name: 'savings.settings', meta: { title: 'Savings products' }, component: () => import('./views/settings/SavingsProductIndexView.vue') },
       subRoutes: [
-        { path: 'savings/products', name: 'savings.products', meta: { title: 'Savings products' }, component: () => import('./views/settings/SavingsProductIndexView.vue') },
+        // The list used to sit one click behind a landing page; keep its old address working.
+        { path: 'savings/products', name: 'savings.products', redirect: { name: 'savings.settings' } },
       ],
     },
   ],

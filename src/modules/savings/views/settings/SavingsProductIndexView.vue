@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { ChevronLeft, Edit, Eye, Landmark, Plus, Trash2 } from 'lucide-vue-next'
+import { Edit, Eye, Landmark, Plus, Trash2 } from 'lucide-vue-next'
 import { ApiError } from '@/core/api/http'
 import { formatMoney } from '@/core/utils/format'
 import { savingsProductsApi } from '../../api'
@@ -67,15 +67,12 @@ function openChargesModal(product: SavingsProduct) {
 <template>
   <div class="tw-scope flex h-full flex-1 flex-col gap-6">
     <div class="flex flex-wrap items-center gap-3">
-      <RouterLink :to="{ name: 'savings.settings' }" aria-label="Back" class="mr-2 rounded-full p-2 transition hover:bg-neutral-200 dark:hover:bg-neutral-800">
-        <ChevronLeft class="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
-      </RouterLink>
       <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
         <Landmark class="h-5 w-5 text-brand" />
       </div>
       <div class="flex-1">
-        <h1 class="text-page-title text-heading">Savings Products List</h1>
-        <p class="text-sm text-muted-foreground">Manage rules and configurations for savings products</p>
+        <h1 class="text-page-title text-heading">Savings products</h1>
+        <p class="text-sm text-muted-foreground">Create, edit and remove standard and fixed deposit products, with their fees and charges.</p>
       </div>
 
       <button
