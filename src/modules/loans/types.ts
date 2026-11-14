@@ -100,6 +100,8 @@ export interface LoanProduct extends LoanProductSettings {
   commission_rate: Money
   /** What the company keeps of the interest rate, e.g. 10.00 of 12.00. */
   company_interest_rate: Money
+  charges?: LoanProductCharge[]
+  penalties?: LoanProductPenalty[]
   interest_rate: Money
   interest_method: InterestMethod
   min_amount: Money
@@ -168,12 +170,45 @@ export interface LoanApplicationData {
   declaration_accepted: boolean
   declaration_name: string
 }
+/** A charge a product adds to each new application: flat, or a percentage of the principal. */
+export interface LoanProductChargeInput {
+  name: string
+  calculation: 'flat' | 'percentage'
+  value: Money | number
+  frequency: 'once' | 'monthly'
+  collection: 'upfront' | 'repayment'
+  chart_of_account_id: number
+  is_active?: boolean
+}
+export interface LoanProductCharge extends LoanProductChargeInput {
+  id: number
+  loan_product_id: number
+  value: Money
+  account?: AccountSummary
+}
+/** A penalty a product charges on installments unpaid past their due date and grace days. */
+export interface LoanProductPenaltyInput {
+  name: string
+  calculation: 'flat' | 'percentage' | 'percentage_per_day'
+  value: Money | number
+  grace_days: number
+  chart_of_account_id: number
+  is_active?: boolean
+}
+export interface LoanProductPenalty extends LoanProductPenaltyInput {
+  id: number
+  loan_product_id: number
+  value: Money
+  account?: AccountSummary
+}
 export interface LoanChargeInput {
   name: string
   amount: string
   frequency: 'once' | 'monthly'
   collection: 'upfront' | 'repayment'
   chart_of_account_id: number
+  /** Set on a charge copied from the product; its amount follows the principal until staff change it. Not sent. */
+  from_product?: { id: number; calculation: 'flat' | 'percentage'; value: string; amount: string }
 }
 export interface LoanCharge extends LoanChargeInput {
   id: number

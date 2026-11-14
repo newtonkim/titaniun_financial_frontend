@@ -19,7 +19,11 @@ import type {
   LoanPaymentPayload,
   LoanFilters,
   LoanProduct,
+  LoanProductCharge,
+  LoanProductChargeInput,
   LoanProductFilters,
+  LoanProductPenalty,
+  LoanProductPenaltyInput,
   LoanProductPreview,
   LoanProductSettings,
   LoanRepayment,
@@ -135,4 +139,20 @@ export const loanApplicationsApi = {
         commissionApiPath(applicationStaff.url()),
       )
       .then((result) => result.data),
+}
+
+/** Charges a loan product adds to each new application. */
+export const loanProductChargesApi = {
+  list: (productId: number) => http.get<{ data: LoanProductCharge[] }>(`/loan-products/${productId}/charges`).then((response) => response.data),
+  create: (productId: number, payload: LoanProductChargeInput) => http.post<Wrapped<LoanProductCharge>>(`/loan-products/${productId}/charges`, payload).then((response) => response.data),
+  update: (productId: number, id: number, payload: LoanProductChargeInput) => http.patch<Wrapped<LoanProductCharge>>(`/loan-products/${productId}/charges/${id}`, payload).then((response) => response.data),
+  remove: (productId: number, id: number) => http.delete(`/loan-products/${productId}/charges/${id}`),
+}
+
+/** Penalties a loan product charges on overdue installments. */
+export const loanProductPenaltiesApi = {
+  list: (productId: number) => http.get<{ data: LoanProductPenalty[] }>(`/loan-products/${productId}/penalties`).then((response) => response.data),
+  create: (productId: number, payload: LoanProductPenaltyInput) => http.post<Wrapped<LoanProductPenalty>>(`/loan-products/${productId}/penalties`, payload).then((response) => response.data),
+  update: (productId: number, id: number, payload: LoanProductPenaltyInput) => http.patch<Wrapped<LoanProductPenalty>>(`/loan-products/${productId}/penalties/${id}`, payload).then((response) => response.data),
+  remove: (productId: number, id: number) => http.delete(`/loan-products/${productId}/penalties/${id}`),
 }

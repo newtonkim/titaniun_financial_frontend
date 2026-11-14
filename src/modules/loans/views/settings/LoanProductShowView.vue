@@ -22,12 +22,6 @@ const detail = 'text-sm text-foreground'
 
 const titleCase = (value: string | null | undefined) => (value ? value.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase()) : '—')
 
-function charge(type: string, value: string): string {
-  if (type === 'none') return 'None'
-  if (type === 'flat') return formatMoney(value)
-  return `${value}%${type === 'percentage_per_day' ? ' per day' : ''}`
-}
-
 function account(p: LoanProduct, field: string): AccountSummary | null | undefined {
   return p[field.replace(/_id$/, '') as keyof LoanProduct] as AccountSummary | null | undefined
 }
@@ -147,21 +141,34 @@ function account(p: LoanProduct, field: string): AccountSummary | null | undefin
         </div>
       </div>
 
-      <!-- Fees and penalties -->
+      <!-- Charges and penalties -->
       <div :class="card">
-        <h2 class="mb-5 text-section text-heading">Fees &amp; Penalties</h2>
-        <div class="grid gap-4 sm:grid-cols-3">
+        <h2 class="mb-1 text-section text-heading">Charges &amp; Penalties</h2>
+        <p class="mb-5 text-sm text-muted-foreground">Add, edit or delete them with Edit product.</p>
+        <div class="grid gap-6 sm:grid-cols-2">
           <div>
-            <p :class="term">Processing Fee</p>
-            <p :class="detail">{{ charge(product.processing_fee_type, String(product.processing_fee_value)) }}</p>
+            <p :class="term">Charges added to new applications</p>
+            <p v-if="!product.charges?.length" :class="detail">None</p>
+            <ul v-else class="mt-1 space-y-1.5 text-sm">
+              <li v-for="item in product.charges" :key="item.id">
+                <span class="font-medium text-foreground">{{ item.name }}</span>:
+                {{ item.calculation === 'percentage' ? `${formatPercent(item.value)}% of principal` : formatMoney(item.value) }},
+                {{ item.frequency === 'monthly' ? 'monthly' : 'once' }}, {{ item.collection === 'upfront' ? 'deducted at disbursement' : 'with repayments' }}
+                <span v-if="!item.is_active" class="text-muted-foreground">(inactive)</span>
+              </li>
+            </ul>
           </div>
           <div>
-            <p :class="term">Penalty</p>
-            <p :class="detail">{{ charge(product.penalty_type, String(product.penalty_rate)) }}</p>
-          </div>
-          <div>
-            <p :class="term">Penalty Grace Period</p>
-            <p :class="detail">{{ product.penalty_grace_days }} days</p>
+            <p :class="term">Penalties on overdue installments</p>
+            <p v-if="!product.penalties?.length" :class="detail">None</p>
+            <ul v-else class="mt-1 space-y-1.5 text-sm">
+              <li v-for="item in product.penalties" :key="item.id">
+                <span class="font-medium text-foreground">{{ item.name }}</span>:
+                {{ item.calculation === 'flat' ? formatMoney(item.value) : `${formatPercent(item.value)}% of overdue${item.calculation === 'percentage_per_day' ? ' per day' : ''}` }},
+                after {{ item.grace_days }} grace days
+                <span v-if="!item.is_active" class="text-muted-foreground">(inactive)</span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
