@@ -1,13 +1,14 @@
 import { download, http } from '@/core/api/http'
 import { createResourceApi } from '@/core/api/resource'
+import { shrinkImage } from '@/core/utils/image'
 import type { Wrapped } from '@/core/api/types'
 import type { Member, MemberExit, MemberExitType, MemberFilters, MemberImportResult, MemberLedgerResponse, MemberStatementData, StoreMemberPayload, UpdateMemberPayload } from './types'
 
 export const membersApi = {
   ...createResourceApi<Member, StoreMemberPayload, UpdateMemberPayload, MemberFilters>('/members'),
-  uploadAvatar: (id: number, file: File) => {
+  uploadAvatar: async (id: number, file: File) => {
     const body = new FormData()
-    body.append('avatar', file)
+    body.append('avatar', await shrinkImage(file))
     return http.post<Wrapped<Member>>(`/members/${id}/avatar`, body).then((response) => response.data)
   },
   approve: (id: number) => http.put<Wrapped<Member>>(`/members/${id}/approve`).then((response) => response.data),
