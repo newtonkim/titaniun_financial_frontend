@@ -226,6 +226,8 @@ export interface SavingsReversal {
   id: number
   status: ReversalStatus
   reason: string
+  /** A correction: the amount recorded in place of the original once approved. */
+  replacement_amount: Money | null
   savings_transaction_id: number
   transaction?: SavingsTransaction
   account_number?: string
