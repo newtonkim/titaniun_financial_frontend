@@ -473,7 +473,7 @@ const termUnits: Record<RepaymentFrequency, string> = {
                       >
                       <div>
                         <strong>{{ check.label }}</strong>
-                        <p v-if="!check.passed">{{ check.reason }}</p>
+                        <p v-if="!check.passed || check.key === 'savings'">{{ check.reason }}</p>
                       </div>
                     </li>
                   </ul>
