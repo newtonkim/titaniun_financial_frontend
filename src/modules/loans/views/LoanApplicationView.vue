@@ -172,6 +172,7 @@ const totalRepayment = computed(
 const netDisbursement = computed(
   () => (preview.value?.net_disbursement ?? 0) - (continuing.value ? 0 : upfront.value),
 )
+const minimumGuarantors = computed(() => options.value.application_policy?.minimum_guarantors ?? 1)
 const completion = computed(() => Math.round(((stage.value + 1) / applicationSteps.length) * 100))
 watch(member, (value) => {
   if (!value || (editingId.value && form.application_data.display_name)) return
@@ -222,8 +223,11 @@ function next() {
       !form.purpose.trim())
   )
     localError.value = 'Choose a product, assign an officer, and complete the requested loan details.'
-  if (stage.value === 2 && form.guarantors.length < 2)
-    localError.value = 'Add the two savings-backed guarantors required for this application.'
+  if (stage.value === 2 && form.guarantors.length < minimumGuarantors.value)
+    localError.value =
+      minimumGuarantors.value === 1
+        ? 'Add the savings-backed guarantor required for this application.'
+        : `Add the ${minimumGuarantors.value} savings-backed guarantors required for this application.`
   if (
     stage.value === 1 &&
     continuing.value &&
