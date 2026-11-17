@@ -168,6 +168,10 @@ const upfront = computed(() =>
 const totalRepayment = computed(
   () => (preview.value?.total_repayment ?? 0) + (continuing.value ? 0 : chargeTotal.value - upfront.value),
 )
+// The application preview already deducts upfront charges; the product preview does not.
+const netDisbursement = computed(
+  () => (preview.value?.net_disbursement ?? 0) - (continuing.value ? 0 : upfront.value),
+)
 const completion = computed(() => Math.round(((stage.value + 1) / applicationSteps.length) * 100))
 watch(member, (value) => {
   if (!value || (editingId.value && form.application_data.display_name)) return
@@ -872,7 +876,7 @@ onMounted(async () => {
               </div>
               <div>
                 <dt>Net disbursement</dt>
-                <dd>{{ preview ? formatMoney((preview.net_disbursement ?? 0) - upfront) : '—' }}</dd>
+                <dd>{{ preview ? formatMoney(netDisbursement) : '—' }}</dd>
               </div>
               <div class="application-summary-total">
                 <dt>Total repayment</dt>
