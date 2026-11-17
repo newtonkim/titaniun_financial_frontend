@@ -6,8 +6,9 @@ import AppDrawer from '@/core/components/AppDrawer.vue'
 import SearchableSelect from '@/core/components/SearchableSelect.vue'
 import { formatEnum, formatMoney, today } from '@/core/utils/format'
 import { savingsProductsApi } from '@/modules/savings/api'
+import type { SavingsAccount } from '@/modules/savings/types'
 import { shareProductsApi } from '@/modules/shares/api'
-import type { ShareProduct } from '@/modules/shares/types'
+import type { ShareAccount, ShareProduct } from '@/modules/shares/types'
 import { memberSettingsApi, membersApi } from '../api'
 import {
   EDITABLE_STATUSES,
@@ -36,6 +37,11 @@ const errors = ref<ValidationErrors>({})
 
 const savingsProducts = ref<{ id: number; name: string }[]>([])
 const shareProducts = ref<ShareProduct[]>([])
+// A member being edited who already has these accounts sees them instead of the onboarding fields.
+const savingsAccounts = ref<SavingsAccount[]>([])
+const shareAccounts = ref<ShareAccount[]>([])
+const opensSavings = computed(() => savingsAccounts.value.length === 0)
+const buysShares = computed(() => shareAccounts.value.length === 0)
 /**
  * Adding a free agent, or changing a member into one, takes a new code with a fixed prefix;
  * `form.member_number` then holds only what staff type after it. Someone whose code already marks
@@ -125,6 +131,8 @@ const fieldError = (field: string): string | undefined => errors.value[field]?.[
 
 async function load(): Promise<void> {
   savedCategory.value = null
+  savingsAccounts.value = []
+  shareAccounts.value = []
   Object.assign(form, blank())
   avatar.value = null
   avatarPreview.value = null
@@ -174,14 +182,15 @@ async function load(): Promise<void> {
         status: member.status,
       })
       avatarPreview.value = member.avatar_url
-    } else {
-      const [savings, shares] = await Promise.all([
-        savingsProductsApi.list({ active: true, per_page: 100 }),
-        shareProductsApi.list({ active: true }),
-      ])
-      savingsProducts.value = savings.data.map((product) => ({ id: product.id, name: product.name }))
-      shareProducts.value = shares.data
+      savingsAccounts.value = member.savings_accounts ?? []
+      shareAccounts.value = member.share_accounts ?? []
     }
+    const [savings, shares] = await Promise.all([
+      savingsProductsApi.list({ active: true, per_page: 100 }),
+      shareProductsApi.list({ active: true }),
+    ])
+    savingsProducts.value = savings.data.map((product) => ({ id: product.id, name: product.name }))
+    shareProducts.value = shares.data
   } catch {
     message.value = 'Failed to load the member form.'
   } finally {
@@ -241,6 +250,21 @@ function detailsPayload() {
   }
 }
 
+function onboardingPayload() {
+  return {
+    ...(opensSavings.value
+      ? {
+          savings_product_id: form.savings_product_id,
+          initial_deposit: form.member_type === 'new_member' ? form.initial_deposit : null,
+          opening_balance: form.member_type === 'existing_member' ? form.opening_balance : null,
+        }
+      : {}),
+    ...(buysShares.value
+      ? { share_product_id: form.shares_quantity ? form.share_product_id : null, shares_quantity: form.shares_quantity || null }
+      : {}),
+  }
+}
+
 async function save(): Promise<void> {
   saving.value = true
   message.value = ''
@@ -254,16 +278,13 @@ async function save(): Promise<void> {
             ...(typesFreeAgentCode.value ? { member_number: codePrefix.value + form.member_number.trim().toUpperCase() } : {}),
             member_type: form.member_type,
             status: form.status,
+            ...onboardingPayload(),
           })
         : await membersApi.create({
             ...detailsPayload(),
             ...(typesFreeAgentCode.value ? { member_number: codePrefix.value + form.member_number.trim().toUpperCase() } : {}),
             member_type: form.member_type,
-            savings_product_id: form.savings_product_id,
-            initial_deposit: form.member_type === 'new_member' ? form.initial_deposit : null,
-            opening_balance: form.member_type === 'existing_member' ? form.opening_balance : null,
-            share_product_id: form.shares_quantity ? form.share_product_id : null,
-            shares_quantity: form.shares_quantity || null,
+            ...onboardingPayload(),
           })
 
     if (avatar.value) member = await membersApi.uploadAvatar(member.id, avatar.value)
@@ -393,8 +414,8 @@ const errorText = 'mt-1 text-xs text-red-500'
         </div>
       </div>
 
-      <!-- Savings (registration only) -->
-      <div v-if="!isEditing" :class="card">
+      <!-- Savings: opened here at registration, or on edit for a member who has none -->
+      <div v-if="opensSavings" :class="card">
         <h2 :class="heading">Savings Account</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="sm:col-span-2">
@@ -428,7 +449,7 @@ const errorText = 'mt-1 text-xs text-red-500'
 
           <template v-else>
             <div>
-              <label :class="label" for="m-opening-balance">Opening Balance <span class="text-red-500">*</span></label>
+              <label :class="label" for="m-opening-balance">Opening Balance <span v-if="!isEditing" class="text-red-500">*</span></label>
               <input
                 id="m-opening-balance"
                 v-model.number="form.opening_balance"
@@ -454,8 +475,26 @@ const errorText = 'mt-1 text-xs text-red-500'
         </div>
       </div>
 
-      <!-- Share purchase (registration only) -->
-      <div v-if="!isEditing" :class="card">
+      <div v-else :class="card">
+        <h2 :class="heading">Savings Account</h2>
+        <ul class="flex flex-col gap-2">
+          <li
+            v-for="account in savingsAccounts"
+            :key="account.id"
+            class="flex items-center justify-between rounded-lg bg-navy/5 px-4 py-3 text-sm dark:bg-white/5"
+          >
+            <span>
+              <span class="font-semibold text-foreground">{{ account.account_number }}</span>
+              <span class="text-muted-foreground"> · {{ account.product?.name }} · {{ formatEnum(account.status) }}</span>
+            </span>
+            <span class="font-bold text-navy dark:text-white">{{ formatMoney(account.balance) }}</span>
+          </li>
+        </ul>
+        <p class="mt-2 text-xs text-muted-foreground">Record further deposits on the savings account.</p>
+      </div>
+
+      <!-- Share purchase: bought here at registration, or on edit for a member who holds none -->
+      <div v-if="buysShares" :class="card">
         <h2 :class="heading">Share Purchase</h2>
         <div class="grid gap-4 sm:grid-cols-3">
           <div class="sm:col-span-2">
@@ -494,6 +533,23 @@ const errorText = 'mt-1 text-xs text-red-500'
             <span class="text-lg font-bold text-navy dark:text-white">{{ formatMoney(shareTotal) }}</span>
           </div>
         </div>
+      </div>
+      <div v-else :class="card">
+        <h2 :class="heading">Share Purchase</h2>
+        <ul class="flex flex-col gap-2">
+          <li
+            v-for="account in shareAccounts"
+            :key="account.id"
+            class="flex items-center justify-between rounded-lg bg-navy/5 px-4 py-3 text-sm dark:bg-white/5"
+          >
+            <span>
+              <span class="font-semibold text-foreground">{{ account.account_number }}</span>
+              <span class="text-muted-foreground"> · {{ account.product?.name }} · {{ account.shares_held ?? 0 }} shares</span>
+            </span>
+            <span class="font-bold text-navy dark:text-white">{{ formatMoney(account.share_value) }}</span>
+          </li>
+        </ul>
+        <p class="mt-2 text-xs text-muted-foreground">Buy more shares on the share account.</p>
       </div>
 
       <div :class="card">

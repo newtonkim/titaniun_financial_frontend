@@ -138,7 +138,10 @@ export interface StoreMemberPayload extends MemberDetailsPayload {
   shares_quantity?: number | null
 }
 
-export interface UpdateMemberPayload extends Partial<MemberDetailsPayload> {
+/** A member without a savings or share account can be given one on edit, as at registration. */
+export interface UpdateMemberPayload
+  extends Partial<MemberDetailsPayload>,
+    Partial<Pick<StoreMemberPayload, 'savings_product_id' | 'initial_deposit' | 'opening_balance' | 'share_product_id' | 'shares_quantity'>> {
   member_type?: MemberType
   status?: MemberStatus
 }
