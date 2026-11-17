@@ -2,6 +2,7 @@ import { download, http } from '@/core/api/http'
 import { createResourceApi } from '@/core/api/resource'
 import { shrinkImage } from '@/core/utils/image'
 import type { Wrapped } from '@/core/api/types'
+import type { SavingsReversal } from '@/modules/savings/types'
 import type { Member, MemberExit, MemberExitType, MemberFilters, MemberImportResult, MemberLedgerResponse, MemberSettings, MemberStatementData, StoreMemberPayload, UpdateMemberPayload } from './types'
 
 export const membersApi = {
@@ -11,6 +12,9 @@ export const membersApi = {
     body.append('avatar', await shrinkImage(file))
     return http.post<Wrapped<Member>>(`/members/${id}/avatar`, body).then((response) => response.data)
   },
+  /** Ask to correct the deposit the member registered with; it is applied once someone else approves it. */
+  correctInitialDeposit: (id: number, payload: { amount: number; reason: string }) =>
+    http.post<Wrapped<SavingsReversal>>(`/members/${id}/initial-deposit-correction`, payload).then((response) => response.data),
   approve: (id: number) => http.put<Wrapped<Member>>(`/members/${id}/approve`).then((response) => response.data),
   reject: (id: number, rejection_reason: string | null) =>
     http.put<Wrapped<Member>>(`/members/${id}/reject`, { rejection_reason }).then((response) => response.data),

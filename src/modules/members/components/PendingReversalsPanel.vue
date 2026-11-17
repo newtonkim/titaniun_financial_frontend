@@ -48,6 +48,9 @@ const ownRequest = (reversal: SavingsReversal) => props.currentUserId !== null &
               {{ reversal.transaction?.type }} of UGX {{ formatMoney(reversal.transaction?.amount) }}
               <span class="font-mono text-xs font-semibold text-muted-foreground">· {{ reversal.account_number }} · #{{ reversal.savings_transaction_id }}</span>
             </p>
+            <p v-if="Number(reversal.replacement_amount) > 0" class="mt-0.5 font-semibold text-foreground">
+              Correction: records UGX {{ formatMoney(reversal.replacement_amount) }} in its place
+            </p>
             <p class="mt-0.5 text-neutral-600 dark:text-neutral-300">“{{ reversal.reason }}”</p>
             <p class="mt-0.5 text-xs text-muted-foreground">Requested by {{ reversal.requested_by ?? 'staff' }} on {{ formatDate(reversal.created_at) }}</p>
           </div>

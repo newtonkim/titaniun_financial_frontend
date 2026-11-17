@@ -5,7 +5,8 @@ import { ApiError, type ValidationErrors } from '@/core/api/http'
 import AppDrawer from '@/core/components/AppDrawer.vue'
 import SearchableSelect from '@/core/components/SearchableSelect.vue'
 import { formatEnum, formatMoney, today } from '@/core/utils/format'
-import { savingsProductsApi } from '@/modules/savings/api'
+import { useAuth } from '@/modules/auth/store'
+import { savingsAccountsApi, savingsProductsApi } from '@/modules/savings/api'
 import type { SavingsAccount } from '@/modules/savings/types'
 import { shareProductsApi } from '@/modules/shares/api'
 import type { ShareAccount, ShareProduct } from '@/modules/shares/types'
@@ -41,6 +42,10 @@ const shareProducts = ref<ShareProduct[]>([])
 const savingsAccounts = ref<SavingsAccount[]>([])
 const shareAccounts = ref<ShareAccount[]>([])
 const opensSavings = computed(() => savingsAccounts.value.length === 0)
+const { can } = useAuth()
+// What the member registered with: an initial deposit (new members) or an opening balance (existing).
+const recordedDeposit = ref<string | null>(null)
+const depositAccounts = computed(() => savingsAccounts.value.filter((account) => account.status === 'active'))
 const buysShares = computed(() => shareAccounts.value.length === 0)
 /**
  * Adding a free agent, or changing a member into one, takes a new code with a fixed prefix;
@@ -100,6 +105,10 @@ const blank = () => ({
   opening_balance: null as number | null,
   share_product_id: null as number | null,
   shares_quantity: null as number | null,
+  correction_amount: null as number | null,
+  correction_reason: '',
+  deposit_account_id: null as number | null,
+  deposit_amount: null as number | null,
 })
 
 const form = reactive(blank())
@@ -133,6 +142,7 @@ async function load(): Promise<void> {
   savedCategory.value = null
   savingsAccounts.value = []
   shareAccounts.value = []
+  recordedDeposit.value = null
   Object.assign(form, blank())
   avatar.value = null
   avatarPreview.value = null
@@ -183,6 +193,8 @@ async function load(): Promise<void> {
       })
       avatarPreview.value = member.avatar_url
       savingsAccounts.value = member.savings_accounts ?? []
+      recordedDeposit.value = member.member_type === 'new_member' ? member.initial_deposit : member.opening_balance
+      form.deposit_account_id = depositAccounts.value[0]?.id ?? null
       shareAccounts.value = member.share_accounts ?? []
     }
     const [savings, shares] = await Promise.all([
@@ -265,7 +277,36 @@ function onboardingPayload() {
   }
 }
 
+/** Run a follow-up request, filing its validation errors under the drawer's own field names. */
+async function step<T>(prefix: string, request: () => Promise<T>): Promise<T> {
+  try {
+    return await request()
+  } catch (e) {
+    if (e instanceof ApiError && e.isValidation)
+      throw new ApiError(e.status, e.message, Object.fromEntries(Object.entries(e.errors).map(([key, value]) => [prefix + key, value])))
+    throw e
+  }
+}
+
+/** Ask for a correction of the registration deposit and record any further deposit, once the member is saved. */
+async function saveDeposits(memberId: number): Promise<void> {
+  if (form.correction_amount !== null && (form.correction_amount as unknown) !== '') {
+    await step('correction_', () =>
+      membersApi.correctInitialDeposit(memberId, { amount: form.correction_amount!, reason: form.correction_reason.trim() }),
+    )
+    form.correction_amount = null
+    form.correction_reason = ''
+  }
+  if (form.deposit_amount && form.deposit_account_id) {
+    await step('deposit_', () =>
+      savingsAccountsApi.recordTransaction(form.deposit_account_id!, { type: 'deposit', amount: String(form.deposit_amount) }),
+    )
+    form.deposit_amount = null
+  }
+}
+
 async function save(): Promise<void> {
+  let detailsSaved = false
   saving.value = true
   message.value = ''
   errors.value = {}
@@ -288,15 +329,26 @@ async function save(): Promise<void> {
           })
 
     if (avatar.value) member = await membersApi.uploadAvatar(member.id, avatar.value)
+    if (isEditing.value) {
+      try {
+        await saveDeposits(member.id)
+      } catch (e) {
+        // The details are saved; only the deposit step needs another go.
+        detailsSaved = true
+        emit('saved', member)
+        throw e
+      }
+    }
 
     emit('saved', member)
     open.value = false
   } catch (e) {
+    const saved = detailsSaved ? 'Member details were saved, but the deposit was not. ' : ''
     if (e instanceof ApiError && e.isValidation) {
       errors.value = e.errors
-      message.value = 'Please correct the highlighted fields.'
+      message.value = `${saved}Please correct the highlighted fields.`
     } else {
-      message.value = e instanceof ApiError ? e.message : 'Failed to save the member.'
+      message.value = saved + (e instanceof ApiError ? e.message : 'Failed to save the member.')
     }
   } finally {
     saving.value = false
@@ -490,7 +542,68 @@ const errorText = 'mt-1 text-xs text-red-500'
             <span class="font-bold text-navy dark:text-white">{{ formatMoney(account.balance) }}</span>
           </li>
         </ul>
-        <p class="mt-2 text-xs text-muted-foreground">Record further deposits on the savings account.</p>
+        <p v-if="recordedDeposit !== null" class="mt-3 text-sm text-muted-foreground">
+          {{ form.member_type === 'new_member' ? 'Initial deposit' : 'Opening balance' }} recorded at registration:
+          <span class="font-semibold text-foreground">{{ formatMoney(recordedDeposit) }}</span>
+        </p>
+
+        <div v-if="can('savings.manage')" class="mt-4 grid gap-4 sm:grid-cols-2">
+          <template v-if="recordedDeposit !== null">
+            <div>
+              <label :class="label" for="m-correction-amount">
+                Correct {{ form.member_type === 'new_member' ? 'initial deposit' : 'opening balance' }} to
+              </label>
+              <input
+                id="m-correction-amount"
+                v-model.number="form.correction_amount"
+                type="number"
+                min="0"
+                step="0.01"
+                :class="inputClass('correction_amount')"
+                placeholder="Leave blank if correct"
+              />
+              <p v-if="fieldError('correction_amount')" :class="errorText">{{ fieldError('correction_amount') }}</p>
+            </div>
+            <div>
+              <label :class="label" for="m-correction-reason">Reason for the correction</label>
+              <input
+                id="m-correction-reason"
+                v-model="form.correction_reason"
+                :required="form.correction_amount !== null"
+                :class="inputClass('correction_reason')"
+                placeholder="e.g. Member paid 30,000, not 50,000"
+              />
+              <p v-if="fieldError('correction_reason')" :class="errorText">{{ fieldError('correction_reason') }}</p>
+            </div>
+            <p class="-mt-2 text-xs text-muted-foreground sm:col-span-2">
+              A correction reverses the recorded deposit and records the right amount once someone else approves it under
+              pending reversals.
+            </p>
+          </template>
+
+          <div v-if="depositAccounts.length > 1">
+            <label :class="label" for="m-deposit-account">Deposit into</label>
+            <select id="m-deposit-account" v-model="form.deposit_account_id" :class="inputClass('deposit_account_id')">
+              <option v-for="account in depositAccounts" :key="account.id" :value="account.id">
+                {{ account.account_number }} · {{ account.product?.name }}
+              </option>
+            </select>
+          </div>
+          <div v-if="depositAccounts.length">
+            <label :class="label" for="m-deposit-amount">Add a deposit</label>
+            <input
+              id="m-deposit-amount"
+              v-model.number="form.deposit_amount"
+              type="number"
+              min="0.01"
+              step="0.01"
+              :class="inputClass('deposit_amount')"
+              placeholder="0.00"
+            />
+            <p v-if="fieldError('deposit_amount')" :class="errorText">{{ fieldError('deposit_amount') }}</p>
+            <p class="mt-1 text-xs text-muted-foreground">Recorded today in cash and receipted when you update.</p>
+          </div>
+        </div>
       </div>
 
       <!-- Share purchase: bought here at registration, or on edit for a member who holds none -->
