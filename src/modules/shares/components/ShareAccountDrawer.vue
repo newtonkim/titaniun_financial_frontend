@@ -592,20 +592,6 @@ watch(
 
 .percent { position: relative; display: block; }
 
-.percent input,
-.money input {
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-
-.percent input::-webkit-inner-spin-button,
-.percent input::-webkit-outer-spin-button,
-.money input::-webkit-inner-spin-button,
-.money input::-webkit-outer-spin-button {
-  margin: 0;
-  appearance: none;
-}
-
 .percent input {
   padding-right: 1.75rem;
   text-align: right;
