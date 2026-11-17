@@ -193,7 +193,7 @@ function addGuarantor(): void {
           min="0.01"
           placeholder="0.00"
       /></label>
-      <p class="loan-hint">The guarantor must have enough unpledged savings when consent is accepted.</p>
+      <p class="loan-hint">The guarantor must have money in their savings when consent is accepted; those savings stay locked while the guarantee is active.</p>
       <div class="loan-inline-actions">
         <button type="button" class="loan-button loan-button--quiet" @click="addingGuarantor = false">
           Cancel guarantor</button
