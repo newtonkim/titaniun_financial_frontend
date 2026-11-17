@@ -788,7 +788,7 @@ onMounted(async () => {
                   <p v-if="checking">Checking the current product limits and security…</p>
                   <div v-for="check in eligibility?.checks" :key="check.key">
                     <CheckCircle2 v-if="check.passed" :size="17" /><Circle v-else :size="17" /><span
-                      >{{ check.label }}<small v-if="!check.passed">{{ check.reason }}</small></span
+                      >{{ check.label }}<small v-if="!check.passed || check.key === 'savings'">{{ check.reason }}</small></span
                     >
                   </div>
                   <button v-if="!eligibility && !checking" type="button" class="loan-link" @click="refresh">

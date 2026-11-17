@@ -237,7 +237,7 @@ const money = (value: number | string | null | undefined) => formatMoney(value ?
               <input id="lp-appraisal" v-model.number="form.savings_appraisal_threshold" type="number" min="0" max="100" step="0.01" placeholder="0" :class="[inputClass('savings_appraisal_threshold'), 'pr-10']" />
               <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
             </div>
-            <p :class="hint">Percentage of applicant savings that does not require appraisal.</p>
+            <p :class="hint">Savings expected as a percentage of the loan. Advisory only: it is shown at appraisal but never blocks an application.</p>
             <p v-if="fieldError('savings_appraisal_threshold')" class="mt-1 text-xs text-red-500">{{ fieldError('savings_appraisal_threshold') }}</p>
           </div>
           <div>
