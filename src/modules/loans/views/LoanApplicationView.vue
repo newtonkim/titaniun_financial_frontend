@@ -688,7 +688,7 @@ onMounted(async () => {
                 ><div class="application-info">
                   <ShieldCheck :size="18" />
                   <p>
-                    Guarantors must be active members with enough unpledged savings to cover their guarantee.
+                    Guarantors must be active members with money in their savings; any balance can back a guarantee.
                     Their consent is recorded before appraisal.
                   </p>
                 </div>
